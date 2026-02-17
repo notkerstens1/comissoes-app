@@ -1,0 +1,282 @@
+import { PrismaClient } from "@prisma/client";
+import { hash } from "bcryptjs";
+
+const prisma = new PrismaClient();
+
+async function main() {
+  console.log("Iniciando seed...");
+
+  // Criar supervisor (role ADMIN no banco, exibido como "Supervisor")
+  const senhaSupervisor = await hash("supervisor123", 12);
+  const supervisor = await prisma.user.upsert({
+    where: { email: "supervisor@solar.com" },
+    update: { nome: "Eric Lima" },
+    create: {
+      nome: "Eric Lima",
+      email: "supervisor@solar.com",
+      senha: senhaSupervisor,
+      role: "ADMIN",
+    },
+  });
+  console.log("Supervisor criado:", supervisor.email);
+
+  // Criar diretor
+  const senhaDiretor = await hash("diretor123", 12);
+  const diretor = await prisma.user.upsert({
+    where: { email: "diretor@solar.com" },
+    update: { nome: "Erick Santos" },
+    create: {
+      nome: "Erick Santos",
+      email: "diretor@solar.com",
+      senha: senhaDiretor,
+      role: "DIRETOR",
+    },
+  });
+  console.log("Diretor criado:", diretor.email);
+
+  // Criar vendedores
+  const senhaVendedor = await hash("vendedor123", 12);
+
+  // Desativar usuarios com emails antigos/errados
+  await prisma.user.updateMany({
+    where: { email: { in: ["juliana@solar.com", "erick@solar.com", "daniel@solar.com"] } },
+    data: { ativo: false },
+  });
+  console.log("Usuarios antigos desativados (se existiam)");
+
+  const bruna = await prisma.user.upsert({
+    where: { email: "bruna@solar.com" },
+    update: { nome: "Bruna", ativo: true },
+    create: {
+      nome: "Bruna",
+      email: "bruna@solar.com",
+      senha: senhaVendedor,
+      role: "VENDEDOR",
+    },
+  });
+  console.log("Vendedor criado:", bruna.email);
+
+  const juliana = await prisma.user.upsert({
+    where: { email: "juliana@solar.com" },
+    update: { nome: "Juliana", email: "juliana@solar.com", ativo: true },
+    create: {
+      nome: "Juliana",
+      email: "juliana@solar.com",
+      senha: senhaVendedor,
+      role: "VENDEDOR",
+    },
+  });
+  console.log("Vendedor criado:", juliana.email);
+
+  // Criar SDR
+  const senhaSDR = await hash("sdr123", 12);
+  const emelly = await prisma.user.upsert({
+    where: { email: "emelly@solar.com" },
+    update: { nome: "Emelly", ativo: true },
+    create: {
+      nome: "Emelly",
+      email: "emelly@solar.com",
+      senha: senhaSDR,
+      role: "SDR",
+    },
+  });
+  console.log("SDR criada:", emelly.email);
+
+  // Criar configuracao (com novos campos de custos)
+  await prisma.configuracao.upsert({
+    where: { id: "config_principal" },
+    update: {
+      fatorMultiplicador: 1.8,
+      custoPlacaInstalacao: 70,
+      custoInversorInstalacao: 250,
+      custoVisitaTecnicaPadrao: 120,
+      custoCosernPadrao: 70,
+      custoTrtCreaPadrao: 65,
+      custoEngenheiroPadrao: 400,
+      aliquotaImpostoPadrao: 0.06,
+    },
+    create: {
+      id: "config_principal",
+      fatorMultiplicador: 1.8,
+      fatorGeracao: 136,
+      percentualComissaoVenda: 0.025,
+      volumeMinimoComissao: 60000,
+      custoPlacaInstalacao: 70,
+      custoInversorInstalacao: 250,
+      custoVisitaTecnicaPadrao: 120,
+      custoCosernPadrao: 70,
+      custoTrtCreaPadrao: 65,
+      custoEngenheiroPadrao: 400,
+      aliquotaImpostoPadrao: 0.06,
+    },
+  });
+  console.log("Configuracao criada/atualizada");
+
+  // Criar faixas de comissao
+  await prisma.faixaComissao.deleteMany();
+
+  await prisma.faixaComissao.createMany({
+    data: [
+      {
+        ordem: 1,
+        volumeMinimo: 0,
+        volumeMaximo: 120000,
+        percentualOver: 0.35,
+        ativa: true,
+      },
+      {
+        ordem: 2,
+        volumeMinimo: 120000,
+        volumeMaximo: 170000,
+        percentualOver: 0.45,
+        ativa: true,
+      },
+      {
+        ordem: 3,
+        volumeMinimo: 170000,
+        volumeMaximo: null,
+        percentualOver: 0.50,
+        ativa: true,
+      },
+    ],
+  });
+  console.log("Faixas de comissao criadas");
+
+  // Criar registros SDR vinculados as vendas da Juliana
+  // Buscar vendas da Juliana
+  const vendasJuliana = await prisma.venda.findMany({
+    where: { vendedorId: juliana.id },
+    orderBy: { dataConversao: "desc" },
+  });
+
+  if (vendasJuliana.length >= 2) {
+    // Limpar registros SDR anteriores (para re-seed)
+    await prisma.registroSDR.deleteMany({ where: { sdrId: emelly.id } });
+
+    const venda1 = vendasJuliana[0]; // Nilsa
+    const venda2 = vendasJuliana[1]; // Cilene
+
+    const dataConversao1 = new Date(venda1.dataConversao).toISOString().split("T")[0];
+    const dataConversao2 = new Date(venda2.dataConversao).toISOString().split("T")[0];
+
+    // Registro 1 — Nilsa (reuniao 10/02, compareceu, venda vinculada)
+    await prisma.registroSDR.create({
+      data: {
+        sdrId: emelly.id,
+        dataRegistro: "2026-02-10",
+        nomeCliente: venda1.cliente.trim(),
+        vendedoraId: juliana.id,
+        dataReuniao: "2026-02-10",
+        compareceu: true,
+        consideracoes: "Cliente muito interessada, boa conversa sobre economia na conta de luz",
+        vendaVinculadaId: venda1.id,
+        dataVendaVinculada: dataConversao1,
+        comissaoReuniao: 20,
+        comissaoVenda: 20,
+        comissaoTotal: 40,
+        statusPagamento: "PENDENTE",
+        statusLead: "VENDIDO",
+      },
+    });
+    console.log("Registro SDR criado: " + venda1.cliente.trim() + " (vinculado)");
+
+    // Registro 2 — Cilene (reuniao 12/02, compareceu, venda vinculada)
+    await prisma.registroSDR.create({
+      data: {
+        sdrId: emelly.id,
+        dataRegistro: "2026-02-12",
+        nomeCliente: venda2.cliente.trim(),
+        vendedoraId: juliana.id,
+        dataReuniao: "2026-02-12",
+        compareceu: true,
+        consideracoes: "Cliente indicada por vizinha, ja sabia dos beneficios",
+        vendaVinculadaId: venda2.id,
+        dataVendaVinculada: dataConversao2,
+        comissaoReuniao: 20,
+        comissaoVenda: 20,
+        comissaoTotal: 40,
+        statusPagamento: "PENDENTE",
+        statusLead: "VENDIDO",
+      },
+    });
+    console.log("Registro SDR criado: " + venda2.cliente.trim() + " (vinculado)");
+
+    // Registro 3 — Lead extra que nao compareceu (para mostrar variedade)
+    await prisma.registroSDR.create({
+      data: {
+        sdrId: emelly.id,
+        dataRegistro: "2026-02-14",
+        nomeCliente: "Maria das Gracas Oliveira",
+        vendedoraId: juliana.id,
+        dataReuniao: "2026-02-14",
+        compareceu: false,
+        motivoNaoCompareceu: "Remarcou",
+        consideracoes: "Cliente pediu para remarcar para semana que vem",
+        comissaoReuniao: 0,
+        comissaoVenda: 0,
+        comissaoTotal: 0,
+        statusPagamento: "PENDENTE",
+        statusLead: "AGENDADO",
+      },
+    });
+    console.log("Registro SDR criado: Maria das Gracas Oliveira (nao compareceu)");
+
+    // Registro 4 — Lead que compareceu mas ainda nao virou venda
+    await prisma.registroSDR.create({
+      data: {
+        sdrId: emelly.id,
+        dataRegistro: "2026-02-15",
+        nomeCliente: "Francisco Alves da Silva",
+        vendedoraId: juliana.id,
+        dataReuniao: "2026-02-15",
+        compareceu: true,
+        consideracoes: "Cliente pediu proposta, aguardando retorno",
+        comissaoReuniao: 20,
+        comissaoVenda: 0,
+        comissaoTotal: 20,
+        statusPagamento: "PENDENTE",
+        statusLead: "COMPARECEU",
+      },
+    });
+    console.log("Registro SDR criado: Francisco Alves da Silva (aguardando venda)");
+
+    // Registro 5 — Lead finalizado (CPF negada)
+    await prisma.registroSDR.create({
+      data: {
+        sdrId: emelly.id,
+        dataRegistro: "2026-02-08",
+        nomeCliente: "Jose Carlos Ferreira",
+        vendedoraId: juliana.id,
+        dataReuniao: "2026-02-08",
+        compareceu: true,
+        consideracoes: "Cliente compareceu mas CPF negativado, sem condicoes",
+        comissaoReuniao: 20,
+        comissaoVenda: 0,
+        comissaoTotal: 20,
+        statusPagamento: "PENDENTE",
+        statusLead: "FINALIZADO",
+        motivoFinalizacao: "CPF negada",
+      },
+    });
+    console.log("Registro SDR criado: Jose Carlos Ferreira (finalizado - CPF negada)");
+  } else {
+    console.log("Juliana nao tem vendas suficientes para vincular registros SDR");
+  }
+
+  console.log("\n=== SEED COMPLETO ===");
+  console.log("\nUsuarios criados:");
+  console.log("  Supervisor (Eric Lima):   supervisor@solar.com / supervisor123");
+  console.log("  Diretor (Erick Santos):   diretor@solar.com / diretor123");
+  console.log("  Bruna:                    bruna@solar.com / vendedor123");
+  console.log("  Juliana:                  juliana@solar.com / vendedor123");
+  console.log("  SDR (Emelly):             emelly@solar.com / sdr123");
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

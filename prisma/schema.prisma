@@ -1,0 +1,191 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  nome      String
+  email     String   @unique
+  senha     String
+  role      String   @default("VENDEDOR") // VENDEDOR | ADMIN | DIRETOR | SDR
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  vendas           Venda[]
+  dailyCommercials DailyCommercial[]
+  campanhasCriadas Campanha[] @relation("campanhasCriadas")
+  // SDR relations
+  registrosSDR         RegistroSDR[]      @relation("sdrRegistros")
+  registrosVendedora   RegistroSDR[]      @relation("vendedoraRegistros")
+  pagamentosSDR        RegistroSDR[]      @relation("pagoPor")
+  pendenciasResolvidas PendenciaVinculo[] @relation("resolvidoPor")
+}
+
+model Venda {
+  id                String   @id @default(cuid())
+  vendedorId        String
+  vendedor          User     @relation(fields: [vendedorId], references: [id])
+  cliente           String
+  formaPagamento    String
+  distribuidora     String
+  valorVenda        Float
+  kwp               Float
+  custoEquipamentos Float
+  geracaoKwh        Float
+  over              Float
+  margem            Float
+  comissaoVenda     Float
+  comissaoOver      Float
+  comissaoTotal     Float
+
+  // Campos de custo (visao diretor)
+  quantidadePlacas       Int    @default(0)
+  quantidadeInversores   Int    @default(1)
+  custoInstalacao        Float? // auto: (placas * custoPlaca) + (inversores * custoInversor)
+  custoVisitaTecnica     Float? // padrao config, diretor pode editar
+  custoCosern            Float? // padrao config, diretor pode editar
+  custoTrtCrea           Float? // padrao config (R$65)
+  custoEngenheiro        Float? // R$400 fixo por instalacao (engenheiro)
+  aliquotaImposto        Float? // padrao config (0.06 = 6%)
+  custoImposto           Float? // auto: aliquota * (valorVenda - custoEquipamentos)
+  percentualComissaoOverride Float? // null = usa padrao da config (2.5%). Diretor pode alterar por venda
+  comissaoVendedorCusto  Float? // copia do comissaoTotal para P&L
+  lucroLiquido           Float?
+  margemLucroLiquido     Float? // lucroLiquido / valorVenda
+
+  dataConversao     DateTime
+  fonte             String
+  status            String   @default("AGUARDANDO") // AGUARDANDO | APROVADO | PAGO
+  mesReferencia     String   // formato: "2026-01" para agrupar por mês
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  // SDR relations
+  registrosSDR       RegistroSDR[]
+  pendenciaVinculo   PendenciaVinculo?
+}
+
+model Configuracao {
+  id                      String @id @default("config_principal")
+  fatorMultiplicador      Float  @default(1.8)
+  fatorGeracao            Float  @default(136)
+  percentualComissaoVenda Float  @default(0.025)
+  volumeMinimoComissao    Float  @default(60000)
+
+  // Custos padrao (visao diretor)
+  custoPlacaInstalacao     Float @default(70)    // R$70 por placa
+  custoInversorInstalacao  Float @default(250)   // R$250 por inversor
+  custoVisitaTecnicaPadrao Float @default(120)   // R$120 por venda
+  custoCosernPadrao        Float @default(70)    // 2 x R$35
+  custoTrtCreaPadrao       Float @default(65)    // R$65 fixo
+  custoEngenheiroPadrao    Float @default(400)   // R$400 por instalacao (engenheiro)
+  aliquotaImpostoPadrao    Float @default(0.06)  // 6%
+}
+
+// Performance: Diario de Trafego (um registro por dia, empresa toda)
+model DailyTraffic {
+  id                     String   @id @default(cuid())
+  data                   String   @unique // formato "YYYY-MM-DD"
+  pessoasAlcancadas      Int      @default(0)
+  totalLeads             Int      @default(0)
+  valorInvestidoVendas   Float    @default(0)
+  valorInvestidoBranding Float    @default(0)
+  valorGasto             Float    @default(0)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+// Performance: Diario Comercial (um registro por dia por vendedor)
+model DailyCommercial {
+  id               String   @id @default(cuid())
+  data             String   // formato "YYYY-MM-DD"
+  vendedorId       String
+  vendedor         User     @relation(fields: [vendedorId], references: [id])
+  atendidos        Int      @default(0)
+  mql              Int      @default(0)
+  reunioes         Int      @default(0)
+  propostas        Int      @default(0)
+  fechados         Int      @default(0)
+  valorEmVendas    Float    @default(0)
+  leadsDescartados Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@unique([data, vendedorId])
+}
+
+model FaixaComissao {
+  id              String  @id @default(cuid())
+  ordem           Int
+  volumeMinimo    Float
+  volumeMaximo    Float?  // null = sem limite
+  percentualOver  Float
+  ativa           Boolean @default(true)
+}
+
+// SDR: Registro de acompanhamento de leads até reunião/venda
+model RegistroSDR {
+  id                  String   @id @default(cuid())
+  sdrId               String
+  sdr                 User     @relation("sdrRegistros", fields: [sdrId], references: [id])
+  dataRegistro        String   // "YYYY-MM-DD" dia do lancamento
+  nomeCliente         String
+  vendedoraId         String
+  vendedora           User     @relation("vendedoraRegistros", fields: [vendedoraId], references: [id])
+  dataReuniao         String   // "YYYY-MM-DD"
+  compareceu          Boolean  @default(false)
+  motivoNaoCompareceu String?  // dropdown padronizado (apenas se nao compareceu)
+  motivoFinalizacao   String?  // motivo de finalizacao (CPF negada, sumiu, etc)
+  consideracoes       String?  // texto livre
+  statusLead          String   @default("AGENDADO") // "AGENDADO" | "COMPARECEU" | "VENDIDO" | "FINALIZADO"
+  // Vinculo automatico com venda
+  vendaVinculadaId    String?
+  vendaVinculada      Venda?   @relation(fields: [vendaVinculadaId], references: [id])
+  dataVendaVinculada  String?  // "YYYY-MM-DD" auto-set quando vinculado
+  // Comissao (100% automatica)
+  comissaoReuniao     Float    @default(0) // R$20 se compareceu
+  comissaoVenda       Float    @default(0) // R$20 se venda vinculada
+  comissaoTotal       Float    @default(0) // reuniao + venda (0/20/40)
+  // Pagamento
+  statusPagamento     String   @default("PENDENTE") // "PENDENTE" | "PAGO"
+  dataPagamento       String?
+  pagoPorId           String?
+  pagoPor             User?    @relation("pagoPor", fields: [pagoPorId], references: [id])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// SDR: Pendencias de vinculo (vendas com match ambiguo ou sem match)
+model PendenciaVinculo {
+  id                  String   @id @default(cuid())
+  vendaId             String   @unique
+  venda               Venda    @relation(fields: [vendaId], references: [id])
+  status              String   @default("PENDENTE") // "PENDENTE" | "RESOLVIDO" | "SEM_SDR"
+  registroEscolhidoId String?
+  resolvidoPorId      String?
+  resolvidoPor        User?    @relation("resolvidoPor", fields: [resolvidoPorId], references: [id])
+  dataResolucao       String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+// Campanhas: metas de vendas criadas por Diretor/Supervisor
+model Campanha {
+  id          String   @id @default(cuid())
+  titulo      String
+  descricao   String?
+  tipo        String   // "VALOR" (meta em R$) | "QUANTIDADE" (meta em qtd vendas)
+  escopo      String   // "TIME" (meta coletiva) | "INDIVIDUAL" (meta por vendedor)
+  meta        Float    // valor da meta (R$ ou quantidade)
+  dataInicio  String   // "YYYY-MM-DD"
+  dataFim     String   // "YYYY-MM-DD"
+  ativa       Boolean  @default(true)
+  criadoPorId String
+  criadoPor   User     @relation("campanhasCriadas", fields: [criadoPorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
