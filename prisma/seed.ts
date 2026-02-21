@@ -258,9 +258,48 @@ async function main() {
           status: "AGUARDANDO",
           mesReferencia: "2026-02",
         },
+        // FEVEREIRO 2026 — vendas do Daniel (comissao 3%, logica diferente)
+        {
+          vendedorId: juliana.id,
+          cliente: "[Daniel] João Batista",
+          formaPagamento: "SOLFÁCIL",
+          distribuidora: "SOLFÁCIL",
+          valorVenda: 8500,
+          kwp: 2.34,
+          custoEquipamentos: 3260.00,
+          geracaoKwh: 318.24,
+          over: 0,
+          margem: 2.61,
+          comissaoVenda: 255.00,
+          comissaoOver: 0,
+          comissaoTotal: 255.00,
+          dataConversao: new Date("2026-02-27"),
+          fonte: "TRÁFEGO",
+          status: "AGUARDANDO",
+          mesReferencia: "2026-02",
+        },
+        {
+          vendedorId: juliana.id,
+          cliente: "[Daniel] José Cavalcante",
+          formaPagamento: "SOLFÁCIL",
+          distribuidora: "SOLFÁCIL",
+          valorVenda: 24000,
+          kwp: 9.36,
+          custoEquipamentos: 10890.90,
+          geracaoKwh: 1272.96,
+          over: 4396.38,
+          margem: 2.20,
+          comissaoVenda: 720.00,
+          comissaoOver: 2198.19,
+          comissaoTotal: 2918.19,
+          dataConversao: new Date("2026-02-20"),
+          fonte: "INDICAÇÃO",
+          status: "AGUARDANDO",
+          mesReferencia: "2026-02",
+        },
       ],
     });
-    console.log("Vendas da Juliana criadas: 3 Jan + 2 Fev (total 5)");
+    console.log("Vendas criadas: 3 Jan (Juliana) + 4 Fev (2 Juliana + 2 Daniel) = total 7");
   } else {
     console.log(`Juliana ja tem ${existingVendasJuliana} vendas, pulando criacao`);
   }
