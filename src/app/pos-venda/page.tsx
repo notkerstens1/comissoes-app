@@ -323,11 +323,11 @@ export default function PosVendaPage() {
                               <div key={r.id}>
                                 {/* Card */}
                                 {!isEditing && (
-                                  <div className={`bg-[#141820] border border-[#232a3b] rounded-lg p-3 hover:border-[#2a3050] transition cursor-pointer ${vencido ? "border-rose-500/50" : ""}`}>
+                                  <div className={`bg-[#141820] border border-[#232a3b] rounded-lg p-3 hover:border-[#2a3050] transition cursor-pointer flex flex-col min-h-[280px] ${vencido ? "border-rose-500/50" : ""}`}>
                                     {/* Nome + Vencido */}
                                     <div className="flex items-start gap-2 mb-2">
                                       <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-sm text-gray-100 truncate">
+                                        <p className="font-semibold text-sm text-gray-100 break-words">
                                           {r.nomeCliente}
                                         </p>
                                         {vencido && (
@@ -341,24 +341,24 @@ export default function PosVendaPage() {
 
                                     {/* Telefone */}
                                     {r.telefone && (
-                                      <div className="flex items-center gap-1 text-xs text-gray-400 mb-2 truncate">
-                                        <Phone className="w-3 h-3 flex-shrink-0" />
-                                        <span className="truncate">{r.telefone}</span>
+                                      <div className="flex items-center gap-1 text-xs text-gray-400 mb-2 break-all">
+                                        <Phone className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                                        <span>{r.telefone}</span>
                                       </div>
                                     )}
 
                                     {/* Próxima ação */}
                                     {r.proximaAcao && (
-                                      <div className="mb-2">
-                                        <p className="text-xs text-gray-500 mb-0.5">Próxima ação:</p>
-                                        <p className="text-xs text-orange-300 font-medium line-clamp-2">
+                                      <div className="mb-2 flex-1">
+                                        <p className="text-xs text-gray-500 mb-1">Próxima ação:</p>
+                                        <p className="text-xs text-orange-300 font-medium break-words">
                                           {r.proximaAcao}
                                         </p>
                                       </div>
                                     )}
 
                                     {/* Datas */}
-                                    <div className="mb-2 space-y-1">
+                                    <div className="mb-3 space-y-1 py-2 border-y border-[#232a3b]">
                                       {r.ultimoContato && (
                                         <div className="flex items-center gap-1 text-xs text-gray-500">
                                           <Calendar className="w-3 h-3 flex-shrink-0" />
@@ -373,8 +373,8 @@ export default function PosVendaPage() {
                                       )}
                                     </div>
 
-                                    {/* Botões */}
-                                    <div className="flex gap-2 pt-2 border-t border-[#232a3b]">
+                                    {/* Botões - no final do card */}
+                                    <div className="flex gap-2 mt-auto">
                                       {etapa.key !== "CONCLUIDA" && (
                                         <button
                                           onClick={() => handleAvancar(r)}
