@@ -68,6 +68,20 @@ async function main() {
   });
   console.log("Vendedor criado:", juliana.email);
 
+  // Criar operador Pos Venda
+  const senhaPosVenda = await hash("posvenda123", 12);
+  const ana = await prisma.user.upsert({
+    where: { email: "ana@solar.com" },
+    update: { nome: "Ana Lima", ativo: true },
+    create: {
+      nome: "Ana Lima",
+      email: "ana@solar.com",
+      senha: senhaPosVenda,
+      role: "POS_VENDA",
+    },
+  });
+  console.log("Pos Venda criada:", ana.email);
+
   // Criar SDR
   const senhaSDR = await hash("sdr123", 12);
   const emelly = await prisma.user.upsert({
@@ -263,6 +277,123 @@ async function main() {
     console.log("Juliana nao tem vendas suficientes para vincular registros SDR");
   }
 
+  // Seed Pos Venda — clientes da planilha original
+  // Limpar registros anteriores do operador (para re-seed)
+  await prisma.posVenda.deleteMany({ where: { operadorId: ana.id } });
+
+  const clientesPosVenda = [
+    {
+      nomeCliente: "Kleuber",
+      telefone: "84 996859195",
+      etapa: "AGUARDANDO_VISTORIA",
+      ultimaAcao: "Confirmei Instalação",
+      proximaAcao: "Explicar sobre a vistoria",
+      observacoes: "Apos troca, start no acompanhamento de 30 dias.",
+      ultimoContato: "2026-02-20",
+      proximoContato: "2026-02-23",
+    },
+    {
+      nomeCliente: "Dona Vera",
+      telefone: "84 94830010",
+      etapa: "POS_ATIVACAO",
+      ultimaAcao: "Criei conta",
+      proximaAcao: "Acompanhamento Inicial",
+      observacoes: "Feedback de geração apos 30 dias",
+      ultimoContato: "2026-02-10",
+      proximoContato: "2026-02-27",
+    },
+    {
+      nomeCliente: "Vanuza",
+      telefone: "(84) 91734466",
+      etapa: "AGUARDANDO_VISTORIA",
+      ultimaAcao: "Confirmei Instalação",
+      proximaAcao: "Aguardar aprovação + Vistoria",
+      observacoes: "Aguardar projeto ser aprovado",
+      ultimoContato: "2026-02-20",
+      proximoContato: "2026-02-23",
+    },
+    {
+      nomeCliente: "Elisangela",
+      telefone: "8499503829",
+      etapa: "AGUARDANDO_MATERIAL",
+      ultimaAcao: "Visita Técnica",
+      proximaAcao: "Inf prazo de material",
+      observacoes: "Previsão dia 03/03/2026",
+      ultimoContato: "2026-02-18",
+      proximoContato: "2026-02-25",
+    },
+    {
+      nomeCliente: "Fabiana",
+      telefone: "8499818431",
+      etapa: "AGUARDANDO_MATERIAL",
+      ultimaAcao: "Visita Técnica",
+      proximaAcao: "Inf prazo de material",
+      observacoes: "Previsão dia 03/03/2026",
+      ultimoContato: "2026-02-18",
+      proximoContato: "2026-02-25",
+    },
+    {
+      nomeCliente: "Maria do Céu",
+      telefone: "84986886393",
+      etapa: "AGUARDANDO_MATERIAL",
+      ultimaAcao: "Visita Técnica",
+      proximaAcao: "Inf prazo de material",
+      observacoes: "Previsão dia 27/02/2026",
+      ultimoContato: "2026-02-18",
+      proximoContato: "2026-02-25",
+    },
+    {
+      nomeCliente: "Nilsa",
+      telefone: "8488231203",
+      etapa: "VISITA_TECNICA",
+      ultimaAcao: "Agendei Visita Técnica",
+      proximaAcao: "Pegar informações da Visita",
+      observacoes: "Relembrar ao cliente próximo a data",
+      ultimoContato: "2026-02-18",
+      proximoContato: "2026-02-23",
+    },
+    {
+      nomeCliente: "Cilene",
+      telefone: "8491171300",
+      etapa: "VISITA_TECNICA",
+      ultimaAcao: "Agendei Visita Técnica",
+      proximaAcao: "Pegar informações da Visita",
+      observacoes: "Relembrar ao cliente próximo a data",
+      ultimoContato: "2026-02-13",
+      proximoContato: "2026-02-23",
+    },
+    {
+      nomeCliente: "João Batista",
+      telefone: "84 9813-5478",
+      etapa: "CONCLUIDA",
+      ultimaAcao: "Tentei contato",
+      proximaAcao: "Tentar contato novamente",
+      observacoes: "LEMBRAR DE TENTAR CONTATO",
+      ultimoContato: "2026-02-20",
+      proximoContato: "2026-02-20",
+    },
+    {
+      nomeCliente: "José Cavalcante",
+      telefone: "84987270314",
+      etapa: "TRAMITES",
+      ultimaAcao: "Assinou contrato",
+      proximaAcao: "Assinar biometria e gerar pedido",
+      observacoes: "Só próximo mês",
+      ultimoContato: null,
+      proximoContato: null,
+    },
+  ];
+
+  for (const cliente of clientesPosVenda) {
+    await prisma.posVenda.create({
+      data: {
+        operadorId: ana.id,
+        ...cliente,
+      },
+    });
+  }
+  console.log(`${clientesPosVenda.length} clientes de Pos Venda criados`);
+
   console.log("\n=== SEED COMPLETO ===");
   console.log("\nUsuarios criados:");
   console.log("  Supervisor (Eric Lima):   supervisor@solar.com / supervisor123");
@@ -270,6 +401,7 @@ async function main() {
   console.log("  Bruna:                    bruna@solar.com / vendedor123");
   console.log("  Juliana:                  juliana@solar.com / vendedor123");
   console.log("  SDR (Emelly):             emelly@solar.com / sdr123");
+  console.log("  Pos Venda (Ana Lima):     ana@solar.com / posvenda123");
 }
 
 main()

@@ -22,10 +22,13 @@ import {
   FileText,
   AlertTriangle,
   CreditCard,
+  Target,
+  TrendingUp,
+  ClipboardCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { isAdmin as checkAdmin, isDiretor as checkDiretor, isSDR as checkSDR } from "@/lib/roles";
+import { isAdmin as checkAdmin, isDiretor as checkDiretor, isSDR as checkSDR, isPosVenda as checkPosVenda } from "@/lib/roles";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -35,10 +38,12 @@ export function Sidebar() {
   const admin = checkAdmin(userRole);
   const diretor = checkDiretor(userRole);
   const sdr = checkSDR(userRole);
+  const posVenda = checkPosVenda(userRole);
 
   const menuVendedor = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/vendas", label: "Minhas Vendas", icon: ShoppingCart },
+    { href: "/vendedor/oportunidades", label: "Oportunidades", icon: Target },
     { href: "/comissoes", label: "Comissoes", icon: DollarSign },
   ];
 
@@ -56,6 +61,7 @@ export function Sidebar() {
     { href: "/admin/sdr", label: "Visao Geral SDR", icon: ClipboardList },
     { href: "/admin/sdr/pendencias", label: "Pendencias", icon: AlertTriangle },
     { href: "/admin/sdr/pagamento", label: "Pagamento SDR", icon: CreditCard },
+    { href: "/admin/sdr/forecast", label: "Forecast", icon: TrendingUp },
   ];
 
   const menuAdmin = [
@@ -75,6 +81,7 @@ export function Sidebar() {
     if (diretor) return { bg: "bg-amber-400/10 text-amber-400", label: "Diretor" };
     if (admin) return { bg: "bg-purple-400/10 text-purple-400", label: "Supervisor" };
     if (sdr) return { bg: "bg-sky-400/10 text-sky-400", label: "SDR" };
+    if (posVenda) return { bg: "bg-orange-400/10 text-orange-400", label: "Pós Venda" };
     return { bg: "bg-lime-400/10 text-lime-400", label: "Vendedor" };
   };
 
@@ -155,8 +162,8 @@ export function Sidebar() {
 
         {/* Menu */}
         <nav className="px-3 py-4 space-y-1 overflow-y-auto" style={{ maxHeight: "calc(100vh - 220px)" }}>
-          {/* Menu Vendedor — SDR NAO ve */}
-          {!sdr && (
+          {/* Menu Vendedor — SDR e POS_VENDA NAO veem */}
+          {!sdr && !posVenda && (
             <>
               {admin && (
                 <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
@@ -164,6 +171,35 @@ export function Sidebar() {
                 </p>
               )}
               {renderMenuSection(menuVendedor, "text-lime-400", "bg-lime-400/10")}
+            </>
+          )}
+
+          {/* Menu Pos Venda — operador POS_VENDA ve seus clientes */}
+          {posVenda && (
+            <>
+              <p className="px-3 text-xs font-semibold text-orange-400 uppercase tracking-wider mb-2">
+                Pós Venda
+              </p>
+              {renderMenuSection(
+                [{ href: "/pos-venda", label: "Meus Clientes", icon: ClipboardCheck }],
+                "text-orange-400",
+                "bg-orange-400/10"
+              )}
+            </>
+          )}
+
+          {/* Menu Pos Venda Admin — Admin/Diretor ve visao geral */}
+          {admin && (
+            <>
+              <div className="my-3 border-t border-[#232a3b]" />
+              <p className="px-3 text-xs font-semibold text-orange-400 uppercase tracking-wider mb-2">
+                Pós Venda
+              </p>
+              {renderMenuSection(
+                [{ href: "/admin/pos-venda", label: "Visao Pos Venda", icon: ClipboardCheck }],
+                "text-orange-400",
+                "bg-orange-400/10"
+              )}
             </>
           )}
 

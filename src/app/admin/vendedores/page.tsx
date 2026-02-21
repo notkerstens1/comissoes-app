@@ -108,6 +108,7 @@ export default function VendedoresPage() {
                 >
                   <option value="VENDEDOR">Vendedor</option>
                   <option value="SDR">SDR</option>
+                  <option value="POS_VENDA">Pós Venda</option>
                   <option value="ADMIN">Administrador</option>
                 </select>
               </div>
@@ -149,8 +150,9 @@ export default function VendedoresPage() {
                       v.role === "ADMIN" ? "bg-purple-400/15 text-purple-400" :
                       v.role === "DIRETOR" ? "bg-amber-400/15 text-amber-400" :
                       v.role === "SDR" ? "bg-sky-400/15 text-sky-400" :
+                      v.role === "POS_VENDA" ? "bg-orange-400/15 text-orange-400" :
                       "bg-lime-400/15 text-lime-400"
-                    }`}>{v.role === "ADMIN" ? "Supervisor" : v.role}</span>
+                    }`}>{v.role === "ADMIN" ? "Supervisor" : v.role === "POS_VENDA" ? "Pós Venda" : v.role}</span>
                   </td>
                   <td className="px-6 py-3 text-center">{v._count?.vendas || 0}</td>
                   <td className="px-6 py-3 text-center">

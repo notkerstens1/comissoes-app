@@ -24,6 +24,8 @@ model User {
   registrosVendedora   RegistroSDR[]      @relation("vendedoraRegistros")
   pagamentosSDR        RegistroSDR[]      @relation("pagoPor")
   pendenciasResolvidas PendenciaVinculo[] @relation("resolvidoPor")
+  // Pos Venda
+  posVendaRegistros    PosVenda[]         @relation("posVendaOperador")
 }
 
 model Venda {
@@ -67,6 +69,8 @@ model Venda {
   // SDR relations
   registrosSDR       RegistroSDR[]
   pendenciaVinculo   PendenciaVinculo?
+  // Pos Venda
+  posVenda           PosVenda?
 }
 
 model Configuracao {
@@ -142,6 +146,11 @@ model RegistroSDR {
   motivoFinalizacao   String?  // motivo de finalizacao (CPF negada, sumiu, etc)
   consideracoes       String?  // texto livre
   statusLead          String   @default("AGENDADO") // "AGENDADO" | "COMPARECEU" | "VENDIDO" | "FINALIZADO"
+  // Forecast (editavel pelo vendedor)
+  valorForecast          Float?   // valor estimado que o vendedor acredita fechar
+  estagioOportunidade    String   @default("REUNIAO") // "REUNIAO"|"PROPOSTA"|"NEGOCIACAO"|"FECHADA"
+  probabilidade          Int      @default(50)         // 0-100%
+  dataFechamentoEsperado String?  // "YYYY-MM-DD"
   // Vinculo automatico com venda
   vendaVinculadaId    String?
   vendaVinculada      Venda?   @relation(fields: [vendaVinculadaId], references: [id])
@@ -171,6 +180,32 @@ model PendenciaVinculo {
   dataResolucao       String?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+}
+
+// Pos Venda: acompanhamento pos-instalacao do cliente solar
+model PosVenda {
+  id               String   @id @default(cuid())
+  operadorId       String
+  operador         User     @relation("posVendaOperador", fields: [operadorId], references: [id])
+  // Dados do cliente
+  nomeCliente      String
+  telefone         String?
+  // Vinculo opcional com venda do sistema
+  vendaId          String?  @unique
+  venda            Venda?   @relation(fields: [vendaId], references: [id])
+  // Etapa atual do funil pos-venda
+  etapa            String   @default("TRAMITES")
+  // "TRAMITES" | "AGUARDANDO_MATERIAL" | "VISITA_TECNICA" | "AGUARDANDO_VISTORIA" | "POS_ATIVACAO" | "CONCLUIDA"
+  // Acompanhamento
+  ultimaAcao       String?
+  proximaAcao      String?
+  observacoes      String?
+  ultimoContato    String?  // "YYYY-MM-DD"
+  proximoContato   String?  // "YYYY-MM-DD"
+  // Controle
+  ativo            Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 // Campanhas: metas de vendas criadas por Diretor/Supervisor
