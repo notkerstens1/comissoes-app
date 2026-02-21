@@ -39,7 +39,7 @@ async function main() {
 
   // Desativar usuarios com emails antigos/errados
   await prisma.user.updateMany({
-    where: { email: { in: ["juliana@solar.com", "erick@solar.com", "daniel@solar.com"] } },
+    where: { email: { in: ["juliana@solar.com", "erick@solar.com", "daniel@solar.com", "ana@solar.com"] } },
     data: { ativo: false },
   });
   console.log("Usuarios antigos desativados (se existiam)");
@@ -70,17 +70,17 @@ async function main() {
 
   // Criar operador Pos Venda
   const senhaPosVenda = await hash("posvenda123", 12);
-  const ana = await prisma.user.upsert({
-    where: { email: "ana@solar.com" },
-    update: { nome: "Ana Lima", ativo: true },
+  const yuri = await prisma.user.upsert({
+    where: { email: "yuri@solar.com" },
+    update: { nome: "Yuri", ativo: true },
     create: {
-      nome: "Ana Lima",
-      email: "ana@solar.com",
+      nome: "Yuri",
+      email: "yuri@solar.com",
       senha: senhaPosVenda,
       role: "POS_VENDA",
     },
   });
-  console.log("Pos Venda criada:", ana.email);
+  console.log("Pos Venda criado:", yuri.email);
 
   // Criar SDR
   const senhaSDR = await hash("sdr123", 12);
@@ -427,7 +427,7 @@ async function main() {
 
   // Seed Pos Venda — clientes da planilha original
   // Limpar registros anteriores do operador (para re-seed)
-  await prisma.posVenda.deleteMany({ where: { operadorId: ana.id } });
+  await prisma.posVenda.deleteMany({ where: { operadorId: yuri.id } });
 
   const clientesPosVenda = [
     {
@@ -535,7 +535,7 @@ async function main() {
   for (const cliente of clientesPosVenda) {
     await prisma.posVenda.create({
       data: {
-        operadorId: ana.id,
+        operadorId: yuri.id,
         ...cliente,
       },
     });
@@ -549,7 +549,7 @@ async function main() {
   console.log("  Bruna:                    bruna@solar.com / vendedor123");
   console.log("  Juliana:                  juliana@solar.com / vendedor123");
   console.log("  SDR (Emelly):             emelly@solar.com / sdr123");
-  console.log("  Pos Venda (Ana Lima):     ana@solar.com / posvenda123");
+  console.log("  Pos Venda (Yuri):          yuri@solar.com / posvenda123");
 }
 
 main()
