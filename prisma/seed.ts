@@ -156,8 +156,117 @@ async function main() {
   });
   console.log("Faixas de comissao criadas");
 
+  // Criar vendas da Juliana (apenas se ainda nao existem — seguro para re-seed)
+  const existingVendasJuliana = await prisma.venda.count({ where: { vendedorId: juliana.id } });
+  if (existingVendasJuliana === 0) {
+    await prisma.venda.createMany({
+      data: [
+        // JANEIRO 2026
+        {
+          vendedorId: juliana.id,
+          cliente: "Jose Adriano de Souza",
+          formaPagamento: "SANTANDER",
+          distribuidora: "BELENERGY",
+          valorVenda: 13400,
+          kwp: 4.68,
+          custoEquipamentos: 5959.40,
+          geracaoKwh: 636.48,
+          over: 2673.08,
+          margem: 2.25,
+          comissaoVenda: 335.00,
+          comissaoOver: 935.58,
+          comissaoTotal: 1270.58,
+          dataConversao: new Date("2026-01-12"),
+          fonte: "TRÁFEGO",
+          status: "AGUARDANDO",
+          mesReferencia: "2026-01",
+        },
+        {
+          vendedorId: juliana.id,
+          cliente: "Fabiana Franca da Silva",
+          formaPagamento: "SANTANDER",
+          distribuidora: "BELENERGY",
+          valorVenda: 13500,
+          kwp: 5.26,
+          custoEquipamentos: 7208.50,
+          geracaoKwh: 715.36,
+          over: 524.70,
+          margem: 1.87,
+          comissaoVenda: 337.50,
+          comissaoOver: 183.65,
+          comissaoTotal: 521.15,
+          dataConversao: new Date("2026-01-14"),
+          fonte: "TRÁFEGO",
+          status: "AGUARDANDO",
+          mesReferencia: "2026-01",
+        },
+        {
+          vendedorId: juliana.id,
+          cliente: "Maria do Ceu Lima",
+          formaPagamento: "BV",
+          distribuidora: "BELENERGY",
+          valorVenda: 18000,
+          kwp: 7.60,
+          custoEquipamentos: 10726.14,
+          geracaoKwh: 1033.6,
+          over: 1910.79,
+          margem: 1.68,
+          comissaoVenda: 450.00,
+          comissaoOver: 668.78,
+          comissaoTotal: 1118.78,
+          dataConversao: new Date("2026-01-13"),
+          fonte: "INDICAÇÃO",
+          status: "AGUARDANDO",
+          mesReferencia: "2026-01",
+        },
+        // FEVEREIRO 2026
+        {
+          vendedorId: juliana.id,
+          cliente: "Nilsa Raimunda de Berto",
+          formaPagamento: "SANTANDER",
+          distribuidora: "BLUESUN",
+          valorVenda: 12890,
+          kwp: 4.68,
+          custoEquipamentos: 6043.27,
+          geracaoKwh: 636.48,
+          over: 2012.11,
+          margem: 2.13,
+          comissaoVenda: 322.25,
+          comissaoOver: 704.24,
+          comissaoTotal: 1026.49,
+          dataConversao: new Date("2026-02-13"),
+          fonte: "TRÁFEGO",
+          status: "AGUARDANDO",
+          mesReferencia: "2026-02",
+        },
+        {
+          vendedorId: juliana.id,
+          cliente: "Cilene Manoel dos Santos",
+          formaPagamento: "SOLFÁCIL",
+          distribuidora: "SOLFÁCIL",
+          valorVenda: 7000,
+          kwp: 2.34,
+          custoEquipamentos: 3260.00,
+          geracaoKwh: 318.24,
+          over: 1132.00,
+          margem: 2.15,
+          comissaoVenda: 175.00,
+          comissaoOver: 396.20,
+          comissaoTotal: 571.20,
+          dataConversao: new Date("2026-02-19"),
+          fonte: "INDICAÇÃO",
+          status: "AGUARDANDO",
+          mesReferencia: "2026-02",
+        },
+      ],
+    });
+    console.log("Vendas da Juliana criadas: 3 Jan + 2 Fev (total 5)");
+  } else {
+    console.log(`Juliana ja tem ${existingVendasJuliana} vendas, pulando criacao`);
+  }
+
   // Criar registros SDR vinculados as vendas da Juliana
-  // Buscar vendas da Juliana
+  // Buscar vendas da Juliana (as 2 mais recentes = Cilene fev/19 e Nilsa fev/13)
   const vendasJuliana = await prisma.venda.findMany({
     where: { vendedorId: juliana.id },
     orderBy: { dataConversao: "desc" },
@@ -167,13 +276,13 @@ async function main() {
     // Limpar registros SDR anteriores (para re-seed)
     await prisma.registroSDR.deleteMany({ where: { sdrId: emelly.id } });
 
-    const venda1 = vendasJuliana[0]; // Nilsa
-    const venda2 = vendasJuliana[1]; // Cilene
+    const venda1 = vendasJuliana[0]; // Cilene (mais recente: 19/02)
+    const venda2 = vendasJuliana[1]; // Nilsa (segunda mais recente: 13/02)
 
     const dataConversao1 = new Date(venda1.dataConversao).toISOString().split("T")[0];
     const dataConversao2 = new Date(venda2.dataConversao).toISOString().split("T")[0];
 
-    // Registro 1 — Nilsa (reuniao 10/02, compareceu, venda vinculada)
+    // Registro 1 — Cilene (reuniao 10/02, compareceu, venda vinculada em 19/02)
     await prisma.registroSDR.create({
       data: {
         sdrId: emelly.id,
@@ -182,7 +291,7 @@ async function main() {
         vendedoraId: juliana.id,
         dataReuniao: "2026-02-10",
         compareceu: true,
-        consideracoes: "Cliente muito interessada, boa conversa sobre economia na conta de luz",
+        consideracoes: "Cliente indicada por vizinha, ja sabia dos beneficios",
         vendaVinculadaId: venda1.id,
         dataVendaVinculada: dataConversao1,
         comissaoReuniao: 20,
@@ -194,7 +303,7 @@ async function main() {
     });
     console.log("Registro SDR criado: " + venda1.cliente.trim() + " (vinculado)");
 
-    // Registro 2 — Cilene (reuniao 12/02, compareceu, venda vinculada)
+    // Registro 2 — Nilsa (reuniao 12/02, compareceu, venda vinculada em 13/02)
     await prisma.registroSDR.create({
       data: {
         sdrId: emelly.id,
@@ -203,7 +312,7 @@ async function main() {
         vendedoraId: juliana.id,
         dataReuniao: "2026-02-12",
         compareceu: true,
-        consideracoes: "Cliente indicada por vizinha, ja sabia dos beneficios",
+        consideracoes: "Cliente muito interessada, boa conversa sobre economia na conta de luz",
         vendaVinculadaId: venda2.id,
         dataVendaVinculada: dataConversao2,
         comissaoReuniao: 20,
