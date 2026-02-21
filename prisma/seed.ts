@@ -39,7 +39,7 @@ async function main() {
 
   // Desativar usuarios com emails antigos/errados
   await prisma.user.updateMany({
-    where: { email: { in: ["juliana@solar.com", "erick@solar.com", "daniel@solar.com", "ana@solar.com"] } },
+    where: { email: { in: ["juliana@solar.com", "erick@solar.com", "ana@solar.com"] } },
     data: { ativo: false },
   });
   console.log("Usuarios antigos desativados (se existiam)");
@@ -67,6 +67,18 @@ async function main() {
     },
   });
   console.log("Vendedor criado:", juliana.email);
+
+  const daniel = await prisma.user.upsert({
+    where: { email: "daniel@solar.com" },
+    update: { nome: "Daniel", ativo: true },
+    create: {
+      nome: "Daniel",
+      email: "daniel@solar.com",
+      senha: senhaVendedor,
+      role: "VENDEDOR_EXTERNO",
+    },
+  });
+  console.log("Vendedor Externo criado:", daniel.email);
 
   // Criar operador Pos Venda
   const senhaPosVenda = await hash("posvenda123", 12);
@@ -258,10 +270,22 @@ async function main() {
           status: "AGUARDANDO",
           mesReferencia: "2026-02",
         },
-        // FEVEREIRO 2026 — vendas do Daniel (comissao 3%, logica diferente)
+      ],
+    });
+    console.log("Vendas da Juliana criadas: 3 Jan + 2 Fev (total 5)");
+  } else {
+    console.log(`Juliana ja tem ${existingVendasJuliana} vendas, pulando criacao`);
+  }
+
+  // Criar vendas do Daniel (VENDEDOR_EXTERNO, apenas se ainda nao existem — seguro para re-seed)
+  const existingVendasDaniel = await prisma.venda.count({ where: { vendedorId: daniel.id } });
+  if (existingVendasDaniel === 0) {
+    await prisma.venda.createMany({
+      data: [
+        // FEVEREIRO 2026 — vendas do Daniel (comissao 3% + 50% do over)
         {
-          vendedorId: juliana.id,
-          cliente: "[Daniel] João Batista",
+          vendedorId: daniel.id,
+          cliente: "João Batista",
           formaPagamento: "SOLFÁCIL",
           distribuidora: "SOLFÁCIL",
           valorVenda: 8500,
@@ -279,8 +303,8 @@ async function main() {
           mesReferencia: "2026-02",
         },
         {
-          vendedorId: juliana.id,
-          cliente: "[Daniel] José Cavalcante",
+          vendedorId: daniel.id,
+          cliente: "José Cavalcante",
           formaPagamento: "SOLFÁCIL",
           distribuidora: "SOLFÁCIL",
           valorVenda: 24000,
@@ -299,9 +323,9 @@ async function main() {
         },
       ],
     });
-    console.log("Vendas criadas: 3 Jan (Juliana) + 4 Fev (2 Juliana + 2 Daniel) = total 7");
+    console.log("Vendas do Daniel criadas: 2 Fev (total 2)");
   } else {
-    console.log(`Juliana ja tem ${existingVendasJuliana} vendas, pulando criacao`);
+    console.log(`Daniel ja tem ${existingVendasDaniel} vendas, pulando criacao`);
   }
 
   // Criar registros SDR vinculados as vendas da Juliana
@@ -544,12 +568,13 @@ async function main() {
 
   console.log("\n=== SEED COMPLETO ===");
   console.log("\nUsuarios criados:");
-  console.log("  Supervisor (Eric Lima):   supervisor@solar.com / supervisor123");
-  console.log("  Diretor (Erick Santos):   diretor@solar.com / diretor123");
-  console.log("  Bruna:                    bruna@solar.com / vendedor123");
-  console.log("  Juliana:                  juliana@solar.com / vendedor123");
-  console.log("  SDR (Emelly):             emelly@solar.com / sdr123");
-  console.log("  Pos Venda (Yuri):          yuri@solar.com / posvenda123");
+  console.log("  Supervisor (Eric Lima):     supervisor@solar.com / supervisor123");
+  console.log("  Diretor (Erick Santos):     diretor@solar.com / diretor123");
+  console.log("  Bruna (Vendedor):           bruna@solar.com / vendedor123");
+  console.log("  Juliana (Vendedor):         juliana@solar.com / vendedor123");
+  console.log("  Daniel (Vendedor Externo):  daniel@solar.com / vendedor123");
+  console.log("  SDR (Emelly):               emelly@solar.com / sdr123");
+  console.log("  Pos Venda (Yuri):           yuri@solar.com / posvenda123");
 }
 
 main()

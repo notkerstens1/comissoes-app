@@ -2,7 +2,7 @@
 // CONTROLE DE ROLES/PAPEIS DO SISTEMA
 // ============================================================
 
-export type UserRole = "VENDEDOR" | "ADMIN" | "DIRETOR" | "SDR" | "POS_VENDA";
+export type UserRole = "VENDEDOR" | "VENDEDOR_EXTERNO" | "ADMIN" | "DIRETOR" | "SDR" | "POS_VENDA";
 
 /**
  * Verifica se o usuario tem permissoes de supervisor (ADMIN ou DIRETOR)
@@ -26,10 +26,17 @@ export function isDiretor(role: string | undefined | null): boolean {
 }
 
 /**
- * Verifica se o usuario e vendedor
+ * Verifica se o usuario e vendedor (interno ou externo)
  */
 export function isVendedor(role: string | undefined | null): boolean {
-  return role === "VENDEDOR";
+  return role === "VENDEDOR" || role === "VENDEDOR_EXTERNO";
+}
+
+/**
+ * Verifica se o usuario e vendedor externo
+ */
+export function isVendedorExterno(role: string | undefined | null): boolean {
+  return role === "VENDEDOR_EXTERNO";
 }
 
 /**
@@ -57,6 +64,8 @@ export function getRoleLabel(role: string | undefined | null): string {
       return "Supervisor";
     case "VENDEDOR":
       return "Vendedor";
+    case "VENDEDOR_EXTERNO":
+      return "Vendedor Externo";
     case "SDR":
       return "SDR";
     case "POS_VENDA":
@@ -75,6 +84,9 @@ export function getDefaultRoute(role: string | undefined | null): string {
       return "/diretor";
     case "ADMIN":
       return "/admin";
+    case "VENDEDOR":
+    case "VENDEDOR_EXTERNO":
+      return "/vendedor/oportunidades";
     case "SDR":
       return "/sdr";
     case "POS_VENDA":
