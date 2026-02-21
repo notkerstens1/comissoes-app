@@ -16,9 +16,12 @@ export async function GET(request: NextRequest) {
   const inicio = searchParams.get("inicio") || defaultRange.start;
   const fim = searchParams.get("fim") || defaultRange.end;
 
-  // Buscar todos vendedores ativos
+  // Buscar todos vendedores ativos (VENDEDOR e VENDEDOR_EXTERNO)
   const vendedores = await prisma.user.findMany({
-    where: { role: "VENDEDOR", ativo: true },
+    where: {
+      role: { in: ["VENDEDOR", "VENDEDOR_EXTERNO"] },
+      ativo: true
+    },
     select: { id: true, nome: true },
     orderBy: { nome: "asc" },
   });
