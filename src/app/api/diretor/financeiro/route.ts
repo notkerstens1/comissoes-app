@@ -99,6 +99,7 @@ export async function GET(request: NextRequest) {
     vendas: vendas.map((v) => ({
       id: v.id,
       cliente: v.cliente,
+      vendedorId: v.vendedorId,
       vendedor: v.vendedor.nome,
       valorVenda: v.valorVenda,
       custoEquipamentos: v.custoEquipamentos,

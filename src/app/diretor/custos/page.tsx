@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { formatCurrency, formatCurrencyInput, handleCurrencyKeyInput } from "@/lib/utils";
 import { Calculator, Save, X, Edit3 } from "lucide-react";
 
 interface VendaCusto {
   id: string;
   cliente: string;
+  vendedorId: string;
   vendedor: string;
   valorVenda: number;
   custoEquipamentos: number;
@@ -28,8 +30,14 @@ interface VendaCusto {
 }
 
 export default function CustosPage() {
+  const searchParams = useSearchParams();
   const [vendas, setVendas] = useState<VendaCusto[]>([]);
+  const [vendedorFiltro, setVendedorFiltro] = useState<string | null>(() => {
+    return searchParams.get("vendedor");
+  });
   const [mesAtual, setMesAtual] = useState(() => {
+    const mesDaUrl = searchParams.get("mes");
+    if (mesDaUrl) return mesDaUrl;
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
@@ -167,7 +175,9 @@ export default function CustosPage() {
 
       {/* Lista de Vendas com Edicao */}
       <div className="space-y-4">
-        {vendas.map((venda) => (
+        {vendas
+          .filter((v) => !vendedorFiltro || v.vendedorId === vendedorFiltro)
+          .map((venda) => (
           <div key={venda.id} className="bg-[#1a1f2e] rounded-xl shadow-sm border border-[#232a3b] overflow-hidden">
             {/* Cabecalho da venda */}
             <div className="px-6 py-4 flex items-center justify-between border-b border-[#232a3b]">

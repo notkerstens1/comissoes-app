@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
-import { Trophy, Medal, Crown } from "lucide-react";
+import { Trophy, Medal, Crown, Edit2 } from "lucide-react";
 
 interface VendedorRanking {
   posicao: number;
@@ -29,6 +30,7 @@ interface DadosRanking {
 }
 
 export default function RankingPage() {
+  const router = useRouter();
   const [dados, setDados] = useState<DadosRanking | null>(null);
   const [mesAtual, setMesAtual] = useState(() => {
     const now = new Date();
@@ -182,6 +184,19 @@ export default function RankingPage() {
                   </p>
                 </div>
               </div>
+
+              {/* Botão Editar */}
+              <button
+                onClick={() => {
+                  const url = `/diretor/custos?mes=${mesAtual}&vendedor=${v.id}`;
+                  router.push(url);
+                }}
+                className="ml-4 px-4 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 text-sm font-medium transition flex items-center gap-2"
+              >
+                <Edit2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Editar Vendas</span>
+                <span className="sm:hidden">Editar</span>
+              </button>
             </div>
 
             {/* Mobile: metricas em grid */}
