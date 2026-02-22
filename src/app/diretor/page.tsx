@@ -10,7 +10,9 @@ import {
   AlertTriangle,
   ArrowUpRight,
   ArrowDownRight,
+  Edit2,
 } from "lucide-react";
+import { EditVendaPanel, VendaEditavel } from "@/components/EditVendaPanel";
 
 interface VendaFinanceira {
   id: string;
@@ -71,6 +73,8 @@ export default function DiretorDashboardPage() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
   const [loading, setLoading] = useState(true);
+  const [vendaEditando, setVendaEditando] = useState<VendaEditavel | null>(null);
+  const [editPanelOpen, setEditPanelOpen] = useState(false);
 
   useEffect(() => {
     fetchDados();
@@ -290,6 +294,7 @@ export default function DiretorDashboardPage() {
                   <th className="text-right px-4 py-3 font-medium whitespace-nowrap">Outros</th>
                   <th className="text-right px-4 py-3 font-medium whitespace-nowrap">Lucro</th>
                   <th className="text-center px-4 py-3 font-medium whitespace-nowrap">Margem</th>
+                  <th className="px-4 py-3 font-medium whitespace-nowrap"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#232a3b]">
@@ -329,6 +334,35 @@ export default function DiretorDashboardPage() {
                           {(v.margemLucroLiquido * 100).toFixed(1)}%
                         </span>
                       </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => {
+                            setVendaEditando({
+                              id: v.id,
+                              cliente: v.cliente,
+                              vendedor: v.vendedor,
+                              valorVenda: v.valorVenda,
+                              custoEquipamentos: v.custoEquipamentos,
+                              quantidadePlacas: v.quantidadePlacas,
+                              quantidadeInversores: v.quantidadeInversores,
+                              custoInstalacao: v.custoInstalacao,
+                              custoVisitaTecnica: v.custoVisitaTecnica,
+                              custoCosern: v.custoCosern,
+                              custoTrtCrea: v.custoTrtCrea,
+                              custoEngenheiro: v.custoEngenheiro,
+                              custoImposto: v.custoImposto,
+                              comissaoVendedor: v.comissaoVendedor,
+                              lucroLiquido: v.lucroLiquido,
+                              margemLucroLiquido: v.margemLucroLiquido,
+                            });
+                            setEditPanelOpen(true);
+                          }}
+                          className="p-1.5 rounded-lg hover:bg-amber-400/10 text-gray-500 hover:text-amber-400 transition"
+                          title="Editar custos"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -354,6 +388,7 @@ export default function DiretorDashboardPage() {
                       {((r?.margemLucroMedia || 0) * 100).toFixed(1)}%
                     </span>
                   </td>
+                  <td className="px-4 py-3"></td>
                 </tr>
               </tfoot>
             </table>
@@ -369,6 +404,17 @@ export default function DiretorDashboardPage() {
           <p className="text-gray-400">Aguardando registro de vendas pelos vendedores.</p>
         </div>
       )}
+
+      {/* Panel de Edicao de Venda */}
+      <EditVendaPanel
+        venda={vendaEditando}
+        isOpen={editPanelOpen}
+        onClose={() => {
+          setEditPanelOpen(false);
+          setVendaEditando(null);
+        }}
+        onSaved={fetchDados}
+      />
     </div>
   );
 }

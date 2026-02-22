@@ -44,7 +44,7 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { status, quantidadeInversores, custoCosern, custoVisitaTecnica, custoTrtCrea, custoEngenheiro, aliquotaImposto, percentualComissaoOverride } = body;
+  const { status, quantidadePlacas, quantidadeInversores, custoCosern, custoVisitaTecnica, custoTrtCrea, custoEngenheiro, aliquotaImposto, percentualComissaoOverride } = body;
 
   const vendaAtual = await prisma.venda.findUnique({
     where: { id: params.id },
@@ -61,8 +61,9 @@ export async function PUT(
     updateData.status = status;
   }
 
-  // Diretor pode editar custos
-  if (isDiretor(session.user.role)) {
+  // Diretor ou Supervisor pode editar custos
+  if (isAdmin(session.user.role)) {
+    if (quantidadePlacas !== undefined) updateData.quantidadePlacas = quantidadePlacas;
     if (quantidadeInversores !== undefined) updateData.quantidadeInversores = quantidadeInversores;
     if (custoCosern !== undefined) updateData.custoCosern = custoCosern;
     if (custoVisitaTecnica !== undefined) updateData.custoVisitaTecnica = custoVisitaTecnica;
@@ -72,7 +73,7 @@ export async function PUT(
     if (percentualComissaoOverride !== undefined) updateData.percentualComissaoOverride = percentualComissaoOverride;
 
     // Se mudou algum custo, recalcular P&L
-    const temMudancaCusto = quantidadeInversores !== undefined ||
+    const temMudancaCusto = quantidadePlacas !== undefined || quantidadeInversores !== undefined ||
       custoCosern !== undefined || custoVisitaTecnica !== undefined ||
       custoTrtCrea !== undefined || custoEngenheiro !== undefined || aliquotaImposto !== undefined ||
       percentualComissaoOverride !== undefined;
@@ -90,6 +91,7 @@ export async function PUT(
         aliquotaImpostoPadrao: config?.aliquotaImpostoPadrao ?? 0.06,
       };
 
+      const novasPlacas = quantidadePlacas ?? vendaAtual.quantidadePlacas;
       const novosInversores = quantidadeInversores ?? vendaAtual.quantidadeInversores;
 
       // Recalcular comissao se override mudou
@@ -102,7 +104,7 @@ export async function PUT(
         {
           valorVenda: vendaAtual.valorVenda,
           custoEquipamentos: vendaAtual.custoEquipamentos,
-          quantidadePlacas: vendaAtual.quantidadePlacas,
+          quantidadePlacas: novasPlacas,
           quantidadeInversores: novosInversores,
           comissaoTotal: novaComissaoTotal,
           custoVisitaTecnicaOverride: custoVisitaTecnica ?? vendaAtual.custoVisitaTecnica,

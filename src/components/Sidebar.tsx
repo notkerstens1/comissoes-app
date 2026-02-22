@@ -170,7 +170,13 @@ export function Sidebar() {
                   Vendedor
                 </p>
               )}
-              {renderMenuSection(menuVendedor, "text-lime-400", "bg-lime-400/10")}
+              {renderMenuSection(
+                admin
+                  ? menuVendedor.filter(item => item.href !== "/comissoes")
+                  : menuVendedor,
+                "text-lime-400",
+                "bg-lime-400/10"
+              )}
             </>
           )}
 

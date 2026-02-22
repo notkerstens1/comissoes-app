@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
+import { useSession } from "next-auth/react";
 import { formatCurrency, formatNumber } from "@/lib/utils";
+import { isAdmin as checkAdmin } from "@/lib/roles";
 import CurrencyInput from "@/components/CurrencyInput";
+import { EditVendaPanel, VendaEditavel } from "@/components/EditVendaPanel";
 import {
   ShoppingCart,
   Plus,
@@ -13,6 +16,7 @@ import {
   ShieldAlert,
   X,
   ChevronDown,
+  Edit2,
 } from "lucide-react";
 
 interface Venda {
@@ -33,11 +37,26 @@ interface Venda {
   fonte: string;
   status: string;
   vendedor?: { nome: string };
+  // Campos extras para edição (admin)
+  quantidadePlacas?: number;
+  quantidadeInversores?: number;
+  custoInstalacao?: number;
+  custoVisitaTecnica?: number;
+  custoCosern?: number;
+  custoTrtCrea?: number;
+  custoEngenheiro?: number;
+  custoImposto?: number;
+  lucroLiquido?: number;
+  margemLucroLiquido?: number;
 }
 
 export default function VendasPage() {
+  const { data: session } = useSession();
+  const admin = checkAdmin(session?.user?.role);
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [loading, setLoading] = useState(true);
+  const [vendaEditando, setVendaEditando] = useState<VendaEditavel | null>(null);
+  const [editPanelOpen, setEditPanelOpen] = useState(false);
   const [mesAtual, setMesAtual] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -305,7 +324,9 @@ export default function VendasPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-100">Minhas Vendas</h1>
+          <h1 className="text-2xl font-bold text-gray-100">
+            {admin ? "Todas as Vendas" : "Minhas Vendas"}
+          </h1>
           <p className="text-gray-400">{getNomeMes(mesAtual)}</p>
         </div>
         <div className="flex gap-3">
@@ -315,31 +336,33 @@ export default function VendasPage() {
             onChange={(e) => setMesAtual(e.target.value)}
             className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
           />
-          <button
-            onClick={() => {
-              if (formAberto) {
-                resetForm();
-              }
-              setFormAberto(!formAberto);
-            }}
-            className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm ${
-              formAberto
-                ? "bg-[#232a3b] text-gray-300 hover:bg-[#2a3142]"
-                : "bg-lime-400 text-gray-900 hover:bg-lime-500"
-            }`}
-          >
-            <Plus
-              className={`w-4 h-4 transition-transform duration-300 ${
-                formAberto ? "rotate-45" : ""
+          {!admin && (
+            <button
+              onClick={() => {
+                if (formAberto) {
+                  resetForm();
+                }
+                setFormAberto(!formAberto);
+              }}
+              className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm ${
+                formAberto
+                  ? "bg-[#232a3b] text-gray-300 hover:bg-[#2a3142]"
+                  : "bg-lime-400 text-gray-900 hover:bg-lime-500"
               }`}
-            />
-            Nova Venda
-          </button>
+            >
+              <Plus
+                className={`w-4 h-4 transition-transform duration-300 ${
+                  formAberto ? "rotate-45" : ""
+                }`}
+              />
+              Nova Venda
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Accordion - Nova Venda Form */}
-      <div
+      {/* Accordion - Nova Venda Form (apenas vendedores) */}
+      {!admin && <div
         className="overflow-hidden transition-all duration-500 ease-in-out"
         style={{
           maxHeight: formAberto ? `${formHeight + 32}px` : "0px",
@@ -615,7 +638,7 @@ export default function VendasPage() {
             </div>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Resumo */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -641,13 +664,16 @@ export default function VendasPage() {
         <div className="bg-[#1a1f2e] rounded-xl p-12 shadow-sm border border-[#232a3b] text-center">
           <ShoppingCart className="w-12 h-12 text-gray-600 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-100 mb-2">Nenhuma venda neste mes</h3>
-          <button
-            onClick={() => setFormAberto(true)}
-            className="inline-flex items-center gap-2 bg-lime-400 text-gray-900 px-6 py-3 rounded-lg font-medium hover:bg-lime-500 transition"
-          >
-            <Plus className="w-4 h-4" />
-            Registrar Venda
-          </button>
+          {!admin && (
+            <button
+              onClick={() => setFormAberto(true)}
+              className="inline-flex items-center gap-2 bg-lime-400 text-gray-900 px-6 py-3 rounded-lg font-medium hover:bg-lime-500 transition"
+            >
+              <Plus className="w-4 h-4" />
+              Registrar Venda
+            </button>
+          )}
+          {admin && <p className="text-gray-400">Aguardando registro de vendas pelos vendedores.</p>}
         </div>
       ) : (
         <div className="bg-[#1a1f2e] rounded-xl shadow-sm border border-[#232a3b] overflow-hidden">
@@ -656,6 +682,7 @@ export default function VendasPage() {
               <thead className="bg-[#141820] text-gray-400">
                 <tr>
                   <th className="text-left px-4 py-3 font-medium">Cliente</th>
+                  {admin && <th className="text-left px-4 py-3 font-medium">Vendedor</th>}
                   <th className="text-left px-4 py-3 font-medium">Distribuidora</th>
                   <th className="text-right px-4 py-3 font-medium">Valor</th>
                   <th className="text-right px-4 py-3 font-medium">Equip.</th>
@@ -672,6 +699,7 @@ export default function VendasPage() {
                 {vendas.map((v) => (
                   <tr key={v.id} className="hover:bg-[#232a3b]">
                     <td className="px-4 py-3 font-medium text-gray-100">{v.cliente}</td>
+                    {admin && <td className="px-4 py-3 text-gray-400">{v.vendedor?.nome || "-"}</td>}
                     <td className="px-4 py-3 text-gray-400">{v.distribuidora}</td>
                     <td className="px-4 py-3 text-right">{formatCurrency(v.valorVenda)}</td>
                     <td className="px-4 py-3 text-right">{formatCurrency(v.custoEquipamentos)}</td>
@@ -693,7 +721,35 @@ export default function VendasPage() {
                     <td className="px-4 py-3 text-center text-gray-400">
                       {new Date(v.dataConversao).toLocaleDateString("pt-BR")}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 flex items-center gap-1">
+                      {admin && (
+                        <button
+                          onClick={() => {
+                            setVendaEditando({
+                              id: v.id,
+                              cliente: v.cliente,
+                              vendedor: v.vendedor?.nome,
+                              valorVenda: v.valorVenda,
+                              custoEquipamentos: v.custoEquipamentos,
+                              quantidadePlacas: v.quantidadePlacas || 0,
+                              quantidadeInversores: v.quantidadeInversores || 1,
+                              custoInstalacao: v.custoInstalacao || 0,
+                              custoVisitaTecnica: v.custoVisitaTecnica || 120,
+                              custoCosern: v.custoCosern || 70,
+                              custoTrtCrea: v.custoTrtCrea || 65,
+                              custoEngenheiro: v.custoEngenheiro || 400,
+                              custoImposto: v.custoImposto || 0,
+                              lucroLiquido: v.lucroLiquido || 0,
+                              margemLucroLiquido: v.margemLucroLiquido || 0,
+                            });
+                            setEditPanelOpen(true);
+                          }}
+                          className="p-1.5 rounded-lg hover:bg-amber-400/10 text-gray-500 hover:text-amber-400 transition"
+                          title="Editar custos"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      )}
                       <button
                         onClick={() => excluirVenda(v.id)}
                         className="text-red-400 hover:text-red-300 transition"
@@ -707,7 +763,7 @@ export default function VendasPage() {
               </tbody>
               <tfoot className="bg-lime-400/10 font-semibold text-lime-400">
                 <tr>
-                  <td className="px-4 py-3" colSpan={2}>TOTAIS</td>
+                  <td className="px-4 py-3" colSpan={admin ? 3 : 2}>TOTAIS</td>
                   <td className="px-4 py-3 text-right">{formatCurrency(totalVendido)}</td>
                   <td className="px-4 py-3" colSpan={4}></td>
                   <td className="px-4 py-3 text-right">{formatCurrency(totalComissao)}</td>
@@ -717,6 +773,19 @@ export default function VendasPage() {
             </table>
           </div>
         </div>
+      )}
+
+      {/* Panel de Edicao de Venda (admin) */}
+      {admin && (
+        <EditVendaPanel
+          venda={vendaEditando}
+          isOpen={editPanelOpen}
+          onClose={() => {
+            setEditPanelOpen(false);
+            setVendaEditando(null);
+          }}
+          onSaved={fetchVendas}
+        />
       )}
     </div>
   );
