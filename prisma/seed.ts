@@ -617,6 +617,45 @@ async function main() {
 
   console.log("\n=== SEED COMPLETO ===");
   console.log("\nUsuarios criados:");
+  // =====================================================
+  // ATUALIZAR CUSTOS DE TODAS AS VENDAS EXISTENTES
+  // (garante que vendas ja existentes recebam custos)
+  // =====================================================
+  const todasVendas = await prisma.venda.findMany();
+  for (const v of todasVendas) {
+    const placasEstimadas = Math.ceil(v.kwp * 2.5);
+    const aliquota = v.aliquotaImposto ?? 0.06;
+    const imposto = aliquota * (v.valorVenda - v.custoEquipamentos);
+    const visitaTecnica = v.custoVisitaTecnica ?? 120;
+    const cosern = v.custoCosern ?? 70;
+    const trtCrea = v.custoTrtCrea ?? 65;
+    const engenheiro = v.custoEngenheiro ?? 400;
+    const instalacao = (placasEstimadas * 70) + ((v.quantidadeInversores || 1) * 250);
+    const comissaoVendedorCusto = v.comissaoTotal;
+
+    const custoTotal = v.custoEquipamentos + instalacao + visitaTecnica + cosern + trtCrea + engenheiro + imposto + comissaoVendedorCusto;
+    const lucroLiquido = v.valorVenda - custoTotal;
+    const margemLucroLiquido = v.valorVenda > 0 ? lucroLiquido / v.valorVenda : 0;
+
+    await prisma.venda.update({
+      where: { id: v.id },
+      data: {
+        quantidadePlacas: v.quantidadePlacas === 0 ? placasEstimadas : v.quantidadePlacas,
+        aliquotaImposto: aliquota,
+        custoImposto: imposto,
+        custoVisitaTecnica: visitaTecnica,
+        custoCosern: cosern,
+        custoTrtCrea: trtCrea,
+        custoEngenheiro: engenheiro,
+        custoInstalacao: instalacao,
+        comissaoVendedorCusto: comissaoVendedorCusto,
+        lucroLiquido: lucroLiquido,
+        margemLucroLiquido: margemLucroLiquido,
+      },
+    });
+  }
+  console.log(`Custos atualizados para ${todasVendas.length} vendas (placas, impostos, custos operacionais, lucro)`);
+
   console.log("  Supervisor (Eric Lima):     supervisor@solar.com / supervisor123");
   console.log("  Diretor (Erick Santos):     diretor@solar.com / diretor123");
   console.log("  Bruna (Vendedor):           bruna@solar.com / vendedor123");
