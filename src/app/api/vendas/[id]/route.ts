@@ -44,7 +44,7 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { status, quantidadePlacas, quantidadeInversores, custoCosern, custoVisitaTecnica, custoTrtCrea, custoEngenheiro, aliquotaImposto, percentualComissaoOverride } = body;
+  const { status, quantidadePlacas, quantidadeInversores, custoCosern, custoVisitaTecnica, custoTrtCrea, custoEngenheiro, custoMaterialCA, aliquotaImposto, percentualComissaoOverride } = body;
 
   const vendaAtual = await prisma.venda.findUnique({
     where: { id: params.id },
@@ -69,14 +69,15 @@ export async function PUT(
     if (custoVisitaTecnica !== undefined) updateData.custoVisitaTecnica = custoVisitaTecnica;
     if (custoTrtCrea !== undefined) updateData.custoTrtCrea = custoTrtCrea;
     if (custoEngenheiro !== undefined) updateData.custoEngenheiro = custoEngenheiro;
+    if (custoMaterialCA !== undefined) updateData.custoMaterialCA = custoMaterialCA;
     if (aliquotaImposto !== undefined) updateData.aliquotaImposto = aliquotaImposto;
     if (percentualComissaoOverride !== undefined) updateData.percentualComissaoOverride = percentualComissaoOverride;
 
     // Se mudou algum custo, recalcular P&L
     const temMudancaCusto = quantidadePlacas !== undefined || quantidadeInversores !== undefined ||
       custoCosern !== undefined || custoVisitaTecnica !== undefined ||
-      custoTrtCrea !== undefined || custoEngenheiro !== undefined || aliquotaImposto !== undefined ||
-      percentualComissaoOverride !== undefined;
+      custoTrtCrea !== undefined || custoEngenheiro !== undefined || custoMaterialCA !== undefined ||
+      aliquotaImposto !== undefined || percentualComissaoOverride !== undefined;
 
     if (temMudancaCusto) {
       const config = await prisma.configuracao.findFirst();
@@ -88,6 +89,7 @@ export async function PUT(
         custoCosernPadrao: config?.custoCosernPadrao ?? 70,
         custoTrtCreaPadrao: config?.custoTrtCreaPadrao ?? 65,
         custoEngenheiroPadrao: config?.custoEngenheiroPadrao ?? 400,
+        custoMaterialCAPadrao: config?.custoMaterialCAPadrao ?? 500,
         aliquotaImpostoPadrao: config?.aliquotaImpostoPadrao ?? 0.06,
       };
 
@@ -111,6 +113,7 @@ export async function PUT(
           custoCosernOverride: custoCosern ?? vendaAtual.custoCosern,
           custoTrtCreaOverride: custoTrtCrea ?? vendaAtual.custoTrtCrea,
           custoEngenheiroOverride: custoEngenheiro ?? vendaAtual.custoEngenheiro,
+          custoMaterialCAOverride: custoMaterialCA ?? vendaAtual.custoMaterialCA,
           aliquotaImpostoOverride: aliquotaImposto ?? vendaAtual.aliquotaImposto,
         },
         configCustos
@@ -121,6 +124,7 @@ export async function PUT(
       updateData.comissaoVendedorCusto = novaComissaoTotal;
       updateData.custoInstalacao = custos.custoInstalacao;
       updateData.custoEngenheiro = custos.custoEngenheiro;
+      updateData.custoMaterialCA = custos.custoMaterialCA;
       updateData.custoImposto = custos.custoImposto;
       updateData.lucroLiquido = custos.lucroLiquido;
       updateData.margemLucroLiquido = custos.margemLucroLiquido;

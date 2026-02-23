@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
       custoCosernPadrao: config?.custoCosernPadrao ?? 70,
       custoTrtCreaPadrao: config?.custoTrtCreaPadrao ?? 65,
       custoEngenheiroPadrao: config?.custoEngenheiroPadrao ?? 400,
+      custoMaterialCAPadrao: config?.custoMaterialCAPadrao ?? 500,
       aliquotaImpostoPadrao: config?.aliquotaImpostoPadrao ?? 0.06,
     };
 
@@ -132,6 +133,7 @@ export async function POST(request: NextRequest) {
         custoCosern: custos.custoCosern,
         custoTrtCrea: custos.custoTrtCrea,
         custoEngenheiro: custos.custoEngenheiro,
+        custoMaterialCA: custos.custoMaterialCA,
         aliquotaImposto: configCustos.aliquotaImpostoPadrao,
         custoImposto: custos.custoImposto,
         comissaoVendedorCusto: comissaoVenda,
@@ -181,6 +183,7 @@ async function recalcularComissoesMes(vendedorId: string, mesReferencia: string)
     custoCosernPadrao: config?.custoCosernPadrao ?? 70,
     custoTrtCreaPadrao: config?.custoTrtCreaPadrao ?? 65,
     custoEngenheiroPadrao: config?.custoEngenheiroPadrao ?? 400,
+    custoMaterialCAPadrao: config?.custoMaterialCAPadrao ?? 500,
     aliquotaImpostoPadrao: config?.aliquotaImpostoPadrao ?? 0.06,
   };
 
@@ -228,6 +231,7 @@ async function recalcularComissoesMes(vendedorId: string, mesReferencia: string)
         custoCosernOverride: venda.custoCosern,
         custoTrtCreaOverride: venda.custoTrtCrea,
         custoEngenheiroOverride: venda.custoEngenheiro,
+        custoMaterialCAOverride: venda.custoMaterialCA,
         aliquotaImpostoOverride: venda.aliquotaImposto,
       },
       configCustos
@@ -242,6 +246,7 @@ async function recalcularComissoesMes(vendedorId: string, mesReferencia: string)
         comissaoVendedorCusto: comissaoTotal,
         custoInstalacao: custos.custoInstalacao,
         custoEngenheiro: custos.custoEngenheiro,
+        custoMaterialCA: custos.custoMaterialCA,
         custoImposto: custos.custoImposto,
         lucroLiquido: custos.lucroLiquido,
         margemLucroLiquido: custos.margemLucroLiquido,

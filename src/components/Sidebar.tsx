@@ -44,6 +44,7 @@ export function Sidebar() {
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { href: "/vendas", label: "Minhas Vendas", icon: ShoppingCart },
     { href: "/vendedor/oportunidades", label: "Oportunidades", icon: Target },
+    { href: "/calculadora", label: "Calculadora", icon: Calculator },
     { href: "/comissoes", label: "Comissoes", icon: DollarSign },
   ];
 

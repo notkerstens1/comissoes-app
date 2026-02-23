@@ -53,6 +53,7 @@ model Venda {
   custoCosern            Float? // padrao config, diretor pode editar
   custoTrtCrea           Float? // padrao config (R$65)
   custoEngenheiro        Float? // R$400 fixo por instalacao (engenheiro)
+  custoMaterialCA        Float? // R$500 fixo (material CA)
   aliquotaImposto        Float? // padrao config (0.06 = 6%)
   custoImposto           Float? // auto: aliquota * (valorVenda - custoEquipamentos)
   percentualComissaoOverride Float? // null = usa padrao da config (2.5%). Diretor pode alterar por venda
@@ -87,6 +88,7 @@ model Configuracao {
   custoCosernPadrao        Float @default(70)    // 2 x R$35
   custoTrtCreaPadrao       Float @default(65)    // R$65 fixo
   custoEngenheiroPadrao    Float @default(400)   // R$400 por instalacao (engenheiro)
+  custoMaterialCAPadrao    Float @default(500)   // R$500 material CA
   aliquotaImpostoPadrao    Float @default(0.06)  // 6%
 }
 

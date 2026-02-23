@@ -32,6 +32,7 @@ type PosVendaRegistro = {
   observacoes: string | null;
   ultimoContato: string | null;
   proximoContato: string | null;
+  createdAt: string;
   operador: { id: string; nome: string };
 };
 
@@ -72,8 +73,31 @@ export default function PosVendaPage() {
   const [editForm, setEditForm] = useState<FormData>(FORM_INICIAL);
   const [saving, setSaving] = useState(false);
   const [filterEtapa, setFilterEtapa] = useState<string | null>(null);
+  const [filtroPeriodo, setFiltroPeriodo] = useState<"todos" | "semana" | "mes">("todos");
 
   const hoje = new Date().toISOString().split("T")[0];
+
+  // Helpers para filtro de data
+  const getInicioSemana = () => {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1); // segunda
+    return new Date(d.getFullYear(), d.getMonth(), diff).toISOString().split("T")[0];
+  };
+  const getFimSemana = () => {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? 0 : 7); // domingo
+    return new Date(d.getFullYear(), d.getMonth(), diff).toISOString().split("T")[0];
+  };
+  const getInicioMes = () => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0];
+  };
+  const getFimMes = () => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split("T")[0];
+  };
 
   const fetchRegistros = useCallback(async () => {
     setLoading(true);
@@ -147,10 +171,25 @@ export default function PosVendaPage() {
     await fetchRegistros();
   }
 
-  // Filtrar registros
+  // Filtrar registros: primeiro por período, depois por etapa
   let clientesFiltrados = registros;
+  if (filtroPeriodo === "semana") {
+    const inicio = getInicioSemana();
+    const fim = getFimSemana();
+    clientesFiltrados = clientesFiltrados.filter((r) => {
+      const d = r.createdAt?.split("T")[0];
+      return d && d >= inicio && d <= fim;
+    });
+  } else if (filtroPeriodo === "mes") {
+    const inicio = getInicioMes();
+    const fim = getFimMes();
+    clientesFiltrados = clientesFiltrados.filter((r) => {
+      const d = r.createdAt?.split("T")[0];
+      return d && d >= inicio && d <= fim;
+    });
+  }
   if (filterEtapa) {
-    clientesFiltrados = registros.filter((r) => r.etapa === filterEtapa);
+    clientesFiltrados = clientesFiltrados.filter((r) => r.etapa === filterEtapa);
   }
 
   // Ordenar: vencidos primeiro, depois por próximo contato
@@ -293,6 +332,24 @@ export default function PosVendaPage() {
             </div>
           )}
 
+          {/* Filtros de periodo */}
+          <div className="mb-4 flex gap-2 flex-wrap">
+            <span className="text-xs text-gray-500 self-center mr-1">Periodo:</span>
+            {([["todos", "Todos"], ["semana", "Esta Semana"], ["mes", "Este Mes"]] as const).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setFiltroPeriodo(key)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  filtroPeriodo === key
+                    ? "bg-sky-400 text-gray-900"
+                    : "bg-[#232a3b] text-gray-300 hover:bg-[#2a3040]"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
           {/* Filtros por etapa */}
           <div className="mb-6 flex gap-2 flex-wrap">
             <button
@@ -304,7 +361,7 @@ export default function PosVendaPage() {
               }`}
             >
               <Filter className="w-3.5 h-3.5" />
-              Todos ({registros.length})
+              Todos ({clientesFiltrados.length})
             </button>
             {ETAPAS_POS_VENDA.map((et) => {
               const count = registros.filter((r) => r.etapa === et.key).length;

@@ -45,6 +45,7 @@ interface Venda {
   custoCosern?: number;
   custoTrtCrea?: number;
   custoEngenheiro?: number;
+  custoMaterialCA?: number;
   custoImposto?: number;
   lucroLiquido?: number;
   margemLucroLiquido?: number;
@@ -738,6 +739,7 @@ export default function VendasPage() {
                               custoCosern: v.custoCosern || 70,
                               custoTrtCrea: v.custoTrtCrea || 65,
                               custoEngenheiro: v.custoEngenheiro || 400,
+                              custoMaterialCA: v.custoMaterialCA || 500,
                               custoImposto: v.custoImposto || 0,
                               lucroLiquido: v.lucroLiquido || 0,
                               margemLucroLiquido: v.margemLucroLiquido || 0,

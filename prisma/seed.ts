@@ -119,6 +119,7 @@ async function main() {
       custoCosernPadrao: 70,
       custoTrtCreaPadrao: 65,
       custoEngenheiroPadrao: 400,
+      custoMaterialCAPadrao: 500,
       aliquotaImpostoPadrao: 0.06,
     },
     create: {
@@ -133,6 +134,7 @@ async function main() {
       custoCosernPadrao: 70,
       custoTrtCreaPadrao: 65,
       custoEngenheiroPadrao: 400,
+      custoMaterialCAPadrao: 500,
       aliquotaImpostoPadrao: 0.06,
     },
   });
@@ -630,10 +632,11 @@ async function main() {
     const cosern = v.custoCosern ?? 70;
     const trtCrea = v.custoTrtCrea ?? 65;
     const engenheiro = v.custoEngenheiro ?? 400;
+    const materialCA = v.custoMaterialCA ?? 500;
     const instalacao = (placasEstimadas * 70) + ((v.quantidadeInversores || 1) * 250);
     const comissaoVendedorCusto = v.comissaoTotal;
 
-    const custoTotal = v.custoEquipamentos + instalacao + visitaTecnica + cosern + trtCrea + engenheiro + imposto + comissaoVendedorCusto;
+    const custoTotal = v.custoEquipamentos + instalacao + visitaTecnica + cosern + trtCrea + engenheiro + materialCA + imposto + comissaoVendedorCusto;
     const lucroLiquido = v.valorVenda - custoTotal;
     const margemLucroLiquido = v.valorVenda > 0 ? lucroLiquido / v.valorVenda : 0;
 
@@ -647,6 +650,7 @@ async function main() {
         custoCosern: cosern,
         custoTrtCrea: trtCrea,
         custoEngenheiro: engenheiro,
+        custoMaterialCA: materialCA,
         custoInstalacao: instalacao,
         comissaoVendedorCusto: comissaoVendedorCusto,
         lucroLiquido: lucroLiquido,

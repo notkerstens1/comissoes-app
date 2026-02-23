@@ -18,6 +18,7 @@ export interface VendaEditavel {
   custoCosern: number;
   custoTrtCrea: number;
   custoEngenheiro: number;
+  custoMaterialCA: number;
   custoImposto: number;
   comissaoVendedor?: number;
   lucroLiquido: number;
@@ -43,6 +44,7 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
     custoVisitaTecnica: 120,
     custoTrtCrea: 65,
     custoEngenheiro: 400,
+    custoMaterialCA: 500,
     percentualComissao: "2.5",
   });
 
@@ -51,6 +53,7 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
     custoVisitaTecnica: "",
     custoTrtCrea: "",
     custoEngenheiro: "",
+    custoMaterialCA: "",
   });
 
   // Inicializar form quando venda muda
@@ -65,6 +68,7 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
       custoVisitaTecnica: v.custoVisitaTecnica,
       custoTrtCrea: v.custoTrtCrea,
       custoEngenheiro: v.custoEngenheiro,
+      custoMaterialCA: v.custoMaterialCA,
       percentualComissao: percentual,
     });
     setEditFormDisplay({
@@ -72,6 +76,7 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
       custoVisitaTecnica: formatCurrencyInput(v.custoVisitaTecnica),
       custoTrtCrea: formatCurrencyInput(v.custoTrtCrea),
       custoEngenheiro: formatCurrencyInput(v.custoEngenheiro),
+      custoMaterialCA: formatCurrencyInput(v.custoMaterialCA),
     });
     setErro("");
   };
@@ -86,7 +91,7 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
     setLastVendaId(null);
   }
 
-  const handleEditCurrency = (field: "custoCosern" | "custoVisitaTecnica" | "custoTrtCrea" | "custoEngenheiro", rawValue: string) => {
+  const handleEditCurrency = (field: "custoCosern" | "custoVisitaTecnica" | "custoTrtCrea" | "custoEngenheiro" | "custoMaterialCA", rawValue: string) => {
     if (rawValue === "") {
       setEditFormDisplay({ ...editFormDisplay, [field]: "" });
       setEditForm({ ...editForm, [field]: 0 });
@@ -111,6 +116,7 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
         custoVisitaTecnica: editForm.custoVisitaTecnica,
         custoTrtCrea: editForm.custoTrtCrea,
         custoEngenheiro: editForm.custoEngenheiro,
+        custoMaterialCA: editForm.custoMaterialCA,
         percentualComissaoOverride: isNaN(percentualDecimal) ? undefined : percentualDecimal,
       };
 
@@ -247,17 +253,31 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1">Engenheiro (R$)</label>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={editFormDisplay.custoEngenheiro}
-              onChange={(e) => handleEditCurrency("custoEngenheiro", e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-amber-400/30 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm bg-[#141820] text-gray-100"
-              placeholder="0,00"
-              autoComplete="off"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1">Engenheiro (R$)</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={editFormDisplay.custoEngenheiro}
+                onChange={(e) => handleEditCurrency("custoEngenheiro", e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg border border-amber-400/30 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm bg-[#141820] text-gray-100"
+                placeholder="0,00"
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1">Material CA (R$)</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={editFormDisplay.custoMaterialCA}
+                onChange={(e) => handleEditCurrency("custoMaterialCA", e.target.value)}
+                className="w-full px-3 py-2.5 rounded-lg border border-amber-400/30 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm bg-[#141820] text-gray-100"
+                placeholder="0,00"
+                autoComplete="off"
+              />
+            </div>
           </div>
 
           <div>

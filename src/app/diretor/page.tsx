@@ -27,6 +27,7 @@ interface VendaFinanceira {
   custoCosern: number;
   custoTrtCrea: number;
   custoEngenheiro: number;
+  custoMaterialCA: number;
   custoImposto: number;
   comissaoVendedor: number;
   lucroLiquido: number;
@@ -46,6 +47,7 @@ interface DadosFinanceiros {
     custoCosernTotal: number;
     custoTrtCreaTotal: number;
     custoEngenheiroTotal: number;
+    custoMaterialCATotal: number;
     custoImpostoTotal: number;
     comissaoVendedorTotal: number;
     custoTotalOperacional: number;
@@ -266,6 +268,10 @@ export default function DiretorDashboardPage() {
             <p className="text-xs text-gray-400 uppercase tracking-wider">Engenheiro</p>
             <p className="text-lg font-bold text-gray-100 mt-1">{formatCurrency(r?.custoEngenheiroTotal || 0)}</p>
           </div>
+          <div className="bg-[#141820] rounded-lg p-4">
+            <p className="text-xs text-gray-400 uppercase tracking-wider">Material CA</p>
+            <p className="text-lg font-bold text-gray-100 mt-1">{formatCurrency(r?.custoMaterialCATotal || 0)}</p>
+          </div>
           <div className="bg-amber-400/10 rounded-lg p-4 ring-1 ring-amber-400/20">
             <p className="text-xs text-amber-400 uppercase tracking-wider font-medium">Total Custos</p>
             <p className="text-lg font-bold text-amber-400 mt-1">{formatCurrency(r?.custoTotalOperacional || 0)}</p>
@@ -299,7 +305,7 @@ export default function DiretorDashboardPage() {
               </thead>
               <tbody className="divide-y divide-[#232a3b]">
                 {dados.vendas.map((v) => {
-                  const outrosCustos = v.custoVisitaTecnica + v.custoCosern + v.custoTrtCrea + (v.custoEngenheiro || 0);
+                  const outrosCustos = v.custoVisitaTecnica + v.custoCosern + v.custoTrtCrea + (v.custoEngenheiro || 0) + (v.custoMaterialCA || 0);
                   return (
                     <tr
                       key={v.id}
@@ -350,6 +356,7 @@ export default function DiretorDashboardPage() {
                               custoCosern: v.custoCosern,
                               custoTrtCrea: v.custoTrtCrea,
                               custoEngenheiro: v.custoEngenheiro,
+                              custoMaterialCA: v.custoMaterialCA,
                               custoImposto: v.custoImposto,
                               comissaoVendedor: v.comissaoVendedor,
                               lucroLiquido: v.lucroLiquido,
@@ -377,7 +384,7 @@ export default function DiretorDashboardPage() {
                   <td className="px-4 py-3 text-right">{formatCurrency(r?.custoInstalacaoTotal || 0)}</td>
                   <td className="px-4 py-3 text-right">{formatCurrency(r?.custoImpostoTotal || 0)}</td>
                   <td className="px-4 py-3 text-right">{formatCurrency(r?.comissaoVendedorTotal || 0)}</td>
-                  <td className="px-4 py-3 text-right">{formatCurrency((r?.custoVisitaTecnicaTotal || 0) + (r?.custoCosernTotal || 0) + (r?.custoTrtCreaTotal || 0) + (r?.custoEngenheiroTotal || 0))}</td>
+                  <td className="px-4 py-3 text-right">{formatCurrency((r?.custoVisitaTecnicaTotal || 0) + (r?.custoCosernTotal || 0) + (r?.custoTrtCreaTotal || 0) + (r?.custoEngenheiroTotal || 0) + (r?.custoMaterialCATotal || 0))}</td>
                   <td className="px-4 py-3 text-right font-bold text-lime-400">{formatCurrency(r?.lucroLiquidoTotal || 0)}</td>
                   <td className="px-4 py-3 text-center">
                     <span className={`inline-block px-2 py-1 text-xs rounded-full font-bold ${

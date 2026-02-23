@@ -9,6 +9,7 @@ export interface ConfiguracaoCustos {
   custoCosernPadrao: number;        // padrao R$70
   custoTrtCreaPadrao: number;       // padrao R$65
   custoEngenheiroPadrao: number;    // padrao R$400 por instalacao
+  custoMaterialCAPadrao: number;    // padrao R$500
   aliquotaImpostoPadrao: number;    // padrao 0.06 (6%)
 }
 
@@ -24,6 +25,7 @@ export interface DadosCustoVenda {
   custoCosernOverride?: number | null;
   custoTrtCreaOverride?: number | null;
   custoEngenheiroOverride?: number | null;
+  custoMaterialCAOverride?: number | null;
   aliquotaImpostoOverride?: number | null;
 }
 
@@ -33,6 +35,7 @@ export interface ResultadoCustos {
   custoCosern: number;
   custoTrtCrea: number;
   custoEngenheiro: number;
+  custoMaterialCA: number;
   custoImposto: number;
   comissaoVendedor: number;
   custoTotalOperacional: number;
@@ -50,6 +53,7 @@ export interface ResumoFinanceiroMensal {
   custoCosernTotal: number;
   custoTrtCreaTotal: number;
   custoEngenheiroTotal: number;
+  custoMaterialCATotal: number;
   custoImpostoTotal: number;
   comissaoVendedorTotal: number;
   custoTotalOperacional: number;
@@ -110,6 +114,7 @@ export function calcularCustosVenda(
   const custoCosern = dados.custoCosernOverride ?? config.custoCosernPadrao;
   const custoTrtCrea = dados.custoTrtCreaOverride ?? config.custoTrtCreaPadrao;
   const custoEngenheiro = dados.custoEngenheiroOverride ?? config.custoEngenheiroPadrao;
+  const custoMaterialCA = dados.custoMaterialCAOverride ?? config.custoMaterialCAPadrao;
 
   // Imposto: usa aliquota override do diretor OU padrao
   const aliquota = dados.aliquotaImpostoOverride ?? config.aliquotaImpostoPadrao;
@@ -126,6 +131,7 @@ export function calcularCustosVenda(
     custoCosern +
     custoTrtCrea +
     custoEngenheiro +
+    custoMaterialCA +
     custoImposto +
     comissaoVendedor;
 
@@ -155,6 +161,7 @@ export function calcularCustosVenda(
     custoCosern,
     custoTrtCrea,
     custoEngenheiro,
+    custoMaterialCA,
     custoImposto,
     comissaoVendedor,
     custoTotalOperacional,
@@ -181,6 +188,7 @@ export function calcularResumoFinanceiroMensal(
     custoCosern: number;
     custoTrtCrea: number;
     custoEngenheiro: number;
+    custoMaterialCA: number;
     custoImposto: number;
     comissaoVendedorCusto: number;
     lucroLiquido: number;
@@ -197,6 +205,7 @@ export function calcularResumoFinanceiroMensal(
       custoCosernTotal: 0,
       custoTrtCreaTotal: 0,
       custoEngenheiroTotal: 0,
+      custoMaterialCATotal: 0,
       custoImpostoTotal: 0,
       comissaoVendedorTotal: 0,
       custoTotalOperacional: 0,
@@ -216,6 +225,7 @@ export function calcularResumoFinanceiroMensal(
   const custoCosernTotal = vendas.reduce((s, v) => s + v.custoCosern, 0);
   const custoTrtCreaTotal = vendas.reduce((s, v) => s + v.custoTrtCrea, 0);
   const custoEngenheiroTotal = vendas.reduce((s, v) => s + v.custoEngenheiro, 0);
+  const custoMaterialCATotal = vendas.reduce((s, v) => s + v.custoMaterialCA, 0);
   const custoImpostoTotal = vendas.reduce((s, v) => s + v.custoImposto, 0);
   const comissaoVendedorTotal = vendas.reduce((s, v) => s + v.comissaoVendedorCusto, 0);
 
@@ -226,6 +236,7 @@ export function calcularResumoFinanceiroMensal(
     custoCosernTotal +
     custoTrtCreaTotal +
     custoEngenheiroTotal +
+    custoMaterialCATotal +
     custoImpostoTotal +
     comissaoVendedorTotal;
 
@@ -252,6 +263,7 @@ export function calcularResumoFinanceiroMensal(
     custoCosernTotal,
     custoTrtCreaTotal,
     custoEngenheiroTotal,
+    custoMaterialCATotal,
     custoImpostoTotal,
     comissaoVendedorTotal,
     custoTotalOperacional,

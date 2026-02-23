@@ -29,12 +29,13 @@ export async function GET(request: NextRequest) {
   const custoCosernTotal = vendas.reduce((s, v) => s + (v.custoCosern ?? 0), 0);
   const custoTrtCreaTotal = vendas.reduce((s, v) => s + (v.custoTrtCrea ?? 0), 0);
   const custoEngenheiroTotal = vendas.reduce((s, v) => s + (v.custoEngenheiro ?? 0), 0);
+  const custoMaterialCATotal = vendas.reduce((s, v) => s + (v.custoMaterialCA ?? 0), 0);
   const custoImpostoTotal = vendas.reduce((s, v) => s + (v.custoImposto ?? 0), 0);
   const comissaoVendedorTotal = vendas.reduce((s, v) => s + (v.comissaoVendedorCusto ?? v.comissaoTotal), 0);
 
   const custoTotalOperacional =
     custoEquipamentosTotal + custoInstalacaoTotal + custoVisitaTecnicaTotal +
-    custoCosernTotal + custoTrtCreaTotal + custoEngenheiroTotal + custoImpostoTotal + comissaoVendedorTotal;
+    custoCosernTotal + custoTrtCreaTotal + custoEngenheiroTotal + custoMaterialCATotal + custoImpostoTotal + comissaoVendedorTotal;
 
   const lucroLiquidoTotal = faturamentoTotal - custoTotalOperacional;
   const margemLucroMedia = faturamentoTotal > 0 ? lucroLiquidoTotal / faturamentoTotal : 0;
@@ -75,6 +76,7 @@ export async function GET(request: NextRequest) {
       custoCosernTotal,
       custoTrtCreaTotal,
       custoEngenheiroTotal,
+      custoMaterialCATotal,
       custoImpostoTotal,
       comissaoVendedorTotal,
       custoTotalOperacional,
@@ -110,6 +112,7 @@ export async function GET(request: NextRequest) {
       custoCosern: v.custoCosern ?? 0,
       custoTrtCrea: v.custoTrtCrea ?? 0,
       custoEngenheiro: v.custoEngenheiro ?? 0,
+      custoMaterialCA: v.custoMaterialCA ?? 0,
       custoImposto: v.custoImposto ?? 0,
       comissaoVendedor: v.comissaoVendedorCusto ?? v.comissaoTotal,
       lucroLiquido: v.lucroLiquido ?? 0,

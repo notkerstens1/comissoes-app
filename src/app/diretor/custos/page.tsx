@@ -49,6 +49,7 @@ export default function CustosPage() {
     custoVisitaTecnica: 120,
     custoTrtCrea: 65,
     custoEngenheiro: 400,
+    custoMaterialCA: 500,
     percentualComissao: "2.5",
   });
   const [editFormDisplay, setEditFormDisplay] = useState({
@@ -56,6 +57,7 @@ export default function CustosPage() {
     custoVisitaTecnica: "",
     custoTrtCrea: "",
     custoEngenheiro: "",
+    custoMaterialCA: "",
   });
   const [salvando, setSalvando] = useState(false);
 
@@ -95,6 +97,7 @@ export default function CustosPage() {
       custoVisitaTecnica: venda.custoVisitaTecnica,
       custoTrtCrea: venda.custoTrtCrea,
       custoEngenheiro: venda.custoEngenheiro,
+      custoMaterialCA: (venda as any).custoMaterialCA ?? 500,
       percentualComissao: percentual,
     });
     setEditFormDisplay({
@@ -102,10 +105,11 @@ export default function CustosPage() {
       custoVisitaTecnica: formatCurrencyInput(venda.custoVisitaTecnica),
       custoTrtCrea: formatCurrencyInput(venda.custoTrtCrea),
       custoEngenheiro: formatCurrencyInput(venda.custoEngenheiro),
+      custoMaterialCA: formatCurrencyInput((venda as any).custoMaterialCA ?? 500),
     });
   };
 
-  const handleEditCurrency = (field: "custoCosern" | "custoVisitaTecnica" | "custoTrtCrea" | "custoEngenheiro", rawValue: string) => {
+  const handleEditCurrency = (field: "custoCosern" | "custoVisitaTecnica" | "custoTrtCrea" | "custoEngenheiro" | "custoMaterialCA", rawValue: string) => {
     if (rawValue === "") {
       setEditFormDisplay({ ...editFormDisplay, [field]: "" });
       setEditForm({ ...editForm, [field]: 0 });
@@ -128,6 +132,7 @@ export default function CustosPage() {
         custoVisitaTecnica: editForm.custoVisitaTecnica,
         custoTrtCrea: editForm.custoTrtCrea,
         custoEngenheiro: editForm.custoEngenheiro,
+        custoMaterialCA: editForm.custoMaterialCA,
         percentualComissaoOverride: isNaN(percentualDecimal) ? undefined : percentualDecimal,
       };
       const res = await fetch(`/api/vendas/${editando}`, {
@@ -212,7 +217,7 @@ export default function CustosPage() {
               {editando === venda.id ? (
                 /* Modo de edicao */
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 sm:grid-cols-6 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-7 gap-4">
                     <div>
                       <label className="block text-xs font-medium text-gray-400 mb-1">Inversores</label>
                       <input
@@ -273,6 +278,18 @@ export default function CustosPage() {
                       />
                     </div>
                     <div>
+                      <label className="block text-xs font-medium text-gray-400 mb-1">Material CA (R$)</label>
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={editFormDisplay.custoMaterialCA}
+                        onChange={(e) => handleEditCurrency("custoMaterialCA", e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm bg-[#141820] text-gray-100"
+                        placeholder="0,00"
+                        autoComplete="off"
+                      />
+                    </div>
+                    <div>
                       <label className="block text-xs font-medium text-gray-400 mb-1">% Comissao</label>
                       <input
                         type="text"
@@ -308,7 +325,7 @@ export default function CustosPage() {
                 </div>
               ) : (
                 /* Modo de visualizacao */
-                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-9 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-3">
                   <div>
                     <p className="text-xs text-gray-400">Equipamentos</p>
                     <p className="font-medium text-sm">{formatCurrency(venda.custoEquipamentos)}</p>
@@ -328,6 +345,10 @@ export default function CustosPage() {
                   <div>
                     <p className="text-xs text-gray-400">Engenheiro</p>
                     <p className="font-medium text-sm">{formatCurrency(venda.custoEngenheiro)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">Material CA</p>
+                    <p className="font-medium text-sm">{formatCurrency((venda as any).custoMaterialCA ?? 0)}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-400">Imposto</p>

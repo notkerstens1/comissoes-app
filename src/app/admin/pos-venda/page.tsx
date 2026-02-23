@@ -15,6 +15,7 @@ type PosVendaRegistro = {
   observacoes: string | null;
   ultimoContato: string | null;
   proximoContato: string | null;
+  createdAt: string;
   operador: { id: string; nome: string };
 };
 
@@ -28,8 +29,30 @@ export default function AdminPosVendaPage() {
   const [registros, setRegistros] = useState<PosVendaRegistro[]>([]);
   const [loading, setLoading] = useState(true);
   const [filtroEtapa, setFiltroEtapa] = useState("TODAS");
+  const [filtroPeriodo, setFiltroPeriodo] = useState<"todos" | "semana" | "mes">("todos");
 
   const hoje = new Date().toISOString().split("T")[0];
+
+  const getInicioSemana = () => {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d.getFullYear(), d.getMonth(), diff).toISOString().split("T")[0];
+  };
+  const getFimSemana = () => {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? 0 : 7);
+    return new Date(d.getFullYear(), d.getMonth(), diff).toISOString().split("T")[0];
+  };
+  const getInicioMes = () => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split("T")[0];
+  };
+  const getFimMes = () => {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split("T")[0];
+  };
 
   const fetchRegistros = useCallback(async () => {
     setLoading(true);
@@ -46,17 +69,35 @@ export default function AdminPosVendaPage() {
     fetchRegistros();
   }, [fetchRegistros]);
 
-  const filtrados = filtroEtapa === "TODAS"
-    ? registros
-    : registros.filter((r) => r.etapa === filtroEtapa);
+  // Filtrar por periodo primeiro
+  let registrosPeriodo = registros;
+  if (filtroPeriodo === "semana") {
+    const inicio = getInicioSemana();
+    const fim = getFimSemana();
+    registrosPeriodo = registrosPeriodo.filter((r) => {
+      const d = r.createdAt?.split("T")[0];
+      return d && d >= inicio && d <= fim;
+    });
+  } else if (filtroPeriodo === "mes") {
+    const inicio = getInicioMes();
+    const fim = getFimMes();
+    registrosPeriodo = registrosPeriodo.filter((r) => {
+      const d = r.createdAt?.split("T")[0];
+      return d && d >= inicio && d <= fim;
+    });
+  }
 
-  // Contadores por etapa
+  const filtrados = filtroEtapa === "TODAS"
+    ? registrosPeriodo
+    : registrosPeriodo.filter((r) => r.etapa === filtroEtapa);
+
+  // Contadores por etapa (baseados no periodo filtrado)
   const contadores = ETAPAS_POS_VENDA.reduce((acc, et) => {
-    acc[et.key] = registros.filter((r) => r.etapa === et.key).length;
+    acc[et.key] = registrosPeriodo.filter((r) => r.etapa === et.key).length;
     return acc;
   }, {} as Record<string, number>);
 
-  const vencidos = registros.filter((r) => r.proximoContato && r.proximoContato < hoje).length;
+  const vencidos = registrosPeriodo.filter((r) => r.proximoContato && r.proximoContato < hoje).length;
 
   return (
     <div className="flex min-h-screen bg-[#0b0f19]">
@@ -73,6 +114,24 @@ export default function AdminPosVendaPage() {
             <p className="text-gray-400 text-sm mt-1">
               Acompanhamento de todos os clientes em pós-instalação
             </p>
+          </div>
+
+          {/* Filtro de periodo */}
+          <div className="mb-4 flex gap-2 flex-wrap">
+            <span className="text-xs text-gray-500 self-center mr-1">Periodo:</span>
+            {([["todos", "Todos"], ["semana", "Esta Semana"], ["mes", "Este Mes"]] as const).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setFiltroPeriodo(key)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  filtroPeriodo === key
+                    ? "bg-sky-400 text-gray-900"
+                    : "bg-[#232a3b] text-gray-300 hover:bg-[#2a3040]"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
           {/* Cards por etapa */}

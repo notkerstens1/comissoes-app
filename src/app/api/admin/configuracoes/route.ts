@@ -27,6 +27,7 @@ export async function GET() {
         custoCosernPadrao: 70,
         custoTrtCreaPadrao: 65,
         custoEngenheiroPadrao: 400,
+        custoMaterialCAPadrao: 500,
         aliquotaImpostoPadrao: 0.06,
       },
     });
@@ -55,6 +56,7 @@ export async function PUT(request: NextRequest) {
     custoCosernPadrao,
     custoTrtCreaPadrao,
     custoEngenheiroPadrao,
+    custoMaterialCAPadrao,
     aliquotaImpostoPadrao,
   } = body;
 
@@ -79,6 +81,7 @@ export async function PUT(request: NextRequest) {
       ...(custoCosernPadrao !== undefined && { custoCosernPadrao }),
       ...(custoTrtCreaPadrao !== undefined && { custoTrtCreaPadrao }),
       ...(custoEngenheiroPadrao !== undefined && { custoEngenheiroPadrao }),
+      ...(custoMaterialCAPadrao !== undefined && { custoMaterialCAPadrao }),
       ...(aliquotaImpostoPadrao !== undefined && { aliquotaImpostoPadrao }),
     },
     create: {
@@ -93,6 +96,7 @@ export async function PUT(request: NextRequest) {
       custoCosernPadrao: custoCosernPadrao ?? 70,
       custoTrtCreaPadrao: custoTrtCreaPadrao ?? 65,
       custoEngenheiroPadrao: custoEngenheiroPadrao ?? 400,
+      custoMaterialCAPadrao: custoMaterialCAPadrao ?? 500,
       aliquotaImpostoPadrao: aliquotaImpostoPadrao ?? 0.06,
     },
   });
