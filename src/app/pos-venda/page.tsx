@@ -12,6 +12,7 @@ import {
   Calendar,
   AlertCircle,
   Filter,
+  RefreshCw,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import {
@@ -74,6 +75,8 @@ export default function PosVendaPage() {
   const [saving, setSaving] = useState(false);
   const [filterEtapa, setFilterEtapa] = useState<string | null>(null);
   const [filtroPeriodo, setFiltroPeriodo] = useState<"todos" | "semana" | "mes">("todos");
+  const [trocandoEtapaId, setTrocandoEtapaId] = useState<string | null>(null);
+  const [novaEtapaSel, setNovaEtapaSel] = useState("");
 
   const hoje = new Date().toISOString().split("T")[0];
 
@@ -169,6 +172,26 @@ export default function PosVendaPage() {
       body: JSON.stringify({ etapa: proxima }),
     });
     await fetchRegistros();
+  }
+
+  function iniciarTrocaEtapa(r: PosVendaRegistro) {
+    setTrocandoEtapaId(r.id);
+    setNovaEtapaSel(r.etapa);
+  }
+
+  async function salvarTrocaEtapa(id: string) {
+    setSaving(true);
+    try {
+      await fetch(`/api/pos-venda/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ etapa: novaEtapaSel }),
+      });
+      setTrocandoEtapaId(null);
+      await fetchRegistros();
+    } finally {
+      setSaving(false);
+    }
   }
 
   // Filtrar registros: primeiro por período, depois por etapa
@@ -502,8 +525,8 @@ export default function PosVendaPage() {
                         )}
 
                         {/* Botões */}
-                        <div className="flex gap-2">
-                          {r.etapa !== "CONCLUIDA" && (
+                        <div className="flex flex-wrap gap-2">
+                          {r.etapa !== "CONCLUIDA" && trocandoEtapaId !== r.id && (
                             <button
                               onClick={() => handleAvancar(r)}
                               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-400/10 text-orange-400 text-sm font-semibold rounded-lg border border-orange-400/30 hover:bg-orange-400/20 transition"
@@ -512,13 +535,53 @@ export default function PosVendaPage() {
                               Avançar para {getEtapaLabel(getProximaEtapa(r.etapa as EtapaPosVenda) ?? "")}
                             </button>
                           )}
-                          <button
-                            onClick={() => startEdit(r)}
-                            className="flex items-center gap-2 px-4 py-2.5 text-gray-300 bg-[#232a3b] rounded-lg hover:bg-[#2a3040] transition text-sm font-semibold"
-                          >
-                            <Pencil className="w-4 h-4" />
-                            Editar
-                          </button>
+
+                          {/* Troca rápida de etapa */}
+                          {trocandoEtapaId === r.id ? (
+                            <div className="flex items-center gap-2 flex-1 flex-wrap">
+                              <select
+                                value={novaEtapaSel}
+                                onChange={(e) => setNovaEtapaSel(e.target.value)}
+                                className="flex-1 bg-[#0b0f19] border border-orange-400/50 rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
+                              >
+                                {ETAPAS_POS_VENDA.map((et) => (
+                                  <option key={et.key} value={et.key}>{et.label}</option>
+                                ))}
+                              </select>
+                              <button
+                                onClick={() => salvarTrocaEtapa(r.id)}
+                                disabled={saving}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-orange-400 text-gray-900 rounded-lg text-sm font-medium hover:bg-orange-300 disabled:opacity-50 transition"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                {saving ? "..." : "Salvar"}
+                              </button>
+                              <button
+                                onClick={() => setTrocandoEtapaId(null)}
+                                className="flex items-center gap-1.5 px-3 py-2 bg-[#232a3b] text-gray-300 rounded-lg text-sm font-medium hover:bg-[#2a3040] transition"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => iniciarTrocaEtapa(r)}
+                              className="flex items-center gap-2 px-4 py-2.5 text-sky-400 bg-sky-400/10 rounded-lg hover:bg-sky-400/20 border border-sky-400/30 transition text-sm font-semibold"
+                            >
+                              <RefreshCw className="w-4 h-4" />
+                              Alterar Etapa
+                            </button>
+                          )}
+
+                          {trocandoEtapaId !== r.id && (
+                            <button
+                              onClick={() => startEdit(r)}
+                              className="flex items-center gap-2 px-4 py-2.5 text-gray-300 bg-[#232a3b] rounded-lg hover:bg-[#2a3040] transition text-sm font-semibold"
+                            >
+                              <Pencil className="w-4 h-4" />
+                              Editar
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}

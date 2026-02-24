@@ -26,6 +26,8 @@ model User {
   pendenciasResolvidas PendenciaVinculo[] @relation("resolvidoPor")
   // Pos Venda
   posVendaRegistros    PosVenda[]         @relation("posVendaOperador")
+  // Calculadora
+  simulacoes           SimulacaoVenda[]
 }
 
 model Venda {
@@ -208,6 +210,29 @@ model PosVenda {
   ativo            Boolean  @default(true)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+}
+
+// Calculadora: Histórico de simulações de venda por vendedor
+model SimulacaoVenda {
+  id                   String   @id @default(cuid())
+  vendedorId           String
+  vendedor             User     @relation(fields: [vendedorId], references: [id])
+  // Inputs
+  valorVenda           Float
+  custoEquipamentos    Float
+  kwp                  Float    @default(0)
+  quantidadePlacas     Int      @default(0)
+  quantidadeInversores Int      @default(1)
+  ehExcecao            Boolean  @default(false)
+  // Resultados calculados
+  margemVendedor       Float
+  over                 Float
+  lucroLiquido         Float
+  margemEmpresa        Float
+  custoTotal           Float
+  vendaSaudavel        Boolean
+  mesReferencia        String   // "2026-01" para filtrar por mês
+  createdAt            DateTime @default(now())
 }
 
 // Campanhas: metas de vendas criadas por Diretor/Supervisor

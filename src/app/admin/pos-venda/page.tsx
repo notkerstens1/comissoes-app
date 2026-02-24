@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { ClipboardCheck, Calendar, AlertCircle, Phone } from "lucide-react";
+import { ClipboardCheck, Calendar, AlertCircle, Phone, RefreshCw, Check, X } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
-import { ETAPAS_POS_VENDA, ETAPA_CORES, getEtapaLabel } from "@/lib/pos-venda";
+import { ETAPAS_POS_VENDA, ETAPA_CORES, getEtapaLabel, type EtapaPosVenda } from "@/lib/pos-venda";
 
 type PosVendaRegistro = {
   id: string;
@@ -30,6 +30,9 @@ export default function AdminPosVendaPage() {
   const [loading, setLoading] = useState(true);
   const [filtroEtapa, setFiltroEtapa] = useState("TODAS");
   const [filtroPeriodo, setFiltroPeriodo] = useState<"todos" | "semana" | "mes">("todos");
+  const [trocandoEtapaId, setTrocandoEtapaId] = useState<string | null>(null);
+  const [novaEtapaSel, setNovaEtapaSel] = useState("");
+  const [savingEtapa, setSavingEtapa] = useState(false);
 
   const hoje = new Date().toISOString().split("T")[0];
 
@@ -99,6 +102,21 @@ export default function AdminPosVendaPage() {
 
   const vencidos = registrosPeriodo.filter((r) => r.proximoContato && r.proximoContato < hoje).length;
 
+  async function salvarTrocaEtapa(id: string) {
+    setSavingEtapa(true);
+    try {
+      await fetch(`/api/pos-venda/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ etapa: novaEtapaSel }),
+      });
+      setTrocandoEtapaId(null);
+      await fetchRegistros();
+    } finally {
+      setSavingEtapa(false);
+    }
+  }
+
   return (
     <div className="flex min-h-screen bg-[#0b0f19]">
       <Sidebar />
@@ -135,7 +153,7 @@ export default function AdminPosVendaPage() {
           </div>
 
           {/* Cards por etapa */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-11 gap-2 mb-6">
             {ETAPAS_POS_VENDA.map((et) => {
               const cores = ETAPA_CORES[et.key];
               return (
@@ -208,6 +226,7 @@ export default function AdminPosVendaPage() {
                       <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Próxima Ação</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Próx. Contato</th>
                       <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Observações</th>
+                      <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase">Etapa</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#232a3b]">
@@ -253,6 +272,48 @@ export default function AdminPosVendaPage() {
                             </td>
                             <td className="px-4 py-3 text-gray-500 text-xs max-w-[200px] truncate">
                               {r.observacoes ?? "—"}
+                            </td>
+                            {/* Troca rápida de etapa */}
+                            <td className="px-4 py-3">
+                              {trocandoEtapaId === r.id ? (
+                                <div className="flex items-center gap-1.5 min-w-[260px]">
+                                  <select
+                                    value={novaEtapaSel}
+                                    onChange={(e) => setNovaEtapaSel(e.target.value)}
+                                    className="flex-1 bg-[#0b0f19] border border-orange-400/50 rounded px-2 py-1 text-xs text-gray-100 focus:border-orange-400 outline-none"
+                                  >
+                                    {ETAPAS_POS_VENDA.map((et) => (
+                                      <option key={et.key} value={et.key}>{et.label}</option>
+                                    ))}
+                                  </select>
+                                  <button
+                                    onClick={() => salvarTrocaEtapa(r.id)}
+                                    disabled={savingEtapa}
+                                    className="p-1.5 bg-orange-400 text-gray-900 rounded hover:bg-orange-300 disabled:opacity-50 transition"
+                                    title="Salvar"
+                                  >
+                                    <Check className="w-3 h-3" />
+                                  </button>
+                                  <button
+                                    onClick={() => setTrocandoEtapaId(null)}
+                                    className="p-1.5 bg-[#232a3b] text-gray-400 rounded hover:bg-[#2a3040] transition"
+                                    title="Cancelar"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    setTrocandoEtapaId(r.id);
+                                    setNovaEtapaSel(r.etapa as EtapaPosVenda);
+                                  }}
+                                  className="flex items-center gap-1.5 px-2 py-1.5 text-xs text-sky-400 bg-sky-400/10 rounded border border-sky-400/20 hover:bg-sky-400/20 transition font-medium"
+                                >
+                                  <RefreshCw className="w-3 h-3" />
+                                  Alterar
+                                </button>
+                              )}
                             </td>
                           </tr>
                         );
