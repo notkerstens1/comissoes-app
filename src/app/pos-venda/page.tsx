@@ -73,6 +73,7 @@ export default function PosVendaPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<FormData>(FORM_INICIAL);
   const [saving, setSaving] = useState(false);
+  const [erroMsg, setErroMsg] = useState("");
   const [filterEtapa, setFilterEtapa] = useState<string | null>(null);
   const [filtroPeriodo, setFiltroPeriodo] = useState<"todos" | "semana" | "mes">("todos");
   const [trocandoEtapaId, setTrocandoEtapaId] = useState<string | null>(null);
@@ -150,12 +151,18 @@ export default function PosVendaPage() {
 
   async function handleSaveEdit(id: string) {
     setSaving(true);
+    setErroMsg("");
     try {
-      await fetch(`/api/pos-venda/${id}`, {
+      const res = await fetch(`/api/pos-venda/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editForm),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || `Erro ${res.status} ao salvar`);
+        return;
+      }
       setEditingId(null);
       await fetchRegistros();
     } finally {
@@ -181,12 +188,18 @@ export default function PosVendaPage() {
 
   async function salvarTrocaEtapa(id: string) {
     setSaving(true);
+    setErroMsg("");
     try {
-      await fetch(`/api/pos-venda/${id}`, {
+      const res = await fetch(`/api/pos-venda/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ etapa: novaEtapaSel }),
       });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || `Erro ${res.status} ao alterar etapa`);
+        return;
+      }
       setTrocandoEtapaId(null);
       await fetchRegistros();
     } finally {
@@ -251,6 +264,17 @@ export default function PosVendaPage() {
               Novo Cliente
             </button>
           </div>
+
+          {/* Erro global */}
+          {erroMsg && (
+            <div className="mb-4 flex items-center gap-3 bg-red-400/10 border border-red-400/30 rounded-xl px-4 py-3">
+              <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+              <p className="text-sm text-red-300">{erroMsg}</p>
+              <button onClick={() => setErroMsg("")} className="ml-auto text-red-400 hover:text-red-300">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
 
           {/* Formulário novo cliente */}
           {showForm && (
