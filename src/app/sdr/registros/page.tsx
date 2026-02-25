@@ -21,6 +21,8 @@ import {
   Ban,
   ShoppingCart,
   CalendarClock,
+  Paperclip,
+  Image,
 } from "lucide-react";
 import { MOTIVOS_NAO_COMPARECEU, MOTIVOS_FINALIZACAO, COLUNAS_KANBAN } from "@/lib/sdr";
 import type { StatusLead } from "@/lib/sdr";
@@ -42,6 +44,7 @@ interface Registro {
   motivoNaoCompareceu: string | null;
   motivoFinalizacao: string | null;
   consideracoes: string | null;
+  imagemUrl: string | null;
   vendaVinculadaId: string | null;
   vendaVinculada: {
     id: string;
@@ -108,6 +111,9 @@ export default function RegistrosSDRPage() {
   const [compareceu, setCompareceu] = useState(false);
   const [motivoNaoCompareceu, setMotivoNaoCompareceu] = useState("");
   const [consideracoes, setConsideracoes] = useState("");
+  const [imagemBase64, setImagemBase64] = useState<string | null>(null);
+  const [imagemNome, setImagemNome] = useState<string>("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Card editing
   const [editandoId, setEditandoId] = useState<string | null>(null);
@@ -177,6 +183,21 @@ export default function RegistrosSDRPage() {
     setLoading(false);
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) {
+      setFormErro("Arquivo muito grande. Máximo 15MB.");
+      return;
+    }
+    setImagemNome(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImagemBase64(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const resetForm = () => {
     setNomeCliente("");
     setVendedoraId("");
@@ -184,6 +205,9 @@ export default function RegistrosSDRPage() {
     setCompareceu(false);
     setMotivoNaoCompareceu("");
     setConsideracoes("");
+    setImagemBase64(null);
+    setImagemNome("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
     setFormErro("");
     setFormSucesso(false);
   };
@@ -204,6 +228,7 @@ export default function RegistrosSDRPage() {
           compareceu,
           motivoNaoCompareceu: compareceu ? null : motivoNaoCompareceu,
           consideracoes,
+          imagemUrl: imagemBase64 || null,
         }),
       });
 
@@ -434,6 +459,22 @@ export default function RegistrosSDRPage() {
                     <p className="text-xs text-gray-500">Consideracoes</p>
                   </div>
                   <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{detalheRegistro.consideracoes}</p>
+                </div>
+              )}
+
+              {detalheRegistro.imagemUrl && (
+                <div className="bg-[#141820] rounded-lg p-4 border border-[#232a3b]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Image className="w-3.5 h-3.5 text-gray-500" />
+                    <p className="text-xs text-gray-500">Documento Anexado</p>
+                  </div>
+                  {detalheRegistro.imagemUrl.startsWith("data:image") ? (
+                    <img src={detalheRegistro.imagemUrl} alt="Documento" className="max-w-full rounded-lg border border-[#232a3b] object-contain max-h-64" />
+                  ) : (
+                    <a href={detalheRegistro.imagemUrl} target="_blank" rel="noreferrer" className="text-sm text-sky-400 hover:underline flex items-center gap-1">
+                      <Paperclip className="w-3.5 h-3.5" /> Ver documento
+                    </a>
+                  )}
                 </div>
               )}
 
@@ -694,6 +735,35 @@ export default function RegistrosSDRPage() {
               />
             </div>
 
+            <div>
+              <label className={labelClass}>Documento / Conta de Luz (máx 15MB)</label>
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-[#232a3b] bg-[#141820] text-gray-400 hover:border-sky-400/50 hover:text-sky-400 cursor-pointer transition text-sm">
+                  <Paperclip className="w-4 h-4" />
+                  {imagemNome ? imagemNome : "Anexar arquivo"}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </label>
+                {imagemBase64 && (
+                  <button
+                    type="button"
+                    onClick={() => { setImagemBase64(null); setImagemNome(""); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                    className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1"
+                  >
+                    <X className="w-3.5 h-3.5" /> Remover
+                  </button>
+                )}
+              </div>
+              {imagemBase64 && imagemBase64.startsWith("data:image") && (
+                <img src={imagemBase64} alt="preview" className="mt-2 max-h-32 rounded-lg border border-[#232a3b] object-contain" />
+              )}
+            </div>
+
             {compareceu && (
               <div className="bg-sky-400/10 border border-sky-400/20 rounded-lg px-4 py-3">
                 <p className="text-sm text-sky-400">
@@ -822,7 +892,10 @@ export default function RegistrosSDRPage() {
                               {/* Header do card */}
                               <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0 flex-1">
-                                  <h4 className="font-medium text-sm text-gray-100 truncate">{r.nomeCliente}</h4>
+                                  <div className="flex items-center gap-1.5">
+                                    <h4 className="font-medium text-sm text-gray-100 truncate">{r.nomeCliente}</h4>
+                                    {r.imagemUrl && <Paperclip className="w-3 h-3 text-gray-500 flex-shrink-0" />}
+                                  </div>
                                   <p className="text-[11px] text-gray-500 mt-0.5">
                                     {r.vendedora.nome} · {new Date(r.dataReuniao + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
                                   </p>

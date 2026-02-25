@@ -168,6 +168,8 @@ model RegistroSDR {
   dataPagamento       String?
   pagoPorId           String?
   pagoPor             User?    @relation("pagoPor", fields: [pagoPorId], references: [id])
+  // Imagem anexada (conta de luz ou documento do cliente, base64)
+  imagemUrl           String?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 }

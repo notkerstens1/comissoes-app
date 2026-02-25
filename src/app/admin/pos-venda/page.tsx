@@ -13,6 +13,7 @@ import {
   Pencil,
   Filter,
   User,
+  Trash2,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import {
@@ -194,6 +195,22 @@ export default function AdminPosVendaPage() {
     }
   }
 
+  async function handleRemover(id: string) {
+    if (!confirm("Remover este cliente do pós-venda?")) return;
+    setErroMsg("");
+    try {
+      const res = await fetch(`/api/pos-venda/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || `Erro ao remover`);
+        return;
+      }
+      await fetchRegistros();
+    } catch {
+      setErroMsg("Erro ao remover");
+    }
+  }
+
   // Filtrar por período
   let registrosPeriodo = registros;
   if (filtroPeriodo === "semana") {
@@ -296,7 +313,6 @@ export default function AdminPosVendaPage() {
             </button>
             {ETAPAS_POS_VENDA.map((et) => {
               const count = contadores[et.key] ?? 0;
-              if (count === 0) return null;
               const cores = ETAPA_CORES[et.key];
               return (
                 <button
@@ -305,7 +321,9 @@ export default function AdminPosVendaPage() {
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
                     filtroEtapa === et.key
                       ? `${cores.bg} ${cores.text}`
-                      : "bg-[#232a3b] text-gray-300 hover:bg-[#2a3040]"
+                      : count > 0
+                        ? "bg-[#232a3b] text-gray-300 hover:bg-[#2a3040]"
+                        : "bg-[#141820] text-gray-600 cursor-pointer hover:bg-[#1a1f2e]"
                   }`}
                 >
                   {et.label} ({count})
@@ -478,6 +496,16 @@ export default function AdminPosVendaPage() {
                             >
                               <Pencil className="w-4 h-4" />
                               Editar
+                            </button>
+                          )}
+
+                          {trocandoEtapaId !== r.id && (
+                            <button
+                              onClick={() => handleRemover(r.id)}
+                              className="flex items-center gap-2 px-4 py-2.5 text-red-400 bg-red-400/10 rounded-lg hover:bg-red-400/20 border border-red-400/20 transition text-sm font-semibold"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Remover
                             </button>
                           )}
                         </div>

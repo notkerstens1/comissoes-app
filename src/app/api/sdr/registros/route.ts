@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { nomeCliente, vendedoraId, dataReuniao, compareceu, motivoNaoCompareceu, consideracoes } = body;
+    const { nomeCliente, vendedoraId, dataReuniao, compareceu, motivoNaoCompareceu, consideracoes, imagemUrl } = body;
 
     if (!nomeCliente?.trim() || !vendedoraId || !dataReuniao) {
       return NextResponse.json({ error: "Campos obrigatorios faltando" }, { status: 400 });
@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
         comissaoVenda: 0,
         comissaoTotal: comissaoReuniao,
         statusLead,
+        imagemUrl: imagemUrl || null,
       },
       include: {
         sdr: { select: { nome: true } },

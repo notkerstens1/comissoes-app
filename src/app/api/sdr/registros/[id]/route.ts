@@ -70,11 +70,13 @@ export async function PUT(
     const body = await request.json();
     const temVinculo = !!registro.vendaVinculadaId;
 
-    // Anti-manipulacao: SDR com vinculo so pode editar consideracoes
+    // Anti-manipulacao: SDR com vinculo so pode editar consideracoes e imagemUrl
     if (sdr && temVinculo) {
+      const updateData: any = { consideracoes: body.consideracoes?.trim() || null };
+      if (body.imagemUrl !== undefined) updateData.imagemUrl = body.imagemUrl || null;
       const updated = await prisma.registroSDR.update({
         where: { id: params.id },
-        data: { consideracoes: body.consideracoes?.trim() || null },
+        data: updateData,
         include: {
           sdr: { select: { nome: true } },
           vendedora: { select: { nome: true } },
@@ -84,7 +86,7 @@ export async function PUT(
     }
 
     // SDR sem vinculo OU Admin/Diretor: pode editar tudo
-    const { nomeCliente, vendedoraId, dataReuniao, compareceu, motivoNaoCompareceu, consideracoes, statusLead, motivoFinalizacao } = body;
+    const { nomeCliente, vendedoraId, dataReuniao, compareceu, motivoNaoCompareceu, consideracoes, statusLead, motivoFinalizacao, imagemUrl } = body;
 
     const data: any = {};
 
@@ -92,6 +94,7 @@ export async function PUT(
     if (vendedoraId !== undefined) data.vendedoraId = vendedoraId;
     if (dataReuniao !== undefined) data.dataReuniao = dataReuniao;
     if (consideracoes !== undefined) data.consideracoes = consideracoes?.trim() || null;
+    if (imagemUrl !== undefined) data.imagemUrl = imagemUrl || null;
 
     // Atualizar statusLead e motivoFinalizacao
     if (statusLead !== undefined) {
