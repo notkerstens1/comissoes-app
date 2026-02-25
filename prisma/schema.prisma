@@ -28,6 +28,8 @@ model User {
   posVendaRegistros    PosVenda[]         @relation("posVendaOperador")
   // Calculadora
   simulacoes           SimulacaoVenda[]
+  // Solicitações de exceção de margem (como supervisor)
+  solicitacoesMargem   SolicitacaoMargem[] @relation("solicitacoesMargem")
 }
 
 model Venda {
@@ -74,6 +76,26 @@ model Venda {
   pendenciaVinculo   PendenciaVinculo?
   // Pos Venda
   posVenda           PosVenda?
+  // Solicitações de exceção de margem pendentes
+  solicitacoesMargem SolicitacaoMargem[]
+}
+
+// Solicitação de ajuste de margem criada por supervisor, aprovada pelo diretor
+model SolicitacaoMargem {
+  id                    String   @id @default(cuid())
+  vendaId               String
+  venda                 Venda    @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  clienteNome           String
+  vendedorNome          String
+  margemAtual           Float
+  custoEquipAtual       Float
+  novaMargem            Float
+  novoCustoEquipamentos Float
+  solicitanteId         String
+  solicitante           User     @relation("solicitacoesMargem", fields: [solicitanteId], references: [id])
+  status                String   @default("AGUARDANDO") // AGUARDANDO | APROVADO | REJEITADO
+  observacao            String?
+  createdAt             DateTime @default(now())
 }
 
 model Configuracao {

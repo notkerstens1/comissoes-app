@@ -11,8 +11,27 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Edit2,
+  Bell,
+  CheckCircle,
+  XCircle,
+  X,
 } from "lucide-react";
 import { EditVendaPanel, VendaEditavel } from "@/components/EditVendaPanel";
+
+interface SolicitacaoMargem {
+  id: string;
+  vendaId: string;
+  clienteNome: string;
+  vendedorNome: string;
+  margemAtual: number;
+  custoEquipAtual: number;
+  novaMargem: number;
+  novoCustoEquipamentos: number;
+  status: string;
+  createdAt: string;
+  solicitante: { nome: string };
+  venda: { valorVenda: number; mesReferencia: string };
+}
 
 interface VendaFinanceira {
   id: string;
@@ -77,10 +96,37 @@ export default function DiretorDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [vendaEditando, setVendaEditando] = useState<VendaEditavel | null>(null);
   const [editPanelOpen, setEditPanelOpen] = useState(false);
+  const [solicitacoes, setSolicitacoes] = useState<SolicitacaoMargem[]>([]);
+  const [showSolicitacoes, setShowSolicitacoes] = useState(false);
+  const [processandoId, setProcessandoId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDados();
+    fetchSolicitacoes();
   }, [mesAtual]);
+
+  const fetchSolicitacoes = async () => {
+    try {
+      const res = await fetch("/api/diretor/solicitacoes-margem");
+      if (res.ok) setSolicitacoes(await res.json());
+    } catch {}
+  };
+
+  const processarSolicitacao = async (id: string, acao: "APROVAR" | "REJEITAR") => {
+    setProcessandoId(id);
+    try {
+      const res = await fetch(`/api/diretor/solicitacoes-margem/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ acao }),
+      });
+      if (res.ok) {
+        await fetchSolicitacoes();
+        await fetchDados(); // atualiza P&L se aprovado
+      }
+    } catch {}
+    setProcessandoId(null);
+  };
 
   const fetchDados = async () => {
     setLoading(true);
@@ -134,13 +180,89 @@ export default function DiretorDashboardPage() {
           <h1 className="text-2xl font-bold text-gray-100">Painel Financeiro</h1>
           <p className="text-gray-400">{getNomeMes(mesAtual)}</p>
         </div>
-        <input
-          type="month"
-          value={mesAtual}
-          onChange={(e) => setMesAtual(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
-        />
+        <div className="flex items-center gap-3">
+          {/* Badge de solicitações de margem */}
+          {solicitacoes.length > 0 && (
+            <button
+              onClick={() => setShowSolicitacoes(true)}
+              className="relative flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-400 text-sm font-medium hover:bg-amber-400/20 transition"
+            >
+              <Bell className="w-4 h-4" />
+              Aprovacoes Pendentes
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-amber-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                {solicitacoes.length}
+              </span>
+            </button>
+          )}
+          <input
+            type="month"
+            value={mesAtual}
+            onChange={(e) => setMesAtual(e.target.value)}
+            className="px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+          />
+        </div>
       </div>
+
+      {/* Modal de aprovações pendentes */}
+      {showSolicitacoes && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#232a3b]">
+              <h2 className="text-lg font-bold text-gray-100 flex items-center gap-2">
+                <Bell className="w-5 h-5 text-amber-400" />
+                Solicitacoes de Ajuste de Margem
+              </h2>
+              <button onClick={() => setShowSolicitacoes(false)} className="text-gray-400 hover:text-gray-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-4 space-y-3 flex-1">
+              {solicitacoes.length === 0 ? (
+                <p className="text-gray-500 text-center py-8">Nenhuma solicitacao pendente</p>
+              ) : solicitacoes.map((s) => (
+                <div key={s.id} className="bg-[#141820] rounded-lg p-4 border border-[#232a3b]">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-100">{s.clienteNome}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">Vendedor: {s.vendedorNome} | Solicitado por: {s.solicitante.nome}</p>
+                      <div className="flex items-center gap-4 mt-2 text-sm">
+                        <span className="text-gray-400">
+                          Atual: <span className="text-gray-100 font-medium">{s.margemAtual.toFixed(2)}x</span>
+                          <span className="text-gray-500 ml-1">({formatCurrency(s.custoEquipAtual)})</span>
+                        </span>
+                        <span className="text-amber-400">→</span>
+                        <span className={s.novaMargem < 1.8 ? "text-rose-400" : "text-lime-400"}>
+                          {s.novaMargem.toFixed(2)}x
+                          <span className="text-gray-500 ml-1">({formatCurrency(s.novoCustoEquipamentos)})</span>
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Venda: {formatCurrency(s.venda.valorVenda)} | Ref: {s.venda.mesReferencia}
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => processarSolicitacao(s.id, "APROVAR")}
+                        disabled={processandoId === s.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-lime-400/15 text-lime-400 text-xs font-medium hover:bg-lime-400/25 transition disabled:opacity-50"
+                      >
+                        <CheckCircle className="w-3.5 h-3.5" /> Aprovar
+                      </button>
+                      <button
+                        onClick={() => processarSolicitacao(s.id, "REJEITAR")}
+                        disabled={processandoId === s.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-400/15 text-rose-400 text-xs font-medium hover:bg-rose-400/25 transition disabled:opacity-50"
+                      >
+                        <XCircle className="w-3.5 h-3.5" /> Rejeitar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Cards Principais */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -349,6 +471,7 @@ export default function DiretorDashboardPage() {
                               vendedor: v.vendedor,
                               valorVenda: v.valorVenda,
                               custoEquipamentos: v.custoEquipamentos,
+                              margem: v.margem,
                               quantidadePlacas: v.quantidadePlacas,
                               quantidadeInversores: v.quantidadeInversores,
                               custoInstalacao: v.custoInstalacao,
@@ -416,6 +539,7 @@ export default function DiretorDashboardPage() {
       <EditVendaPanel
         venda={vendaEditando}
         isOpen={editPanelOpen}
+        isDiretor={true}
         onClose={() => {
           setEditPanelOpen(false);
           setVendaEditando(null);

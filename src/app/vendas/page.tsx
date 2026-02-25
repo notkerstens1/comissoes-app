@@ -732,6 +732,7 @@ export default function VendasPage() {
                               vendedor: v.vendedor?.nome,
                               valorVenda: v.valorVenda,
                               custoEquipamentos: v.custoEquipamentos,
+                              margem: v.margem || 1.8,
                               quantidadePlacas: v.quantidadePlacas || 0,
                               quantidadeInversores: v.quantidadeInversores || 1,
                               custoInstalacao: v.custoInstalacao || 0,

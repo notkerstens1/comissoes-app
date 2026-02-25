@@ -33,7 +33,7 @@ export async function DELETE(
   return NextResponse.json({ success: true });
 }
 
-// PUT - Atualizar venda (admin: status / diretor: status + custos)
+// PUT - Atualizar venda (admin: status + custos / diretor: tudo + margem direta)
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -44,14 +44,44 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { status, quantidadePlacas, quantidadeInversores, custoCosern, custoVisitaTecnica, custoTrtCrea, custoEngenheiro, custoMaterialCA, aliquotaImposto, percentualComissaoOverride } = body;
+  const {
+    status,
+    quantidadePlacas, quantidadeInversores,
+    custoCosern, custoVisitaTecnica, custoTrtCrea, custoEngenheiro, custoMaterialCA,
+    aliquotaImposto, percentualComissaoOverride,
+    // Ajuste de margem (exceção): apenas DIRETOR aplica direto; ADMIN cria solicitação
+    novaMargem,
+  } = body;
 
   const vendaAtual = await prisma.venda.findUnique({
     where: { id: params.id },
+    include: { vendedor: { select: { nome: true } } },
   });
 
   if (!vendaAtual) {
     return NextResponse.json({ error: "Venda nao encontrada" }, { status: 404 });
+  }
+
+  // ── SUPERVISOR (ADMIN): solicitar aprovação do diretor para mudança de margem ──
+  if (!isDiretor(session.user.role) && novaMargem !== undefined) {
+    if (novaMargem <= 0) {
+      return NextResponse.json({ error: "Margem invalida" }, { status: 400 });
+    }
+    const novoCustoEquipamentos = vendaAtual.valorVenda / novaMargem;
+    await prisma.solicitacaoMargem.create({
+      data: {
+        vendaId: vendaAtual.id,
+        clienteNome: vendaAtual.cliente,
+        vendedorNome: vendaAtual.vendedor.nome,
+        margemAtual: vendaAtual.margem,
+        custoEquipAtual: vendaAtual.custoEquipamentos,
+        novaMargem,
+        novoCustoEquipamentos,
+        solicitanteId: session.user.id,
+        status: "AGUARDANDO",
+      },
+    });
+    return NextResponse.json({ solicitacaoCriada: true, novaMargem, novoCustoEquipamentos });
   }
 
   const updateData: any = {};
@@ -61,7 +91,35 @@ export async function PUT(
     updateData.status = status;
   }
 
-  // Diretor ou Supervisor pode editar custos
+  // ── DIRETOR: ajuste direto de margem (exceção) ──
+  if (isDiretor(session.user.role) && novaMargem !== undefined) {
+    if (novaMargem <= 0) {
+      return NextResponse.json({ error: "Margem invalida" }, { status: 400 });
+    }
+    const novoCustoEquipamentos = vendaAtual.valorVenda / novaMargem;
+    const aliquota = vendaAtual.aliquotaImposto ?? 0.06;
+    // Imposto recalculado com novo custo de equipamentos
+    const novoCustoImposto = Math.max(vendaAtual.valorVenda - novoCustoEquipamentos, 0) * aliquota;
+    // P&L: mantém comissões como estão (valores de exceção já aprovados)
+    const comissaoUsada = vendaAtual.comissaoVendedorCusto ?? vendaAtual.comissaoTotal;
+    const outrosCustos =
+      (vendaAtual.custoInstalacao ?? 0) +
+      (vendaAtual.custoVisitaTecnica ?? 0) +
+      (vendaAtual.custoCosern ?? 0) +
+      (vendaAtual.custoTrtCrea ?? 0) +
+      (vendaAtual.custoEngenheiro ?? 0) +
+      (vendaAtual.custoMaterialCA ?? 0);
+    const novoLucro = vendaAtual.valorVenda - novoCustoEquipamentos - novoCustoImposto - outrosCustos - comissaoUsada;
+    const novaMargemLucro = vendaAtual.valorVenda > 0 ? novoLucro / vendaAtual.valorVenda : 0;
+
+    updateData.margem = novaMargem;
+    updateData.custoEquipamentos = novoCustoEquipamentos;
+    updateData.custoImposto = novoCustoImposto;
+    updateData.lucroLiquido = novoLucro;
+    updateData.margemLucroLiquido = novaMargemLucro;
+  }
+
+  // ── Diretor ou Supervisor: editar custos operacionais ──
   if (isAdmin(session.user.role)) {
     if (quantidadePlacas !== undefined) updateData.quantidadePlacas = quantidadePlacas;
     if (quantidadeInversores !== undefined) updateData.quantidadeInversores = quantidadeInversores;
@@ -73,7 +131,6 @@ export async function PUT(
     if (aliquotaImposto !== undefined) updateData.aliquotaImposto = aliquotaImposto;
     if (percentualComissaoOverride !== undefined) updateData.percentualComissaoOverride = percentualComissaoOverride;
 
-    // Se mudou algum custo, recalcular P&L
     const temMudancaCusto = quantidadePlacas !== undefined || quantidadeInversores !== undefined ||
       custoCosern !== undefined || custoVisitaTecnica !== undefined ||
       custoTrtCrea !== undefined || custoEngenheiro !== undefined || custoMaterialCA !== undefined ||
@@ -96,7 +153,6 @@ export async function PUT(
       const novasPlacas = quantidadePlacas ?? vendaAtual.quantidadePlacas;
       const novosInversores = quantidadeInversores ?? vendaAtual.quantidadeInversores;
 
-      // Recalcular comissao se override mudou
       const novoOverride = percentualComissaoOverride !== undefined ? percentualComissaoOverride : vendaAtual.percentualComissaoOverride;
       const percentualEfetivo = novoOverride != null ? novoOverride : percentualComissaoVendaPadrao;
       const novaComissaoVenda = vendaAtual.valorVenda * percentualEfetivo;
