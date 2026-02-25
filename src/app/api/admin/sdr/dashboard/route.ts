@@ -1,0 +1,104 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { isAdmin } from "@/lib/roles";
+
+export async function GET(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session || !isAdmin(session.user.role)) {
+    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const mes = searchParams.get("mes");
+
+  const where: any = {};
+  if (mes) {
+    where.dataRegistro = { startsWith: mes };
+  }
+
+  const registros = await prisma.registroSDR.findMany({
+    where,
+    include: {
+      vendedora: { select: { id: true, nome: true } },
+      sdr: { select: { id: true, nome: true } },
+      vendaVinculada: { select: { id: true, cliente: true, valorVenda: true } },
+    },
+    orderBy: { dataReuniao: "desc" },
+  });
+
+  // Totais gerais
+  const totalOportunidades = registros.length;
+  const totalReunioes = registros.filter((r) => r.compareceu).length;
+  const totalCpfNegado = registros.filter((r) => r.motivoFinalizacao === "CPF negada").length;
+  const totalNoShow = registros.filter((r) => !r.compareceu && r.motivoNaoCompareceu).length;
+
+  // Motivos de não comparecimento
+  const motivosNcMap: Record<string, number> = {};
+  registros
+    .filter((r) => r.motivoNaoCompareceu)
+    .forEach((r) => {
+      const m = r.motivoNaoCompareceu!;
+      motivosNcMap[m] = (motivosNcMap[m] || 0) + 1;
+    });
+  const motivosNaoCompareceu = Object.entries(motivosNcMap)
+    .map(([motivo, count]) => ({ motivo, count }))
+    .sort((a, b) => b.count - a.count);
+
+  // Motivos de finalização
+  const finalizacaoMap: Record<string, number> = {};
+  registros
+    .filter((r) => r.motivoFinalizacao)
+    .forEach((r) => {
+      const m = r.motivoFinalizacao!;
+      finalizacaoMap[m] = (finalizacaoMap[m] || 0) + 1;
+    });
+  const motivosFinalizacao = Object.entries(finalizacaoMap)
+    .map(([motivo, count]) => ({ motivo, count }))
+    .sort((a, b) => b.count - a.count);
+
+  // Por vendedor
+  const vendedoresMap: Record<string, { id: string; nome: string; itens: typeof registros }> = {};
+  registros.forEach((r) => {
+    const vid = r.vendedoraId;
+    if (!vendedoresMap[vid]) {
+      vendedoresMap[vid] = { id: vid, nome: r.vendedora.nome, itens: [] };
+    }
+    vendedoresMap[vid].itens.push(r);
+  });
+
+  const porVendedor = Object.values(vendedoresMap)
+    .map((v) => ({
+      id: v.id,
+      nome: v.nome,
+      totalOportunidades: v.itens.length,
+      reunioesFeitas: v.itens.filter((r) => r.compareceu).length,
+      cpfNegado: v.itens.filter((r) => r.motivoFinalizacao === "CPF negada").length,
+      vendas: v.itens.filter((r) => r.vendaVinculadaId).length,
+      registros: v.itens.map((r) => ({
+        id: r.id,
+        nomeCliente: r.nomeCliente,
+        dataReuniao: r.dataReuniao,
+        compareceu: r.compareceu,
+        motivoNaoCompareceu: r.motivoNaoCompareceu,
+        motivoFinalizacao: r.motivoFinalizacao,
+        statusLead: r.statusLead,
+        sdrNome: r.sdr?.nome ?? null,
+        vendaVinculada: r.vendaVinculada
+          ? { cliente: r.vendaVinculada.cliente, valorVenda: r.vendaVinculada.valorVenda }
+          : null,
+      })),
+    }))
+    .sort((a, b) => b.totalOportunidades - a.totalOportunidades);
+
+  return NextResponse.json({
+    totalOportunidades,
+    totalReunioes,
+    totalCpfNegado,
+    totalNoShow,
+    motivosNaoCompareceu,
+    motivosFinalizacao,
+    porVendedor,
+  });
+}

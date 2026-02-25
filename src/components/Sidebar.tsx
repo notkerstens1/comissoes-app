@@ -63,6 +63,7 @@ export function Sidebar() {
     { href: "/admin/sdr/pendencias", label: "Pendencias", icon: AlertTriangle },
     { href: "/admin/sdr/pagamento", label: "Pagamento SDR", icon: CreditCard },
     { href: "/admin/sdr/forecast", label: "Forecast", icon: TrendingUp },
+    { href: "/admin/sdr/dashboard", label: "Dashboard Oport.", icon: BarChart3 },
   ];
 
   const menuAdmin = [

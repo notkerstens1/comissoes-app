@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { TrendingUp, Target, DollarSign, Users } from "lucide-react";
-import { Sidebar } from "@/components/Sidebar";
 import { formatCurrency } from "@/lib/utils";
 
 const ESTAGIOS_LABELS: Record<string, string> = {
@@ -41,11 +40,8 @@ export default function ForecastSDR() {
 
   if (loading || !data) {
     return (
-      <div className="flex min-h-screen bg-[#0b0f19]">
-        <Sidebar />
-        <main className="flex-1 lg:ml-64 p-6 flex items-center justify-center">
-          <p className="text-gray-500">Carregando forecast...</p>
-        </main>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400" />
       </div>
     );
   }
@@ -53,10 +49,7 @@ export default function ForecastSDR() {
   const estagios = ["REUNIAO", "PROPOSTA", "NEGOCIACAO", "FECHADA"];
 
   return (
-    <div className="flex min-h-screen bg-[#0b0f19]">
-      <Sidebar />
-      <main className="flex-1 lg:ml-64 p-6">
-        <div className="max-w-5xl mx-auto">
+    <div className="max-w-5xl mx-auto">
           {/* Header */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-100 flex items-center gap-2">
@@ -151,8 +144,6 @@ export default function ForecastSDR() {
               </div>
             )}
           </div>
-        </div>
-      </main>
     </div>
   );
 }
