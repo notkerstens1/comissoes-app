@@ -20,11 +20,6 @@ export async function PUT(
   const registro = await prisma.posVenda.findUnique({ where: { id: params.id } });
   if (!registro) return NextResponse.json({ error: "Registro nao encontrado" }, { status: 404 });
 
-  // Operador so pode editar seus proprios registros
-  if (!isAdmin(role) && registro.operadorId !== session.user.id) {
-    return NextResponse.json({ error: "Sem permissao" }, { status: 403 });
-  }
-
   const body = await request.json();
   const {
     nomeCliente,
@@ -72,10 +67,6 @@ export async function DELETE(
 
   const registro = await prisma.posVenda.findUnique({ where: { id: params.id } });
   if (!registro) return NextResponse.json({ error: "Registro nao encontrado" }, { status: 404 });
-
-  if (!isAdmin(role) && registro.operadorId !== session.user.id) {
-    return NextResponse.json({ error: "Sem permissao" }, { status: 403 });
-  }
 
   await prisma.posVenda.update({
     where: { id: params.id },
