@@ -13,6 +13,10 @@ import {
   Ban,
   ShoppingCart,
   CalendarClock,
+  Phone,
+  ChevronLeft,
+  ChevronRight,
+  UserX,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -36,21 +40,86 @@ type VendedorRow = {
   totalOportunidades: number;
   reunioesFeitas: number;
   cpfNegado: number;
+  desqualificados: number;
   vendas: number;
   registros: RegistroItem[];
 };
 
+type LigacaoDia = { data: string; count: number };
+
 type DashboardData = {
-  totalOportunidades: number;
+  totalLigacoes: number;
   totalReunioes: number;
   totalCpfNegado: number;
   totalNoShow: number;
+  totalDesqualificados: number;
+  ligacoesPorDia: LigacaoDia[];
   motivosNaoCompareceu: { motivo: string; count: number }[];
   motivosFinalizacao: { motivo: string; count: number }[];
   porVendedor: VendedorRow[];
 };
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
+type TipoFiltro = "dia" | "semana" | "mes";
+
+// ─── helpers de data ──────────────────────────────────────────────────────────
+
+function hojeStr() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function mesAtualStr() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Retorna o domingo da semana que contém a data fornecida */
+function domingoSemana(dateStr: string): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  const day = date.getDay(); // 0 = domingo
+  date.setDate(date.getDate() - day);
+  return date.toISOString().split("T")[0];
+}
+
+/** Sábado da semana (domingo + 6) */
+function sabadoSemana(domingoStr: string): string {
+  const [y, m, d] = domingoStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d + 6);
+  return date.toISOString().split("T")[0];
+}
+
+function addDias(dateStr: string, dias: number): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const date = new Date(y, m - 1, d + dias);
+  return date.toISOString().split("T")[0];
+}
+
+function addMes(mesStr: string, delta: number): string {
+  const [y, m] = mesStr.split("-").map(Number);
+  const date = new Date(y, m - 1 + delta, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function formatDate(d: string) {
+  if (!d) return "-";
+  const [y, m, day] = d.split("-");
+  return `${day}/${m}/${y}`;
+}
+
+function formatDiaSemana(d: string) {
+  const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const [y, m, day] = d.split("-").map(Number);
+  const date = new Date(y, m - 1, day);
+  return `${dias[date.getDay()]} ${day}/${m}`;
+}
+
+function getNomeMes(mesStr: string) {
+  const [ano, mm] = mesStr.split("-");
+  const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  return `${meses[parseInt(mm) - 1]} ${ano}`;
+}
+
+// ─── helpers de UI ────────────────────────────────────────────────────────────
 
 function statusConfig(status: string) {
   switch (status) {
@@ -66,14 +135,6 @@ function statusConfig(status: string) {
       return { label: status, color: "text-gray-400", bg: "bg-gray-500/15", icon: null };
   }
 }
-
-function formatDate(d: string) {
-  if (!d) return "-";
-  const [y, m, day] = d.split("-");
-  return `${day}/${m}/${y}`;
-}
-
-// ─── componente de barra horizontal simples ───────────────────────────────────
 
 function BarRow({ label, count, max, color }: { label: string; count: number; max: number; color: string }) {
   const pct = max > 0 ? Math.round((count / max) * 100) : 0;
@@ -93,28 +154,53 @@ function BarRow({ label, count, max, color }: { label: string; count: number; ma
 export default function DashboardSDRPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [mes, setMes] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  });
+
+  const [tipo, setTipo] = useState<TipoFiltro>("mes");
+  const [diaAtual, setDiaAtual] = useState(hojeStr());
+  const [domingoAtual, setDomingoAtual] = useState(() => domingoSemana(hojeStr()));
+  const [mesAtual, setMesAtual] = useState(mesAtualStr());
+
   const [expandido, setExpandido] = useState<string | null>(null);
+
+  // Monta os query params conforme filtro ativo
+  const buildParams = useCallback(() => {
+    if (tipo === "dia") return `tipo=dia&data=${diaAtual}`;
+    if (tipo === "semana") return `tipo=semana&semana=${domingoAtual}`;
+    return `tipo=mes&mes=${mesAtual}`;
+  }, [tipo, diaAtual, domingoAtual, mesAtual]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/sdr/dashboard?mes=${mes}`);
+      const res = await fetch(`/api/admin/sdr/dashboard?${buildParams()}`);
       setData(await res.json());
     } finally {
       setLoading(false);
     }
-  }, [mes]);
+  }, [buildParams]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const getNomeMes = (m: string) => {
-    const [ano, mm] = m.split("-");
-    const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-    return `${meses[parseInt(mm) - 1]} ${ano}`;
+  // ── Labels do período selecionado ─────────────────────────────────────────
+  const labelPeriodo = () => {
+    if (tipo === "dia") return formatDate(diaAtual);
+    if (tipo === "semana") {
+      const sab = sabadoSemana(domingoAtual);
+      return `${formatDate(domingoAtual)} — ${formatDate(sab)}`;
+    }
+    return getNomeMes(mesAtual);
+  };
+
+  // ── Navegação de período ──────────────────────────────────────────────────
+  const anterior = () => {
+    if (tipo === "dia") setDiaAtual((d) => addDias(d, -1));
+    else if (tipo === "semana") setDomingoAtual((d) => addDias(d, -7));
+    else setMesAtual((m) => addMes(m, -1));
+  };
+  const proximo = () => {
+    if (tipo === "dia") setDiaAtual((d) => addDias(d, 1));
+    else if (tipo === "semana") setDomingoAtual((d) => addDias(d, 7));
+    else setMesAtual((m) => addMes(m, 1));
   };
 
   if (loading || !data) {
@@ -127,6 +213,7 @@ export default function DashboardSDRPage() {
 
   const maxNc = data.motivosNaoCompareceu[0]?.count ?? 1;
   const maxFin = data.motivosFinalizacao[0]?.count ?? 1;
+  const maxLig = Math.max(...data.ligacoesPorDia.map((l) => l.count), 1);
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -138,70 +225,163 @@ export default function DashboardSDRPage() {
             <BarChart3 className="w-6 h-6 text-sky-400" />
             Dashboard de Oportunidades SDR
           </h1>
-          <p className="text-gray-400 text-sm mt-1">{getNomeMes(mes)}</p>
+          <p className="text-gray-400 text-sm mt-1">{labelPeriodo()}</p>
         </div>
-        <input
-          type="month"
-          value={mes}
-          onChange={(e) => setMes(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
-        />
+
+        {/* Controles de filtro */}
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Tabs Dia / Semana / Mês */}
+          <div className="flex rounded-lg overflow-hidden border border-[#232a3b]">
+            {(["dia", "semana", "mes"] as TipoFiltro[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTipo(t)}
+                className={`px-4 py-2 text-sm font-semibold capitalize transition ${
+                  tipo === t
+                    ? "bg-sky-500 text-white"
+                    : "bg-[#141820] text-gray-400 hover:text-gray-200"
+                }`}
+              >
+                {t === "dia" ? "Dia" : t === "semana" ? "Semana" : "Mês"}
+              </button>
+            ))}
+          </div>
+
+          {/* Seletor de período */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={anterior}
+              className="p-2 rounded-lg bg-[#141820] border border-[#232a3b] text-gray-400 hover:text-gray-200 transition"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            {tipo === "dia" && (
+              <input
+                type="date"
+                value={diaAtual}
+                onChange={(e) => setDiaAtual(e.target.value)}
+                className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
+              />
+            )}
+            {tipo === "semana" && (
+              <input
+                type="date"
+                value={domingoAtual}
+                onChange={(e) => setDomingoAtual(domingoSemana(e.target.value))}
+                className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
+                title="Selecione qualquer dia da semana"
+              />
+            )}
+            {tipo === "mes" && (
+              <input
+                type="month"
+                value={mesAtual}
+                onChange={(e) => setMesAtual(e.target.value)}
+                className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
+              />
+            )}
+
+            <button
+              onClick={proximo}
+              className="p-2 rounded-lg bg-[#141820] border border-[#232a3b] text-gray-400 hover:text-gray-200 transition"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Cards de métricas */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 bg-sky-400/10 rounded-lg flex items-center justify-center">
-              <Users className="w-4 h-4 text-sky-400" />
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+        {/* Ligações */}
+        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 bg-sky-400/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Phone className="w-4 h-4 text-sky-400" />
             </div>
-            <p className="text-xs text-gray-400">Oportunidades</p>
+            <p className="text-xs text-gray-400 leading-tight">Ligações</p>
           </div>
-          <p className="text-3xl font-bold text-gray-100">{data.totalOportunidades}</p>
-          <p className="text-xs text-gray-500 mt-1">registros no período</p>
+          <p className="text-3xl font-bold text-gray-100">{data.totalLigacoes}</p>
+          <p className="text-xs text-gray-500 mt-1">contatos no período</p>
         </div>
 
-        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 bg-emerald-400/10 rounded-lg flex items-center justify-center">
+        {/* Reuniões */}
+        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 bg-emerald-400/10 rounded-lg flex items-center justify-center flex-shrink-0">
               <CalendarCheck className="w-4 h-4 text-emerald-400" />
             </div>
-            <p className="text-xs text-gray-400">Reuniões Realizadas</p>
+            <p className="text-xs text-gray-400 leading-tight">Reuniões</p>
           </div>
           <p className="text-3xl font-bold text-emerald-400">{data.totalReunioes}</p>
           <p className="text-xs text-gray-500 mt-1">
-            {data.totalOportunidades > 0
-              ? `${Math.round((data.totalReunioes / data.totalOportunidades) * 100)}% de presença`
+            {data.totalLigacoes > 0
+              ? `${Math.round((data.totalReunioes / data.totalLigacoes) * 100)}% de presença`
               : "—"}
           </p>
         </div>
 
-        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 bg-rose-400/10 rounded-lg flex items-center justify-center">
+        {/* CPF Negado */}
+        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 bg-rose-400/10 rounded-lg flex items-center justify-center flex-shrink-0">
               <XCircle className="w-4 h-4 text-rose-400" />
             </div>
-            <p className="text-xs text-gray-400">CPF Negado</p>
+            <p className="text-xs text-gray-400 leading-tight">CPF Negado</p>
           </div>
           <p className="text-3xl font-bold text-rose-400">{data.totalCpfNegado}</p>
-          <p className="text-xs text-gray-500 mt-1">leads finalizados por CPF</p>
+          <p className="text-xs text-gray-500 mt-1">leads por CPF</p>
         </div>
 
-        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-9 h-9 bg-amber-400/10 rounded-lg flex items-center justify-center">
+        {/* Desqualificados */}
+        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 bg-orange-400/10 rounded-lg flex items-center justify-center flex-shrink-0">
+              <UserX className="w-4 h-4 text-orange-400" />
+            </div>
+            <p className="text-xs text-gray-400 leading-tight">Desqualificados</p>
+          </div>
+          <p className="text-3xl font-bold text-orange-400">{data.totalDesqualificados}</p>
+          <p className="text-xs text-gray-500 mt-1">leads finalizados</p>
+        </div>
+
+        {/* No-shows */}
+        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-8 h-8 bg-amber-400/10 rounded-lg flex items-center justify-center flex-shrink-0">
               <AlertTriangle className="w-4 h-4 text-amber-400" />
             </div>
-            <p className="text-xs text-gray-400">No-shows</p>
+            <p className="text-xs text-gray-400 leading-tight">No-shows</p>
           </div>
           <p className="text-3xl font-bold text-amber-400">{data.totalNoShow}</p>
           <p className="text-xs text-gray-500 mt-1">não compareceram</p>
         </div>
       </div>
 
+      {/* Ligações por dia (breakdown) — só aparece em semana ou mês, ou quando tem mais de 1 dia */}
+      {data.ligacoesPorDia.length > 0 && tipo !== "dia" && (
+        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
+          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <Phone className="w-4 h-4 text-sky-400" />
+            Ligações por Dia
+          </h2>
+          <div className="space-y-1">
+            {data.ligacoesPorDia.map((l) => (
+              <BarRow
+                key={l.data}
+                label={formatDiaSemana(l.data)}
+                count={l.count}
+                max={maxLig}
+                color="bg-sky-500"
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Motivos */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Não comparecimento */}
         <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
           <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-400" />
@@ -218,7 +398,6 @@ export default function DashboardSDRPage() {
           )}
         </div>
 
-        {/* Motivos de finalização */}
         <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
           <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
             <Ban className="w-4 h-4 text-gray-400" />
@@ -259,35 +438,35 @@ export default function DashboardSDRPage() {
           </div>
         ) : (
           <div>
-            {/* Cabeçalho da tabela */}
             <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-[#141820] border-b border-[#232a3b] text-xs font-semibold text-gray-500 uppercase">
-              <div className="col-span-4">Vendedor</div>
-              <div className="col-span-2 text-center">Oport.</div>
+              <div className="col-span-3">Vendedor</div>
+              <div className="col-span-2 text-center">Ligações</div>
               <div className="col-span-2 text-center">Reuniões</div>
               <div className="col-span-2 text-center">CPF Neg.</div>
+              <div className="col-span-1 text-center">Desq.</div>
               <div className="col-span-2 text-center">Vendas</div>
             </div>
 
             {data.porVendedor.map((v) => (
               <div key={v.id}>
-                {/* Linha do vendedor */}
                 <button
                   onClick={() => setExpandido(expandido === v.id ? null : v.id)}
                   className="w-full grid grid-cols-12 gap-2 px-4 py-3 border-b border-[#232a3b] hover:bg-[#232a3b]/50 transition text-left"
                 >
-                  <div className="col-span-4 flex items-center gap-2 font-medium text-sky-400 text-sm">
-                    {expandido === v.id
-                      ? <ChevronUp className="w-4 h-4 flex-shrink-0" />
-                      : <ChevronDown className="w-4 h-4 flex-shrink-0" />}
+                  <div className="col-span-3 flex items-center gap-2 font-medium text-sky-400 text-sm">
+                    {expandido === v.id ? <ChevronUp className="w-4 h-4 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 flex-shrink-0" />}
                     {v.nome}
                   </div>
-                  <div className="col-span-2 text-center text-gray-100 font-semibold text-sm">{v.totalOportunidades}</div>
-                  <div className="col-span-2 text-center">
-                    <span className="text-emerald-400 font-semibold text-sm">{v.reunioesFeitas}</span>
-                  </div>
+                  <div className="col-span-2 text-center text-sky-300 font-semibold text-sm">{v.totalOportunidades}</div>
+                  <div className="col-span-2 text-center text-emerald-400 font-semibold text-sm">{v.reunioesFeitas}</div>
                   <div className="col-span-2 text-center">
                     <span className={`font-semibold text-sm ${v.cpfNegado > 0 ? "text-rose-400" : "text-gray-500"}`}>
                       {v.cpfNegado}
+                    </span>
+                  </div>
+                  <div className="col-span-1 text-center">
+                    <span className={`font-semibold text-sm ${v.desqualificados > 0 ? "text-orange-400" : "text-gray-500"}`}>
+                      {v.desqualificados}
                     </span>
                   </div>
                   <div className="col-span-2 text-center">
@@ -297,14 +476,12 @@ export default function DashboardSDRPage() {
                   </div>
                 </button>
 
-                {/* Lista expandida de registros */}
                 {expandido === v.id && (
                   <div className="border-b border-[#232a3b] bg-[#0b0f19]">
                     {v.registros.length === 0 ? (
                       <p className="px-8 py-4 text-sm text-gray-500">Sem registros</p>
                     ) : (
                       <div className="divide-y divide-[#1a1f2e]">
-                        {/* Sub-cabeçalho */}
                         <div className="grid grid-cols-12 gap-2 px-8 py-2 text-xs font-semibold text-gray-600 uppercase">
                           <div className="col-span-3">Cliente</div>
                           <div className="col-span-2">Reunião</div>
@@ -312,7 +489,6 @@ export default function DashboardSDRPage() {
                           <div className="col-span-2">SDR</div>
                           <div className="col-span-3">Obs.</div>
                         </div>
-
                         {v.registros.map((r) => {
                           const sc = statusConfig(r.statusLead);
                           const obs = r.vendaVinculada
@@ -322,15 +498,13 @@ export default function DashboardSDRPage() {
                             : r.motivoNaoCompareceu
                             ? r.motivoNaoCompareceu
                             : "—";
-
                           return (
                             <div key={r.id} className="grid grid-cols-12 gap-2 px-8 py-2.5 hover:bg-[#1a1f2e]/50 transition text-sm">
                               <div className="col-span-3 font-medium text-gray-100 truncate">{r.nomeCliente}</div>
                               <div className="col-span-2 text-gray-400">{formatDate(r.dataReuniao)}</div>
                               <div className="col-span-2">
                                 <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${sc.bg} ${sc.color}`}>
-                                  {sc.icon}
-                                  {sc.label}
+                                  {sc.icon}{sc.label}
                                 </span>
                               </div>
                               <div className="col-span-2 text-gray-400 truncate">{r.sdrNome ?? "—"}</div>

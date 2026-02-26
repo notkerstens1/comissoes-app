@@ -4,6 +4,15 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/roles";
 
+/**
+ * GET /api/admin/sdr/dashboard
+ *
+ * Query params:
+ *   tipo = "dia" | "semana" | "mes"  (default: "mes")
+ *   data = "YYYY-MM-DD"              (para tipo=dia)
+ *   semana = "YYYY-MM-DD"            (domingo da semana, para tipo=semana)
+ *   mes = "YYYY-MM"                  (para tipo=mes)
+ */
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session || !isAdmin(session.user.role)) {
@@ -11,11 +20,27 @@ export async function GET(request: NextRequest) {
   }
 
   const { searchParams } = new URL(request.url);
+  const tipo = searchParams.get("tipo") ?? "mes";
+  const data = searchParams.get("data");
+  const semana = searchParams.get("semana");
   const mes = searchParams.get("mes");
 
   const where: any = {};
-  if (mes) {
-    where.dataRegistro = { startsWith: mes };
+
+  if (tipo === "dia" && data) {
+    where.dataRegistro = data;
+  } else if (tipo === "semana" && semana) {
+    // semana = domingo (ex: "2026-02-23")
+    const [y, m, d] = semana.split("-").map(Number);
+    const domingo = new Date(y, m - 1, d);
+    const sabado = new Date(y, m - 1, d + 6);
+    const domingoStr = domingo.toISOString().split("T")[0];
+    const sabadoStr = sabado.toISOString().split("T")[0];
+    where.dataRegistro = { gte: domingoStr, lte: sabadoStr };
+  } else {
+    // mes (default)
+    const mesVal = mes ?? new Date().toISOString().slice(0, 7);
+    where.dataRegistro = { startsWith: mesVal };
   }
 
   const registros = await prisma.registroSDR.findMany({
@@ -28,13 +53,24 @@ export async function GET(request: NextRequest) {
     orderBy: { dataReuniao: "desc" },
   });
 
-  // Totais gerais
-  const totalOportunidades = registros.length;
+  // ── Totais gerais ─────────────────────────────────────────────────────────────
+  const totalLigacoes = registros.length;
   const totalReunioes = registros.filter((r) => r.compareceu).length;
   const totalCpfNegado = registros.filter((r) => r.motivoFinalizacao === "CPF negada").length;
   const totalNoShow = registros.filter((r) => !r.compareceu && r.motivoNaoCompareceu).length;
+  const totalDesqualificados = registros.filter((r) => r.statusLead === "FINALIZADO").length;
 
-  // Motivos de não comparecimento
+  // ── Ligações por dia (para breakdown diário) ──────────────────────────────────
+  const ligacoesPorDiaMap: Record<string, number> = {};
+  registros.forEach((r) => {
+    const d = r.dataRegistro;
+    ligacoesPorDiaMap[d] = (ligacoesPorDiaMap[d] || 0) + 1;
+  });
+  const ligacoesPorDia = Object.entries(ligacoesPorDiaMap)
+    .map(([dataStr, count]) => ({ data: dataStr, count }))
+    .sort((a, b) => a.data.localeCompare(b.data));
+
+  // ── Motivos de não comparecimento ─────────────────────────────────────────────
   const motivosNcMap: Record<string, number> = {};
   registros
     .filter((r) => r.motivoNaoCompareceu)
@@ -46,7 +82,7 @@ export async function GET(request: NextRequest) {
     .map(([motivo, count]) => ({ motivo, count }))
     .sort((a, b) => b.count - a.count);
 
-  // Motivos de finalização
+  // ── Motivos de finalização ────────────────────────────────────────────────────
   const finalizacaoMap: Record<string, number> = {};
   registros
     .filter((r) => r.motivoFinalizacao)
@@ -58,7 +94,7 @@ export async function GET(request: NextRequest) {
     .map(([motivo, count]) => ({ motivo, count }))
     .sort((a, b) => b.count - a.count);
 
-  // Por vendedor
+  // ── Por vendedor ──────────────────────────────────────────────────────────────
   const vendedoresMap: Record<string, { id: string; nome: string; itens: typeof registros }> = {};
   registros.forEach((r) => {
     const vid = r.vendedoraId;
@@ -75,6 +111,7 @@ export async function GET(request: NextRequest) {
       totalOportunidades: v.itens.length,
       reunioesFeitas: v.itens.filter((r) => r.compareceu).length,
       cpfNegado: v.itens.filter((r) => r.motivoFinalizacao === "CPF negada").length,
+      desqualificados: v.itens.filter((r) => r.statusLead === "FINALIZADO").length,
       vendas: v.itens.filter((r) => r.vendaVinculadaId).length,
       registros: v.itens.map((r) => ({
         id: r.id,
@@ -93,10 +130,12 @@ export async function GET(request: NextRequest) {
     .sort((a, b) => b.totalOportunidades - a.totalOportunidades);
 
   return NextResponse.json({
-    totalOportunidades,
+    totalLigacoes,
     totalReunioes,
     totalCpfNegado,
     totalNoShow,
+    totalDesqualificados,
+    ligacoesPorDia,
     motivosNaoCompareceu,
     motivosFinalizacao,
     porVendedor,
