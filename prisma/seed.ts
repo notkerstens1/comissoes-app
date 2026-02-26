@@ -6,107 +6,123 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Iniciando seed...");
 
-  // Criar supervisor (role ADMIN no banco, exibido como "Supervisor")
-  const senhaSupervisor = await hash("supervisor123", 12);
-  const supervisor = await prisma.user.upsert({
-    where: { email: "supervisor@solar.com" },
-    update: { nome: "Eric Lima" },
-    create: {
-      nome: "Eric Lima",
-      email: "supervisor@solar.com",
-      senha: senhaSupervisor,
-      role: "ADMIN",
-    },
+  // Verificar se já existem usuários reais (@gmail.com) no sistema
+  // Se sim, não recriar os usuários seed @solar.com (ambiente de produção)
+  const gmailUsersCount = await prisma.user.count({
+    where: { email: { endsWith: "@gmail.com" } },
   });
-  console.log("Supervisor criado:", supervisor.email);
+  const isProducao = gmailUsersCount > 0;
 
-  // Criar diretor
-  const senhaDiretor = await hash("diretor123", 12);
-  const diretor = await prisma.user.upsert({
-    where: { email: "diretor@solar.com" },
-    update: { nome: "Erick Santos" },
-    create: {
-      nome: "Erick Santos",
-      email: "diretor@solar.com",
-      senha: senhaDiretor,
-      role: "DIRETOR",
-    },
-  });
-  console.log("Diretor criado:", diretor.email);
+  if (isProducao) {
+    console.log(`[SEED] ${gmailUsersCount} usuarios @gmail.com encontrados — ambiente de producao detectado.`);
+    console.log("[SEED] Pulando criacao de usuarios @solar.com (exceto daniel@solar.com).");
+  }
 
-  // Criar vendedores
+  // ── Supervisor ────────────────────────────────────────────────────────────────
+  let supervisor: { id: string; nome: string; email: string } | null = null;
+  if (!isProducao) {
+    const senhaSupervisor = await hash("supervisor123", 12);
+    supervisor = await prisma.user.upsert({
+      where: { email: "supervisor@solar.com" },
+      update: { nome: "Eric Lima" },
+      create: { nome: "Eric Lima", email: "supervisor@solar.com", senha: senhaSupervisor, role: "ADMIN" },
+    });
+    console.log("Supervisor criado:", supervisor.email);
+  } else {
+    supervisor = await prisma.user.findFirst({ where: { role: "ADMIN" } });
+  }
+
+  // ── Diretor ───────────────────────────────────────────────────────────────────
+  let diretor: { id: string; nome: string; email: string } | null = null;
+  if (!isProducao) {
+    const senhaDiretor = await hash("diretor123", 12);
+    diretor = await prisma.user.upsert({
+      where: { email: "diretor@solar.com" },
+      update: { nome: "Erick Santos" },
+      create: { nome: "Erick Santos", email: "diretor@solar.com", senha: senhaDiretor, role: "DIRETOR" },
+    });
+    console.log("Diretor criado:", diretor.email);
+  } else {
+    diretor = await prisma.user.findFirst({ where: { role: "DIRETOR" } });
+  }
+
   const senhaVendedor = await hash("vendedor123", 12);
 
-  // Desativar usuarios com emails antigos/errados
-  await prisma.user.updateMany({
-    where: { email: { in: ["juliana@solar.com", "erick@solar.com", "ana@solar.com"] } },
-    data: { ativo: false },
-  });
-  console.log("Usuarios antigos desativados (se existiam)");
+  // ── Bruna ─────────────────────────────────────────────────────────────────────
+  let bruna: { id: string; nome: string; email: string } | null = null;
+  if (!isProducao) {
+    bruna = await prisma.user.upsert({
+      where: { email: "bruna@solar.com" },
+      update: { nome: "Bruna", ativo: true },
+      create: { nome: "Bruna", email: "bruna@solar.com", senha: senhaVendedor, role: "VENDEDOR" },
+    });
+    console.log("Vendedor criado:", bruna.email);
+  } else {
+    bruna = await prisma.user.findFirst({ where: { nome: { startsWith: "Bruna" }, email: { endsWith: "@gmail.com" } } });
+  }
 
-  const bruna = await prisma.user.upsert({
-    where: { email: "bruna@solar.com" },
-    update: { nome: "Bruna", ativo: true },
-    create: {
-      nome: "Bruna",
-      email: "bruna@solar.com",
-      senha: senhaVendedor,
-      role: "VENDEDOR",
-    },
-  });
-  console.log("Vendedor criado:", bruna.email);
+  // ── Juliana ───────────────────────────────────────────────────────────────────
+  let juliana: { id: string; nome: string; email: string } | null = null;
+  if (!isProducao) {
+    // Desativar emails antigos/errados apenas em dev
+    await prisma.user.updateMany({
+      where: { email: { in: ["juliana@solar.com", "erick@solar.com", "ana@solar.com"] } },
+      data: { ativo: false },
+    });
+    await prisma.user.updateMany({
+      where: { email: "juliana@solar.com" },
+      data: { ativo: true },
+    });
+    juliana = await prisma.user.upsert({
+      where: { email: "juliana@solar.com" },
+      update: { nome: "Juliana", email: "juliana@solar.com", ativo: true },
+      create: { nome: "Juliana", email: "juliana@solar.com", senha: senhaVendedor, role: "VENDEDOR" },
+    });
+    console.log("Vendedor criado:", juliana.email);
+  } else {
+    juliana = await prisma.user.findFirst({ where: { nome: { startsWith: "Juliana" }, email: { endsWith: "@gmail.com" } } });
+  }
 
-  const juliana = await prisma.user.upsert({
-    where: { email: "juliana@solar.com" },
-    update: { nome: "Juliana", email: "juliana@solar.com", ativo: true },
-    create: {
-      nome: "Juliana",
-      email: "juliana@solar.com",
-      senha: senhaVendedor,
-      role: "VENDEDOR",
-    },
-  });
-  console.log("Vendedor criado:", juliana.email);
-
+  // ── Daniel (sempre mantido) ───────────────────────────────────────────────────
   const daniel = await prisma.user.upsert({
     where: { email: "daniel@solar.com" },
     update: { nome: "Daniel", ativo: true },
-    create: {
-      nome: "Daniel",
-      email: "daniel@solar.com",
-      senha: senhaVendedor,
-      role: "VENDEDOR_EXTERNO",
-    },
+    create: { nome: "Daniel", email: "daniel@solar.com", senha: senhaVendedor, role: "VENDEDOR_EXTERNO" },
   });
-  console.log("Vendedor Externo criado:", daniel.email);
+  console.log("Vendedor Externo criado/mantido:", daniel.email);
 
-  // Criar operador Pos Venda
-  const senhaPosVenda = await hash("posvenda123", 12);
-  const yuri = await prisma.user.upsert({
-    where: { email: "yuri@solar.com" },
-    update: { nome: "Yuri", ativo: true },
-    create: {
-      nome: "Yuri",
-      email: "yuri@solar.com",
-      senha: senhaPosVenda,
-      role: "POS_VENDA",
-    },
-  });
-  console.log("Pos Venda criado:", yuri.email);
+  // ── Yuri (Pós Venda) ──────────────────────────────────────────────────────────
+  let yuri: { id: string; nome: string; email: string } | null = null;
+  if (!isProducao) {
+    const senhaPosVenda = await hash("posvenda123", 12);
+    yuri = await prisma.user.upsert({
+      where: { email: "yuri@solar.com" },
+      update: { nome: "Yuri", ativo: true },
+      create: { nome: "Yuri", email: "yuri@solar.com", senha: senhaPosVenda, role: "POS_VENDA" },
+    });
+    console.log("Pos Venda criado:", yuri.email);
+  } else {
+    yuri = await prisma.user.findFirst({ where: { role: "POS_VENDA" } });
+  }
 
-  // Criar SDR
-  const senhaSDR = await hash("sdr123", 12);
-  const emelly = await prisma.user.upsert({
-    where: { email: "emelly@solar.com" },
-    update: { nome: "Emelly", ativo: true },
-    create: {
-      nome: "Emelly",
-      email: "emelly@solar.com",
-      senha: senhaSDR,
-      role: "SDR",
-    },
-  });
-  console.log("SDR criada:", emelly.email);
+  // ── Emelly (SDR) ──────────────────────────────────────────────────────────────
+  let emelly: { id: string; nome: string; email: string } | null = null;
+  if (!isProducao) {
+    const senhaSDR = await hash("sdr123", 12);
+    emelly = await prisma.user.upsert({
+      where: { email: "emelly@solar.com" },
+      update: { nome: "Emelly", ativo: true },
+      create: { nome: "Emelly", email: "emelly@solar.com", senha: senhaSDR, role: "SDR" },
+    });
+    console.log("SDR criada:", emelly.email);
+  } else {
+    emelly = await prisma.user.findFirst({ where: { role: "SDR" } });
+  }
+
+  // Compat: se não achou nenhum usuário de destino para vendas seed, usa null seguro
+  if (!juliana || !daniel || !emelly || !yuri) {
+    console.log("[SEED] Alguns usuarios de referencia nao encontrados — pulando criacao de vendas/SDR/PosVenda seed.");
+  }
 
   // Criar configuracao (com novos campos de custos)
   await prisma.configuracao.upsert({
@@ -171,8 +187,11 @@ async function main() {
   console.log("Faixas de comissao criadas");
 
   // Criar vendas da Juliana (apenas se ainda nao existem — seguro para re-seed)
-  const existingVendasJuliana = await prisma.venda.count({ where: { vendedorId: juliana.id } });
-  if (existingVendasJuliana === 0) {
+  // Em producao (isProducao=true) juliana pode ser null se nao houver @gmail correspondente
+  const existingVendasJuliana = juliana
+    ? await prisma.venda.count({ where: { vendedorId: juliana.id } })
+    : 1; // se null, finge que já tem vendas (pula criação)
+  if (existingVendasJuliana === 0 && juliana) {
     await prisma.venda.createMany({
       data: [
         // JANEIRO 2026
@@ -381,12 +400,11 @@ async function main() {
 
   // Criar registros SDR vinculados as vendas da Juliana
   // Buscar vendas da Juliana (as 2 mais recentes = Cilene fev/19 e Nilsa fev/13)
-  const vendasJuliana = await prisma.venda.findMany({
-    where: { vendedorId: juliana.id },
-    orderBy: { dataConversao: "desc" },
-  });
+  const vendasJuliana = juliana
+    ? await prisma.venda.findMany({ where: { vendedorId: juliana.id }, orderBy: { dataConversao: "desc" } })
+    : [];
 
-  if (vendasJuliana.length >= 2) {
+  if (vendasJuliana.length >= 2 && emelly && juliana) {
     // Limpar registros SDR anteriores (para re-seed)
     await prisma.registroSDR.deleteMany({ where: { sdrId: emelly.id } });
 
@@ -500,7 +518,10 @@ async function main() {
     console.log("Juliana nao tem vendas suficientes para vincular registros SDR");
   }
 
-  // Seed Pos Venda — clientes da planilha original
+  // Seed Pos Venda — clientes da planilha original (apenas se yuri existe e não é producao)
+  if (!yuri || isProducao) {
+    console.log("[SEED] Pulando seed de Pos Venda (producao ou yuri nao encontrado).");
+  } else {
   // Limpar registros anteriores do operador (para re-seed)
   await prisma.posVenda.deleteMany({ where: { operadorId: yuri.id } });
 
@@ -616,6 +637,7 @@ async function main() {
     });
   }
   console.log(`${clientesPosVenda.length} clientes de Pos Venda criados`);
+  } // fim do bloco posVenda (apenas dev)
 
   console.log("\n=== SEED COMPLETO ===");
   console.log("\nUsuarios criados:");
