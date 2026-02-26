@@ -25,6 +25,7 @@ import {
   Target,
   TrendingUp,
   ClipboardCheck,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -77,6 +78,7 @@ export function Sidebar() {
     { href: "/diretor", label: "Painel Financeiro", icon: BarChart3 },
     { href: "/diretor/ranking", label: "Ranking Vendedores", icon: Trophy },
     { href: "/diretor/custos", label: "Custos por Venda", icon: Calculator },
+    { href: "/diretor/backup", label: "Backup de Dados", icon: ShieldCheck },
   ];
 
   const getRoleBadge = () => {
