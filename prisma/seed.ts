@@ -398,124 +398,74 @@ async function main() {
     console.log(`Daniel ja tem ${existingVendasDaniel} vendas, pulando criacao`);
   }
 
-  // Criar registros SDR vinculados as vendas da Juliana
-  // Buscar vendas da Juliana (as 2 mais recentes = Cilene fev/19 e Nilsa fev/13)
-  const vendasJuliana = juliana
-    ? await prisma.venda.findMany({ where: { vendedorId: juliana.id }, orderBy: { dataConversao: "desc" } })
-    : [];
-
-  if (vendasJuliana.length >= 2 && emelly && juliana) {
-    // Limpar registros SDR anteriores (para re-seed)
-    await prisma.registroSDR.deleteMany({ where: { sdrId: emelly.id } });
-
-    const venda1 = vendasJuliana[0]; // Cilene (mais recente: 19/02)
-    const venda2 = vendasJuliana[1]; // Nilsa (segunda mais recente: 13/02)
-
-    const dataConversao1 = new Date(venda1.dataConversao).toISOString().split("T")[0];
-    const dataConversao2 = new Date(venda2.dataConversao).toISOString().split("T")[0];
-
-    // Registro 1 — Cilene (reuniao 10/02, compareceu, venda vinculada em 19/02)
-    await prisma.registroSDR.create({
-      data: {
-        sdrId: emelly.id,
-        dataRegistro: "2026-02-10",
-        nomeCliente: venda1.cliente.trim(),
-        vendedoraId: juliana.id,
-        dataReuniao: "2026-02-10",
-        compareceu: true,
-        consideracoes: "Cliente indicada por vizinha, ja sabia dos beneficios",
-        vendaVinculadaId: venda1.id,
-        dataVendaVinculada: dataConversao1,
-        comissaoReuniao: 20,
-        comissaoVenda: 20,
-        comissaoTotal: 40,
-        statusPagamento: "PENDENTE",
-        statusLead: "VENDIDO",
-      },
-    });
-    console.log("Registro SDR criado: " + venda1.cliente.trim() + " (vinculado)");
-
-    // Registro 2 — Nilsa (reuniao 12/02, compareceu, venda vinculada em 13/02)
-    await prisma.registroSDR.create({
-      data: {
-        sdrId: emelly.id,
-        dataRegistro: "2026-02-12",
-        nomeCliente: venda2.cliente.trim(),
-        vendedoraId: juliana.id,
-        dataReuniao: "2026-02-12",
-        compareceu: true,
-        consideracoes: "Cliente muito interessada, boa conversa sobre economia na conta de luz",
-        vendaVinculadaId: venda2.id,
-        dataVendaVinculada: dataConversao2,
-        comissaoReuniao: 20,
-        comissaoVenda: 20,
-        comissaoTotal: 40,
-        statusPagamento: "PENDENTE",
-        statusLead: "VENDIDO",
-      },
-    });
-    console.log("Registro SDR criado: " + venda2.cliente.trim() + " (vinculado)");
-
-    // Registro 3 — Lead extra que nao compareceu (para mostrar variedade)
-    await prisma.registroSDR.create({
-      data: {
-        sdrId: emelly.id,
-        dataRegistro: "2026-02-14",
-        nomeCliente: "Maria das Gracas Oliveira",
-        vendedoraId: juliana.id,
-        dataReuniao: "2026-02-14",
-        compareceu: false,
-        motivoNaoCompareceu: "Remarcou",
-        consideracoes: "Cliente pediu para remarcar para semana que vem",
-        comissaoReuniao: 0,
-        comissaoVenda: 0,
-        comissaoTotal: 0,
-        statusPagamento: "PENDENTE",
-        statusLead: "AGENDADO",
-      },
-    });
-    console.log("Registro SDR criado: Maria das Gracas Oliveira (nao compareceu)");
-
-    // Registro 4 — Lead que compareceu mas ainda nao virou venda
-    await prisma.registroSDR.create({
-      data: {
-        sdrId: emelly.id,
-        dataRegistro: "2026-02-15",
-        nomeCliente: "Francisco Alves da Silva",
-        vendedoraId: juliana.id,
-        dataReuniao: "2026-02-15",
-        compareceu: true,
-        consideracoes: "Cliente pediu proposta, aguardando retorno",
-        comissaoReuniao: 20,
-        comissaoVenda: 0,
-        comissaoTotal: 20,
-        statusPagamento: "PENDENTE",
-        statusLead: "COMPARECEU",
-      },
-    });
-    console.log("Registro SDR criado: Francisco Alves da Silva (aguardando venda)");
-
-    // Registro 5 — Lead finalizado (CPF negada)
-    await prisma.registroSDR.create({
-      data: {
-        sdrId: emelly.id,
-        dataRegistro: "2026-02-08",
-        nomeCliente: "Jose Carlos Ferreira",
-        vendedoraId: juliana.id,
-        dataReuniao: "2026-02-08",
-        compareceu: true,
-        consideracoes: "Cliente compareceu mas CPF negativado, sem condicoes",
-        comissaoReuniao: 20,
-        comissaoVenda: 0,
-        comissaoTotal: 20,
-        statusPagamento: "PENDENTE",
-        statusLead: "FINALIZADO",
-        motivoFinalizacao: "CPF negada",
-      },
-    });
-    console.log("Registro SDR criado: Jose Carlos Ferreira (finalizado - CPF negada)");
+  // Criar registros SDR vinculados as vendas da Juliana — APENAS EM DESENVOLVIMENTO
+  if (isProducao) {
+    console.log("[SEED] Pulando criacao de registros SDR seed (producao).");
   } else {
-    console.log("Juliana nao tem vendas suficientes para vincular registros SDR");
+    const vendasJuliana = juliana
+      ? await prisma.venda.findMany({ where: { vendedorId: juliana.id }, orderBy: { dataConversao: "desc" } })
+      : [];
+
+    if (vendasJuliana.length >= 2 && emelly && juliana) {
+      // Limpar registros SDR anteriores (para re-seed dev)
+      await prisma.registroSDR.deleteMany({ where: { sdrId: emelly.id } });
+
+      const venda1 = vendasJuliana[0];
+      const venda2 = vendasJuliana[1];
+      const dataConversao1 = new Date(venda1.dataConversao).toISOString().split("T")[0];
+      const dataConversao2 = new Date(venda2.dataConversao).toISOString().split("T")[0];
+
+      await prisma.registroSDR.create({
+        data: {
+          sdrId: emelly.id, dataRegistro: "2026-02-10", nomeCliente: venda1.cliente.trim(),
+          vendedoraId: juliana.id, dataReuniao: "2026-02-10", compareceu: true,
+          consideracoes: "Cliente indicada por vizinha, ja sabia dos beneficios",
+          vendaVinculadaId: venda1.id, dataVendaVinculada: dataConversao1,
+          comissaoReuniao: 20, comissaoVenda: 20, comissaoTotal: 40,
+          statusPagamento: "PENDENTE", statusLead: "VENDIDO",
+        },
+      });
+      await prisma.registroSDR.create({
+        data: {
+          sdrId: emelly.id, dataRegistro: "2026-02-12", nomeCliente: venda2.cliente.trim(),
+          vendedoraId: juliana.id, dataReuniao: "2026-02-12", compareceu: true,
+          consideracoes: "Cliente muito interessada, boa conversa sobre economia na conta de luz",
+          vendaVinculadaId: venda2.id, dataVendaVinculada: dataConversao2,
+          comissaoReuniao: 20, comissaoVenda: 20, comissaoTotal: 40,
+          statusPagamento: "PENDENTE", statusLead: "VENDIDO",
+        },
+      });
+      await prisma.registroSDR.create({
+        data: {
+          sdrId: emelly.id, dataRegistro: "2026-02-14", nomeCliente: "Maria das Gracas Oliveira",
+          vendedoraId: juliana.id, dataReuniao: "2026-02-14", compareceu: false,
+          motivoNaoCompareceu: "Remarcou", consideracoes: "Cliente pediu para remarcar",
+          comissaoReuniao: 0, comissaoVenda: 0, comissaoTotal: 0,
+          statusPagamento: "PENDENTE", statusLead: "AGENDADO",
+        },
+      });
+      await prisma.registroSDR.create({
+        data: {
+          sdrId: emelly.id, dataRegistro: "2026-02-15", nomeCliente: "Francisco Alves da Silva",
+          vendedoraId: juliana.id, dataReuniao: "2026-02-15", compareceu: true,
+          consideracoes: "Cliente pediu proposta, aguardando retorno",
+          comissaoReuniao: 20, comissaoVenda: 0, comissaoTotal: 20,
+          statusPagamento: "PENDENTE", statusLead: "COMPARECEU",
+        },
+      });
+      await prisma.registroSDR.create({
+        data: {
+          sdrId: emelly.id, dataRegistro: "2026-02-08", nomeCliente: "Jose Carlos Ferreira",
+          vendedoraId: juliana.id, dataReuniao: "2026-02-08", compareceu: true,
+          consideracoes: "Cliente compareceu mas CPF negativado, sem condicoes",
+          comissaoReuniao: 20, comissaoVenda: 0, comissaoTotal: 20,
+          statusPagamento: "PENDENTE", statusLead: "FINALIZADO", motivoFinalizacao: "CPF negada",
+        },
+      });
+      console.log("5 registros SDR seed criados (dev)");
+    } else {
+      console.log("Juliana nao tem vendas suficientes para vincular registros SDR");
+    }
   }
 
   // Seed Pos Venda — clientes da planilha original (apenas se yuri existe e não é producao)
