@@ -53,18 +53,34 @@ export async function GET(request: NextRequest) {
     orderBy: { dataReuniao: "desc" },
   });
 
+  // ── Buscar ligacoes reais do modelo LigacoesSDR ─────────────────────────────
+  const whereLigacoes: any = {};
+  if (tipo === "dia" && data) {
+    whereLigacoes.data = data;
+  } else if (tipo === "semana" && semana) {
+    const [y, m, d] = semana.split("-").map(Number);
+    const domingo = new Date(y, m - 1, d);
+    const sabado = new Date(y, m - 1, d + 6);
+    whereLigacoes.data = { gte: domingo.toISOString().split("T")[0], lte: sabado.toISOString().split("T")[0] };
+  } else {
+    const mesVal = mes ?? new Date().toISOString().slice(0, 7);
+    whereLigacoes.data = { startsWith: mesVal };
+  }
+
+  const ligacoesRecords = await prisma.ligacoesSDR.findMany({ where: whereLigacoes });
+  const totalLigacoesReal = ligacoesRecords.reduce((acc, l) => acc + l.quantidade, 0);
+
   // ── Totais gerais ─────────────────────────────────────────────────────────────
-  const totalLigacoes = registros.length;
+  const totalLigacoes = totalLigacoesReal;
   const totalReunioes = registros.filter((r) => r.compareceu).length;
   const totalCpfNegado = registros.filter((r) => r.motivoFinalizacao === "CPF negada").length;
   const totalNoShow = registros.filter((r) => !r.compareceu && r.motivoNaoCompareceu).length;
   const totalDesqualificados = registros.filter((r) => r.statusLead === "FINALIZADO").length;
 
-  // ── Ligações por dia (para breakdown diário) ──────────────────────────────────
+  // ── Ligações por dia (do modelo LigacoesSDR) ──────────────────────────────────
   const ligacoesPorDiaMap: Record<string, number> = {};
-  registros.forEach((r) => {
-    const d = r.dataRegistro;
-    ligacoesPorDiaMap[d] = (ligacoesPorDiaMap[d] || 0) + 1;
+  ligacoesRecords.forEach((l) => {
+    ligacoesPorDiaMap[l.data] = (ligacoesPorDiaMap[l.data] || 0) + l.quantidade;
   });
   const ligacoesPorDia = Object.entries(ligacoesPorDiaMap)
     .map(([dataStr, count]) => ({ data: dataStr, count }))

@@ -26,6 +26,8 @@ model User {
   pendenciasResolvidas PendenciaVinculo[] @relation("resolvidoPor")
   // Pos Venda
   posVendaRegistros    PosVenda[]         @relation("posVendaOperador")
+  // Ligacoes diarias SDR
+  ligacoesSDR          LigacoesSDR[]      @relation("sdrLigacoes")
   // Calculadora
   simulacoes           SimulacaoVenda[]
   // Solicitações de exceção de margem (como supervisor)
@@ -198,6 +200,19 @@ model RegistroSDR {
   imagemUrl           String?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
+}
+
+// SDR: Ligacoes diarias (input manual da SDR)
+model LigacoesSDR {
+  id        String   @id @default(cuid())
+  sdrId     String
+  sdr       User     @relation("sdrLigacoes", fields: [sdrId], references: [id])
+  data      String   // "YYYY-MM-DD"
+  quantidade Int     @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sdrId, data])
 }
 
 // SDR: Pendencias de vinculo (vendas com match ambiguo ou sem match)

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@/lib/utils";
-import { ClipboardList, Users, DollarSign, CheckCircle, Edit2, X, Save } from "lucide-react";
+import { ClipboardList, Users, DollarSign, CheckCircle, Edit2, X, Save, Phone } from "lucide-react";
 
 interface DashboardData {
   totalRegistros: number;
@@ -56,6 +56,12 @@ export default function SDRDashboardPage() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
 
+  // Ligacoes do dia
+  const hojeStr = new Date().toISOString().split("T")[0];
+  const [ligacoesHoje, setLigacoesHoje] = useState(0);
+  const [ligacoesInput, setLigacoesInput] = useState("");
+  const [salvandoLigacoes, setSalvandoLigacoes] = useState(false);
+
   // Modal de edicao
   const [editando, setEditando] = useState<Registro | null>(null);
   const [editCompareceu, setEditCompareceu] = useState(false);
@@ -64,6 +70,35 @@ export default function SDRDashboardPage() {
   const [editMotivoNaoCompareceu, setEditMotivoNaoCompareceu] = useState("");
   const [editConsideracoes, setEditConsideracoes] = useState("");
   const [salvandoEdit, setSalvandoEdit] = useState(false);
+
+  // Carregar ligacoes do dia
+  useEffect(() => {
+    fetch(`/api/sdr/ligacoes?data=${hojeStr}`)
+      .then((r) => r.json())
+      .then((d) => {
+        setLigacoesHoje(d.quantidade ?? 0);
+        setLigacoesInput(String(d.quantidade ?? 0));
+      })
+      .catch(console.error);
+  }, [hojeStr]);
+
+  const salvarLigacoes = async () => {
+    setSalvandoLigacoes(true);
+    try {
+      const res = await fetch("/api/sdr/ligacoes", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: hojeStr, quantidade: Number(ligacoesInput) || 0 }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setLigacoesHoje(data.quantidade);
+      }
+    } catch (error) {
+      console.error("Erro:", error);
+    }
+    setSalvandoLigacoes(false);
+  };
 
   useEffect(() => {
     fetchDados();
@@ -301,6 +336,41 @@ export default function SDRDashboardPage() {
           onChange={(e) => setMesAtual(e.target.value)}
           className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
         />
+      </div>
+
+      {/* Ligacoes do dia */}
+      <div className="bg-gradient-to-r from-sky-500/20 to-cyan-500/20 rounded-2xl p-5 border border-sky-400/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-sky-400/20 rounded-xl flex items-center justify-center">
+            <Phone className="w-6 h-6 text-sky-400" />
+          </div>
+          <div>
+            <p className="text-sky-300 text-sm font-medium">Ligacoes de Hoje</p>
+            <p className="text-3xl font-bold text-gray-100">{ligacoesHoje}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min="0"
+            value={ligacoesInput}
+            onChange={(e) => setLigacoesInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && salvarLigacoes()}
+            className="w-24 px-3 py-2 rounded-lg border border-sky-400/30 bg-[#141820] text-gray-100 text-sm text-center focus:border-sky-400 outline-none"
+            placeholder="0"
+          />
+          <button
+            onClick={salvarLigacoes}
+            disabled={salvandoLigacoes}
+            className="px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition disabled:opacity-50 flex items-center gap-1.5"
+          >
+            {salvandoLigacoes ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+            ) : (
+              <><Save className="w-4 h-4" /> Salvar</>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Cards */}
