@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import {
   Target,
@@ -509,72 +509,72 @@ export default function OportunidadesPage() {
                 <p>{tab === "pipeline" ? "Nenhuma oportunidade aberta" : "Nenhum lead descartado"}</p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm table-fixed">
-                  <thead>
-                    <tr className="border-b border-[#232a3b] bg-[#141820]">
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase w-[22%]">Cliente</th>
-                      {admin && <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase w-[10%]">Vendedor</th>}
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase w-[10%]">Reuniao</th>
-                      <th className="text-center px-3 py-3.5 text-xs font-semibold text-gray-500 uppercase w-[6%]">Dias</th>
-                      <th className="text-right px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase w-[13%]">Forecast</th>
-                      <th className="text-center px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase w-[11%]">Estagio</th>
-                      <th className="text-center px-3 py-3.5 text-xs font-semibold text-gray-500 uppercase w-[7%]">Prob.</th>
-                      <th className="text-left px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase w-[12%]">
-                        {tab === "descartados" ? "Motivo" : "Fechamento"}
-                      </th>
-                      <th className="px-3 py-3.5 w-[9%]"></th>
-                    </tr>
-                  </thead>
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="border-b border-[#232a3b] bg-[#141820]">
+                    <th className="text-left px-3 py-3 font-semibold text-gray-500 uppercase tracking-wide">Cliente</th>
+                    {admin && <th className="text-left px-2 py-3 font-semibold text-gray-500 uppercase tracking-wide">Vendedor</th>}
+                    <th className="text-left px-2 py-3 font-semibold text-gray-500 uppercase tracking-wide">Reuniao</th>
+                    <th className="text-center px-2 py-3 font-semibold text-gray-500 uppercase tracking-wide">Dias</th>
+                    <th className="text-right px-2 py-3 font-semibold text-gray-500 uppercase tracking-wide">Forecast</th>
+                    <th className="text-center px-2 py-3 font-semibold text-gray-500 uppercase tracking-wide">Estagio</th>
+                    <th className="text-center px-2 py-3 font-semibold text-gray-500 uppercase tracking-wide">Prob.</th>
+                    <th className="text-left px-2 py-3 font-semibold text-gray-500 uppercase tracking-wide">
+                      {tab === "descartados" ? "Motivo" : "Fechamento"}
+                    </th>
+                    <th className="px-2 py-3 text-right font-semibold text-gray-500 uppercase tracking-wide">Acoes</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {registros.map((r) => {
                     const dias = getDiasNoPipe(r.dataReuniao);
                     const vencido = r.dataFechamentoEsperado && r.dataFechamentoEsperado < hoje;
                     const isEditing = editingId === r.id;
 
                     return (
-                      <tbody key={r.id} className="border-b border-[#232a3b]/50">
-                        <tr className={`hover:bg-[#141820]/50 transition ${vencido ? "opacity-70" : ""}`}>
-                          <td className="px-5 py-3.5">
-                            <p className="font-medium text-gray-100 truncate">{r.nomeCliente}</p>
-                            <p className="text-xs text-gray-500 mt-0.5">SDR: {r.sdr.nome}</p>
+                      <React.Fragment key={r.id}>
+                        <tr className={`border-b border-[#232a3b]/40 hover:bg-[#141820]/50 transition ${vencido ? "opacity-70" : ""}`}>
+                          <td className="px-3 py-3">
+                            <p className="font-medium text-gray-100 text-sm truncate max-w-[180px]">{r.nomeCliente}</p>
+                            <p className="text-[11px] text-gray-500 mt-0.5">SDR: {r.sdr.nome}</p>
                           </td>
                           {admin && (
-                            <td className="px-5 py-3.5 text-gray-300 text-sm truncate">{r.vendedora.nome}</td>
+                            <td className="px-2 py-3 text-gray-300 text-sm truncate max-w-[100px]">{r.vendedora.nome}</td>
                           )}
-                          <td className="px-5 py-3.5 text-gray-300">{formatDate(r.dataReuniao)}</td>
-                          <td className="px-3 py-3.5 text-center">
-                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${getDiasBadge(dias)}`}>
+                          <td className="px-2 py-3 text-gray-300 text-sm whitespace-nowrap">{formatDate(r.dataReuniao)}</td>
+                          <td className="px-2 py-3 text-center">
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${getDiasBadge(dias)}`}>
                               {dias}d
                             </span>
                           </td>
-                          <td className="px-5 py-3.5 text-right">
+                          <td className="px-2 py-3 text-right whitespace-nowrap">
                             {r.valorForecast != null && r.valorForecast > 0 ? (
-                              <span className="text-lime-400 font-semibold">{formatCurrency(r.valorForecast)}</span>
+                              <span className="text-lime-400 font-semibold text-sm">{formatCurrency(r.valorForecast)}</span>
                             ) : (
                               <span className="text-gray-600">--</span>
                             )}
                           </td>
-                          <td className="px-5 py-3.5 text-center">
-                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${getEstagioStyle(r.estagioOportunidade)}`}>
+                          <td className="px-2 py-3 text-center">
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${getEstagioStyle(r.estagioOportunidade)}`}>
                               {getEstagioLabel(r.estagioOportunidade)}
                             </span>
                           </td>
-                          <td className="px-3 py-3.5 text-center">
+                          <td className="px-2 py-3 text-center">
                             <span className={`text-sm font-bold ${r.probabilidade >= 70 ? "text-emerald-400" : r.probabilidade >= 40 ? "text-amber-400" : "text-rose-400"}`}>
                               {r.probabilidade}%
                             </span>
                           </td>
-                          <td className="px-5 py-3.5">
+                          <td className="px-2 py-3 whitespace-nowrap">
                             {tab === "descartados" ? (
                               <span className="text-sm text-gray-400">{r.motivoFinalizacao || "--"}</span>
                             ) : (
-                              <span className={vencido ? "text-rose-400 text-sm font-medium" : "text-gray-300 text-sm"}>
+                              <span className={`text-sm ${vencido ? "text-rose-400 font-medium" : "text-gray-300"}`}>
                                 {formatDate(r.dataFechamentoEsperado)}
                               </span>
                             )}
                           </td>
-                          <td className="px-3 py-3.5">
-                            <div className="flex items-center justify-end gap-1">
+                          <td className="px-2 py-3">
+                            <div className="flex items-center justify-end gap-0.5">
                               {tab === "pipeline" && (
                                 <>
                                   <button
@@ -615,7 +615,7 @@ export default function OportunidadesPage() {
                                 <button
                                   onClick={() => reativarLead(r.id)}
                                   disabled={saving}
-                                  className="px-3 py-1.5 rounded-lg hover:bg-lime-400/10 text-gray-500 hover:text-lime-400 transition disabled:opacity-50 flex items-center gap-1.5 text-xs"
+                                  className="px-2 py-1 rounded-lg hover:bg-lime-400/10 text-gray-500 hover:text-lime-400 transition disabled:opacity-50 flex items-center gap-1 text-xs"
                                   title="Reativar"
                                 >
                                   <RotateCcw className="w-3.5 h-3.5" /> Reativar
@@ -627,9 +627,9 @@ export default function OportunidadesPage() {
 
                         {/* Inline edit row */}
                         {isEditing && (
-                          <tr className="bg-[#141820]">
-                            <td colSpan={admin ? 9 : 8} className="px-5 py-4">
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                          <tr className="bg-[#141820] border-b border-[#232a3b]/40">
+                            <td colSpan={admin ? 9 : 8} className="px-3 py-4">
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                 <div>
                                   <label className="block text-xs text-gray-500 mb-1">Valor Forecast (R$)</label>
                                   <input
@@ -673,18 +673,18 @@ export default function OportunidadesPage() {
                                   />
                                 </div>
                               </div>
-                              <div className="flex gap-2 mt-4">
+                              <div className="flex gap-2 mt-3">
                                 <button
                                   onClick={() => saveEdit(r.id)}
                                   disabled={saving}
-                                  className="flex items-center gap-1.5 px-5 py-2 bg-lime-400 text-gray-900 rounded-lg text-sm font-medium hover:bg-lime-300 disabled:opacity-50 transition"
+                                  className="flex items-center gap-1.5 px-4 py-2 bg-lime-400 text-gray-900 rounded-lg text-sm font-medium hover:bg-lime-300 disabled:opacity-50 transition"
                                 >
                                   <Check className="w-3.5 h-3.5" />
                                   {saving ? "Salvando..." : "Salvar"}
                                 </button>
                                 <button
                                   onClick={() => setEditingId(null)}
-                                  className="flex items-center gap-1.5 px-5 py-2 bg-[#232a3b] text-gray-300 rounded-lg text-sm font-medium hover:bg-[#2a3040] transition"
+                                  className="flex items-center gap-1.5 px-4 py-2 bg-[#232a3b] text-gray-300 rounded-lg text-sm font-medium hover:bg-[#2a3040] transition"
                                 >
                                   <X className="w-3.5 h-3.5" />
                                   Cancelar
@@ -693,11 +693,11 @@ export default function OportunidadesPage() {
                             </td>
                           </tr>
                         )}
-                      </tbody>
+                      </React.Fragment>
                     );
                   })}
-                </table>
-              </div>
+                </tbody>
+              </table>
             )}
           </div>
     </div>
