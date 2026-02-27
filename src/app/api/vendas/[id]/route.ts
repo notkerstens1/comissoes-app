@@ -62,28 +62,6 @@ export async function PUT(
     return NextResponse.json({ error: "Venda nao encontrada" }, { status: 404 });
   }
 
-  // ── SUPERVISOR (ADMIN): solicitar aprovação do diretor para mudança de margem ──
-  if (!isDiretor(session.user.role) && novaMargem !== undefined) {
-    if (novaMargem <= 0) {
-      return NextResponse.json({ error: "Margem invalida" }, { status: 400 });
-    }
-    const novoCustoEquipamentos = vendaAtual.valorVenda / novaMargem;
-    await prisma.solicitacaoMargem.create({
-      data: {
-        vendaId: vendaAtual.id,
-        clienteNome: vendaAtual.cliente,
-        vendedorNome: vendaAtual.vendedor.nome,
-        margemAtual: vendaAtual.margem,
-        custoEquipAtual: vendaAtual.custoEquipamentos,
-        novaMargem,
-        novoCustoEquipamentos,
-        solicitanteId: session.user.id,
-        status: "AGUARDANDO",
-      },
-    });
-    return NextResponse.json({ solicitacaoCriada: true, novaMargem, novoCustoEquipamentos });
-  }
-
   const updateData: any = {};
 
   // Qualquer admin pode atualizar status
@@ -91,8 +69,8 @@ export async function PUT(
     updateData.status = status;
   }
 
-  // ── DIRETOR: ajuste direto de margem (exceção) ──
-  if (isDiretor(session.user.role) && novaMargem !== undefined) {
+  // ── ADMIN ou DIRETOR: ajuste direto de margem ──
+  if (isAdmin(session.user.role) && novaMargem !== undefined) {
     if (novaMargem <= 0) {
       return NextResponse.json({ error: "Margem invalida" }, { status: 400 });
     }

@@ -35,7 +35,7 @@ interface EditVendaPanelProps {
   isDiretor?: boolean;
 }
 
-const MARGEM_STEP = 0.05;
+const MARGEM_STEP = 0.01;
 const MARGEM_MIN = 1.0;
 const MARGEM_MAX = 5.0;
 
@@ -170,13 +170,8 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved, isDiretor = fa
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Erro ao aplicar margem");
-      if (data.solicitacaoCriada) {
-        setSucessoMsg(`Solicitacao enviada ao diretor para aprovar margem ${novaMargem.toFixed(2)}x`);
-        setMargemAlterada(false);
-      } else {
-        onSaved();
-        onClose();
-      }
+      onSaved();
+      onClose();
     } catch (error: any) {
       setErro(error.message || "Erro ao aplicar margem");
     }
@@ -230,9 +225,6 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved, isDiretor = fa
         <div className="bg-[#141820] rounded-lg p-4 border border-amber-400/20">
           <h3 className="text-sm font-semibold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
             Ajuste de Margem (Excecao)
-            {!isDiretor && (
-              <span className="text-xs font-normal text-gray-500 normal-case">— requer aprovacao do diretor</span>
-            )}
           </h3>
 
           <div className="flex items-center justify-between gap-4 mb-4">
@@ -292,18 +284,12 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved, isDiretor = fa
           <button
             onClick={aplicarMargem}
             disabled={!margemAlterada || salvando}
-            className={`w-full py-2.5 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed ${
-              isDiretor
-                ? "bg-amber-500 hover:bg-amber-600 text-white"
-                : "bg-sky-500/20 hover:bg-sky-500/30 text-sky-400 border border-sky-400/30"
-            }`}
+            className="w-full py-2.5 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed bg-amber-500 hover:bg-amber-600 text-white"
           >
             {salvando ? (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current" />
-            ) : isDiretor ? (
-              <><Save className="w-4 h-4" /> Aplicar Margem</>
             ) : (
-              <><Send className="w-4 h-4" /> Solicitar Aprovacao do Diretor</>
+              <><Save className="w-4 h-4" /> Aplicar Margem</>
             )}
           </button>
         </div>
