@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { formatCurrency, formatCurrencyInput, handleCurrencyKeyInput } from "@/lib/utils";
-import { Save, X, ChevronUp, ChevronDown, Send, CheckCircle } from "lucide-react";
+import { Save, X, ChevronUp, ChevronDown, CheckCircle } from "lucide-react";
 import { SlidePanel } from "@/components/ui/slide-panel";
 
 export interface VendaEditavel {
@@ -25,6 +25,7 @@ export interface VendaEditavel {
   lucroLiquido: number;
   margemLucroLiquido: number;
   percentualComissaoOverride?: number | null;
+  dataConversao?: string;
 }
 
 interface EditVendaPanelProps {
@@ -39,7 +40,7 @@ const MARGEM_STEP = 0.01;
 const MARGEM_MIN = 1.0;
 const MARGEM_MAX = 5.0;
 
-export function EditVendaPanel({ venda, isOpen, onClose, onSaved, isDiretor = false }: EditVendaPanelProps) {
+export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPanelProps) {
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
   const [sucessoMsg, setSucessoMsg] = useState("");
@@ -65,6 +66,7 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved, isDiretor = fa
 
   const [novaMargem, setNovaMargem] = useState<number>(1.8);
   const [margemAlterada, setMargemAlterada] = useState(false);
+  const [editDataConversao, setEditDataConversao] = useState("");
 
   const [lastVendaId, setLastVendaId] = useState<string | null>(null);
   if (venda && venda.id !== lastVendaId) {
@@ -91,6 +93,7 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved, isDiretor = fa
     });
     setNovaMargem(Math.round(venda.margem * 100) / 100);
     setMargemAlterada(false);
+    setEditDataConversao(venda.dataConversao ? venda.dataConversao.split("T")[0] : "");
     setErro("");
     setSucessoMsg("");
   }
@@ -130,7 +133,7 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved, isDiretor = fa
     setSucessoMsg("");
     try {
       const percentualDecimal = parseFloat(editForm.percentualComissao) / 100;
-      const payload = {
+      const payload: any = {
         quantidadePlacas: editForm.quantidadePlacas,
         quantidadeInversores: editForm.quantidadeInversores,
         custoCosern: editForm.custoCosern,
@@ -140,6 +143,9 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved, isDiretor = fa
         custoMaterialCA: editForm.custoMaterialCA,
         percentualComissaoOverride: isNaN(percentualDecimal) ? undefined : percentualDecimal,
       };
+      if (editDataConversao) {
+        payload.dataConversao = editDataConversao;
+      }
       const res = await fetch(`/api/vendas/${venda.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -218,6 +224,15 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved, isDiretor = fa
             <span className={`font-medium ${venda.lucroLiquido >= 0 ? "text-lime-400" : "text-red-400"}`}>
               {formatCurrency(venda.lucroLiquido)}
             </span>
+          </div>
+          <div className="pt-2 border-t border-[#232a3b]">
+            <label className="block text-xs font-medium text-gray-400 mb-1">Data de Conversao</label>
+            <input
+              type="date"
+              value={editDataConversao}
+              onChange={(e) => setEditDataConversao(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-amber-400/30 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-[#0d1117] text-gray-100"
+            />
           </div>
         </div>
 

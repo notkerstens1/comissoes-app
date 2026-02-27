@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatCurrency, formatNumber } from "@/lib/utils";
-import { Trophy, Medal, Crown, Edit2 } from "lucide-react";
+import { Trophy, Medal, Crown, Edit2, Target, Save } from "lucide-react";
 
 interface VendedorRanking {
   posicao: number;
@@ -17,6 +17,15 @@ interface VendedorRanking {
   lucroTotal: number;
   margemLucroMedia: number;
   ticketMedio: number;
+  progressoMeta: number;
+}
+
+interface MetaInfo {
+  metaVendasMes: number;
+  metaMargemMedia: number;
+  metaTime: number;
+  progressoTime: number;
+  qtdVendedores: number;
 }
 
 interface DadosRanking {
@@ -27,6 +36,7 @@ interface DadosRanking {
     totalGeralComissao: number;
     totalGeralVendas: number;
   };
+  meta: MetaInfo;
 }
 
 export default function RankingPage() {
@@ -39,6 +49,11 @@ export default function RankingPage() {
   const [loading, setLoading] = useState(true);
   const [ordenarPor, setOrdenarPor] = useState<string>("totalVendido");
 
+  // Meta editavel
+  const [editandoMeta, setEditandoMeta] = useState(false);
+  const [metaInput, setMetaInput] = useState("");
+  const [salvandoMeta, setSalvandoMeta] = useState(false);
+
   useEffect(() => {
     fetchDados();
   }, [mesAtual]);
@@ -49,10 +64,31 @@ export default function RankingPage() {
       const res = await fetch(`/api/diretor/ranking?mes=${mesAtual}`);
       const data = await res.json();
       setDados(data);
+      if (data.meta) {
+        setMetaInput(String(data.meta.metaVendasMes));
+      }
     } catch (error) {
       console.error("Erro ao carregar ranking:", error);
     }
     setLoading(false);
+  };
+
+  const salvarMeta = async () => {
+    const valor = parseFloat(metaInput);
+    if (isNaN(valor) || valor <= 0) return;
+    setSalvandoMeta(true);
+    try {
+      await fetch("/api/diretor/ranking", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ metaVendasMes: valor }),
+      });
+      setEditandoMeta(false);
+      fetchDados();
+    } catch (error) {
+      console.error("Erro ao salvar meta:", error);
+    }
+    setSalvandoMeta(false);
   };
 
   const getNomeMes = (mes: string) => {
@@ -78,6 +114,18 @@ export default function RankingPage() {
     return "bg-[#1a1f2e] border-[#232a3b]";
   };
 
+  const getProgressColor = (pct: number) => {
+    if (pct >= 100) return "bg-lime-400";
+    if (pct >= 50) return "bg-amber-400";
+    return "bg-red-400";
+  };
+
+  const getProgressTextColor = (pct: number) => {
+    if (pct >= 100) return "text-lime-400";
+    if (pct >= 50) return "text-amber-400";
+    return "text-red-400";
+  };
+
   // Ordenar ranking
   const rankingOrdenado = dados?.ranking ? [...dados.ranking].sort((a, b) => {
     const key = ordenarPor as keyof VendedorRanking;
@@ -91,6 +139,8 @@ export default function RankingPage() {
       </div>
     );
   }
+
+  const meta = dados?.meta;
 
   return (
     <div className="space-y-6">
@@ -123,6 +173,68 @@ export default function RankingPage() {
           />
         </div>
       </div>
+
+      {/* Meta do Time */}
+      {meta && (
+        <div className="bg-[#1a1f2e] rounded-xl p-5 shadow-sm border border-[#232a3b]">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-amber-400" />
+              <h2 className="font-semibold text-gray-100">Meta do Time</h2>
+            </div>
+            {!editandoMeta ? (
+              <button
+                onClick={() => setEditandoMeta(true)}
+                className="text-xs text-gray-400 hover:text-amber-400 transition flex items-center gap-1"
+              >
+                <Edit2 className="w-3 h-3" /> Editar meta
+              </button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">Meta/vendedor: R$</span>
+                <input
+                  type="number"
+                  value={metaInput}
+                  onChange={(e) => setMetaInput(e.target.value)}
+                  className="w-28 px-2 py-1 rounded border border-amber-400/30 text-sm bg-[#0d1117] text-gray-100"
+                />
+                <button
+                  onClick={salvarMeta}
+                  disabled={salvandoMeta}
+                  className="px-2 py-1 rounded bg-amber-500 text-white text-xs font-medium hover:bg-amber-600 transition disabled:opacity-50 flex items-center gap-1"
+                >
+                  <Save className="w-3 h-3" /> Salvar
+                </button>
+                <button
+                  onClick={() => setEditandoMeta(false)}
+                  className="text-xs text-gray-500 hover:text-gray-400"
+                >
+                  Cancelar
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Barra do time */}
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-400">
+                {formatCurrency(dados?.totais?.totalGeralVendido || 0)} de {formatCurrency(meta.metaTime)}
+                <span className="text-gray-500 ml-1">({meta.qtdVendedores} vendedores x {formatCurrency(meta.metaVendasMes)})</span>
+              </span>
+              <span className={`font-bold ${getProgressTextColor(meta.progressoTime)}`}>
+                {meta.progressoTime.toFixed(0)}%
+              </span>
+            </div>
+            <div className="w-full h-3 bg-[#232a3b] rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all duration-700 ${getProgressColor(meta.progressoTime)}`}
+                style={{ width: `${Math.min(meta.progressoTime, 100)}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Totais do time */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -185,7 +297,7 @@ export default function RankingPage() {
                 </div>
               </div>
 
-              {/* Botão Editar */}
+              {/* Botao Editar */}
               <button
                 onClick={() => {
                   const url = `/diretor/custos?mes=${mesAtual}&vendedor=${v.id}`;
@@ -198,6 +310,26 @@ export default function RankingPage() {
                 <span className="sm:hidden">Editar</span>
               </button>
             </div>
+
+            {/* Barra de progresso da meta individual */}
+            {meta && (
+              <div className="mt-3 pt-3 border-t border-[#232a3b]/50">
+                <div className="flex justify-between text-xs mb-1">
+                  <span className="text-gray-400">
+                    Meta: {formatCurrency(v.totalVendido)} / {formatCurrency(meta.metaVendasMes)}
+                  </span>
+                  <span className={`font-bold ${getProgressTextColor(v.progressoMeta)}`}>
+                    {v.progressoMeta.toFixed(0)}%
+                  </span>
+                </div>
+                <div className="w-full h-2 bg-[#232a3b] rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-700 ${getProgressColor(v.progressoMeta)}`}
+                    style={{ width: `${Math.min(v.progressoMeta, 100)}%` }}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Mobile: metricas em grid */}
             <div className="sm:hidden grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-[#232a3b]/50">

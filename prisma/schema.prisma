@@ -105,6 +105,10 @@ model Configuracao {
   percentualComissaoVenda Float  @default(0.025)
   volumeMinimoComissao    Float  @default(60000)
 
+  // Metas (ranking)
+  metaVendasMes           Float  @default(120000)  // Meta mensal de vendas por vendedor (R$)
+  metaMargemMedia         Float  @default(1.8)     // Meta de margem media por vendedor
+
   // Custos padrao (visao diretor)
   custoPlacaInstalacao     Float @default(70)    // R$70 por placa
   custoInversorInstalacao  Float @default(250)   // R$250 por inversor

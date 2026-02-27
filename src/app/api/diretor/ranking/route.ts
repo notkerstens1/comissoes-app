@@ -14,6 +14,11 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const mes = searchParams.get("mes") || getCurrentMonth();
 
+  // Buscar configuracao (inclui meta)
+  const config = await prisma.configuracao.findFirst();
+  const metaVendasMes = config?.metaVendasMes ?? 120000;
+  const metaMargemMedia = config?.metaMargemMedia ?? 1.8;
+
   // Buscar todos vendedores ativos (VENDEDOR e VENDEDOR_EXTERNO)
   const vendedores = await prisma.user.findMany({
     where: {
@@ -50,6 +55,8 @@ export async function GET(request: NextRequest) {
       lucroTotal,
       margemLucroMedia,
       ticketMedio: vendasDoVendedor.length > 0 ? totalVendido / vendasDoVendedor.length : 0,
+      // Progresso da meta
+      progressoMeta: metaVendasMes > 0 ? (totalVendido / metaVendasMes) * 100 : 0,
     };
   });
 
@@ -62,15 +69,53 @@ export async function GET(request: NextRequest) {
     ...r,
   }));
 
+  const totalGeralVendido = ranking.reduce((s, r) => s + r.totalVendido, 0);
+  const qtdVendedoresAtivos = vendedores.length;
+  const metaTime = metaVendasMes * qtdVendedoresAtivos;
+  const progressoTime = metaTime > 0 ? (totalGeralVendido / metaTime) * 100 : 0;
+
   return NextResponse.json({
     mes,
     ranking: rankingComPosicao,
     totais: {
-      totalGeralVendido: ranking.reduce((s, r) => s + r.totalVendido, 0),
+      totalGeralVendido,
       totalGeralComissao: ranking.reduce((s, r) => s + r.comissaoTotal, 0),
       totalGeralVendas: ranking.reduce((s, r) => s + r.quantidadeVendas, 0),
     },
+    meta: {
+      metaVendasMes,
+      metaMargemMedia,
+      metaTime,
+      progressoTime,
+      qtdVendedores: qtdVendedoresAtivos,
+    },
   });
+}
+
+// PUT - Atualizar meta (admin/diretor)
+export async function PUT(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session || !isAdmin(session.user.role)) {
+    return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { metaVendasMes, metaMargemMedia } = body;
+
+  const updateData: any = {};
+  if (metaVendasMes !== undefined) updateData.metaVendasMes = metaVendasMes;
+  if (metaMargemMedia !== undefined) updateData.metaMargemMedia = metaMargemMedia;
+
+  await prisma.configuracao.upsert({
+    where: { id: "config_principal" },
+    update: updateData,
+    create: {
+      id: "config_principal",
+      ...updateData,
+    },
+  });
+
+  return NextResponse.json({ ok: true });
 }
 
 function getCurrentMonth(): string {

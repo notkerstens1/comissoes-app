@@ -63,6 +63,10 @@ export default function VendasPage() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
 
+  // Filtro por vendedor (admin/diretor)
+  const [vendedorFiltro, setVendedorFiltro] = useState("");
+  const [vendedores, setVendedores] = useState<{ id: string; nome: string; role: string }[]>([]);
+
   // --- Nova Venda (accordion) ---
   const [formAberto, setFormAberto] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
@@ -204,15 +208,32 @@ export default function VendasPage() {
     await salvarVenda();
   };
 
+  // Carregar lista de vendedores para admin/diretor
+  useEffect(() => {
+    if (admin) {
+      fetch("/api/admin/vendedores")
+        .then((r) => r.json())
+        .then((data) => {
+          const vendedoresAtivos = data
+            .filter((v: any) => v.ativo && (v.role === "VENDEDOR" || v.role === "ADMIN" || v.role === "DIRETOR"))
+            .map((v: any) => ({ id: v.id, nome: v.nome, role: v.role }));
+          setVendedores(vendedoresAtivos);
+        })
+        .catch(console.error);
+    }
+  }, [admin]);
+
   // --- Lista de Vendas ---
   useEffect(() => {
     fetchVendas();
-  }, [mesAtual]);
+  }, [mesAtual, vendedorFiltro]);
 
   const fetchVendas = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/vendas?mes=${mesAtual}`);
+      let url = `/api/vendas?mes=${mesAtual}`;
+      if (vendedorFiltro) url += `&vendedor=${vendedorFiltro}`;
+      const res = await fetch(url);
       const data = await res.json();
       setVendas(data);
     } catch (error) {
@@ -330,7 +351,19 @@ export default function VendasPage() {
           </h1>
           <p className="text-gray-400">{getNomeMes(mesAtual)}</p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
+          {admin && vendedores.length > 0 && (
+            <select
+              value={vendedorFiltro}
+              onChange={(e) => setVendedorFiltro(e.target.value)}
+              className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
+            >
+              <option value="">Todos os vendedores</option>
+              {vendedores.map((v) => (
+                <option key={v.id} value={v.id}>{v.nome}</option>
+              ))}
+            </select>
+          )}
           <input
             type="month"
             value={mesAtual}
@@ -744,6 +777,7 @@ export default function VendasPage() {
                               custoImposto: v.custoImposto || 0,
                               lucroLiquido: v.lucroLiquido || 0,
                               margemLucroLiquido: v.margemLucroLiquido || 0,
+                              dataConversao: v.dataConversao,
                             });
                             setEditPanelOpen(true);
                           }}

@@ -16,12 +16,16 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const mes = searchParams.get("mes");
+  const vendedorFiltro = searchParams.get("vendedor");
 
   const where: any = {};
 
   // Se nao e admin/diretor, mostra apenas as vendas do vendedor
   if (!isAdmin(session.user.role)) {
     where.vendedorId = session.user.id;
+  } else if (vendedorFiltro) {
+    // Admin/diretor pode filtrar por vendedor especifico
+    where.vendedorId = vendedorFiltro;
   }
 
   if (mes) {

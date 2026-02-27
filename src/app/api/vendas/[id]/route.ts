@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isAdmin, isDiretor } from "@/lib/roles";
+import { isAdmin } from "@/lib/roles";
 import { calcularCustosVenda, ConfiguracaoCustos } from "@/lib/custos";
 
 // DELETE - Excluir venda
@@ -51,6 +51,7 @@ export async function PUT(
     aliquotaImposto, percentualComissaoOverride,
     // Ajuste de margem (exceção): apenas DIRETOR aplica direto; ADMIN cria solicitação
     novaMargem,
+    dataConversao,
   } = body;
 
   const vendaAtual = await prisma.venda.findUnique({
@@ -67,6 +68,13 @@ export async function PUT(
   // Qualquer admin pode atualizar status
   if (status !== undefined) {
     updateData.status = status;
+  }
+
+  // Atualizar data de conversao e recalcular mesReferencia
+  if (dataConversao) {
+    const novaData = new Date(dataConversao);
+    updateData.dataConversao = novaData;
+    updateData.mesReferencia = `${novaData.getFullYear()}-${String(novaData.getMonth() + 1).padStart(2, "0")}`;
   }
 
   // ── ADMIN ou DIRETOR: ajuste direto de margem ──
