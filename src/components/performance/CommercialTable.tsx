@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { BarChart3 } from "lucide-react";
 import {
   formatCurrency,
@@ -42,9 +42,14 @@ const inputStyle =
 export function CommercialTable({ vendors, onChange, readOnly }: CommercialTableProps) {
   // Local display state for each vendor's currency field
   const [currencyDisplays, setCurrencyDisplays] = useState<Record<string, string>>({});
+  const skipSync = useRef(false);
 
-  // Initialize currency display values when vendors change
+  // Initialize currency display values when vendors change externally (data load)
   useEffect(() => {
+    if (skipSync.current) {
+      skipSync.current = false;
+      return;
+    }
     const displays: Record<string, string> = {};
     for (const v of vendors) {
       displays[v.vendedorId] = formatCurrencyInput(v.valorEmVendas);
@@ -57,6 +62,7 @@ export function CommercialTable({ vendors, onChange, readOnly }: CommercialTable
     const updated = vendors.map((v) =>
       v.vendedorId === vendedorId ? { ...v, [field]: Math.max(0, num) } : v
     );
+    skipSync.current = true;
     onChange(updated);
   };
 
@@ -65,6 +71,7 @@ export function CommercialTable({ vendors, onChange, readOnly }: CommercialTable
     const updated = vendors.map((v) =>
       v.vendedorId === vendedorId ? { ...v, leadsDescartados: Math.max(0, num) } : v
     );
+    skipSync.current = true;
     onChange(updated);
   };
 
@@ -74,6 +81,7 @@ export function CommercialTable({ vendors, onChange, readOnly }: CommercialTable
       const updated = vendors.map((v) =>
         v.vendedorId === vendedorId ? { ...v, valorEmVendas: 0 } : v
       );
+      skipSync.current = true;
       onChange(updated);
       return;
     }
@@ -82,6 +90,7 @@ export function CommercialTable({ vendors, onChange, readOnly }: CommercialTable
     const updated = vendors.map((v) =>
       v.vendedorId === vendedorId ? { ...v, valorEmVendas: numericValue } : v
     );
+    skipSync.current = true;
     onChange(updated);
   };
 
