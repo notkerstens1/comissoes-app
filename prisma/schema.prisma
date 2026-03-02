@@ -215,6 +215,19 @@ model LigacoesSDR {
   @@unique([sdrId, data])
 }
 
+// Metricas SDR manuais (override do supervisor para agilizar analises)
+model MetricasSDROverride {
+  id                 String   @id @default(cuid())
+  periodo            String   @unique // "dia:2026-03-02" | "semana:2026-02-23" | "mes:2026-03"
+  ligacoes           Int?
+  reunioesAgendadas  Int?
+  cpfNegado          Int?
+  desqualificados    Int?
+  noShow             Int?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
 // SDR: Pendencias de vinculo (vendas com match ambiguo ou sem match)
 model PendenciaVinculo {
   id                  String   @id @default(cuid())

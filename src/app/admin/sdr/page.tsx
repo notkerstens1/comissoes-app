@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
   BarChart3,
   Users,
@@ -18,6 +18,9 @@ import {
   ChevronRight,
   UserX,
   TrendingUp,
+  CalendarPlus,
+  Pencil,
+  Check,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
@@ -48,12 +51,23 @@ type VendedorRow = {
 
 type LigacaoDia = { data: string; count: number };
 
+type OverrideData = {
+  ligacoes: number | null;
+  reunioesAgendadas: number | null;
+  cpfNegado: number | null;
+  desqualificados: number | null;
+  noShow: number | null;
+};
+
 type DashboardData = {
   totalLigacoes: number;
   totalReunioes: number;
+  totalReunioesAgendadas: number;
   totalCpfNegado: number;
   totalNoShow: number;
   totalDesqualificados: number;
+  periodoKey: string;
+  override: OverrideData | null;
   ligacoesPorDia: LigacaoDia[];
   motivosNaoCompareceu: { motivo: string; count: number }[];
   motivosFinalizacao: { motivo: string; count: number }[];
@@ -156,6 +170,84 @@ function BarRow({ label, count, max, color }: { label: string; count: number; ma
         <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
       <span className="text-sm font-semibold text-gray-100 w-6 text-right flex-shrink-0">{count}</span>
+    </div>
+  );
+}
+
+// ─── card de métrica editável ─────────────────────────────────────────────────
+
+function EditableMetricCard({
+  icon, iconBg, label, value, subtitle, color, campo, periodoKey, onSaved,
+}: {
+  icon: React.ReactNode;
+  iconBg: string;
+  label: string;
+  value: number;
+  subtitle: string;
+  color: string;
+  campo: string;
+  periodoKey: string;
+  onSaved: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [inputVal, setInputVal] = useState("");
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const startEdit = () => {
+    setInputVal(String(value));
+    setEditing(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await fetch("/api/admin/sdr/metricas", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ periodo: periodoKey, campo, valor: parseInt(inputVal, 10) || 0 }),
+      });
+      setEditing(false);
+      onSaved();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4 relative group">
+      <div className="flex items-center gap-2 mb-2">
+        <div className={`w-8 h-8 ${iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>{icon}</div>
+        <p className="text-xs text-gray-400">{label}</p>
+        {!editing && (
+          <button onClick={startEdit} className="ml-auto opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-[#232a3b] text-gray-500 hover:text-gray-300 transition" title="Editar">
+            <Pencil className="w-3 h-3" />
+          </button>
+        )}
+      </div>
+      {editing ? (
+        <div className="flex items-center gap-2">
+          <input
+            ref={inputRef}
+            type="number"
+            min={0}
+            value={inputVal}
+            onChange={(e) => setInputVal(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setEditing(false); }}
+            className="w-24 text-2xl font-bold bg-[#0b0f19] border border-[#232a3b] rounded-lg px-2 py-1 text-gray-100 focus:border-sky-400 outline-none"
+          />
+          <button onClick={save} disabled={saving} className="p-1.5 rounded-lg bg-sky-500 text-white hover:bg-sky-600 transition disabled:opacity-50">
+            <Check className="w-4 h-4" />
+          </button>
+          <button onClick={() => setEditing(false)} className="p-1.5 rounded-lg bg-[#232a3b] text-gray-400 hover:text-gray-200 transition text-xs">
+            ✕
+          </button>
+        </div>
+      ) : (
+        <p className={`text-3xl font-bold ${color}`}>{value}</p>
+      )}
+      <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
     </div>
   );
 }
@@ -284,50 +376,73 @@ export default function VisaoGeralSDRPage() {
         </div>
       </div>
 
-      {/* Cards de métricas */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-sky-400/10 rounded-lg flex items-center justify-center flex-shrink-0"><Phone className="w-4 h-4 text-sky-400" /></div>
-            <p className="text-xs text-gray-400">Ligações</p>
-          </div>
-          <p className="text-3xl font-bold text-gray-100">{data.totalLigacoes}</p>
-          <p className="text-xs text-gray-500 mt-1">contatos no período</p>
-        </div>
+      {/* Cards de métricas (editáveis pelo supervisor) */}
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
+        <EditableMetricCard
+          icon={<Phone className="w-4 h-4 text-sky-400" />}
+          iconBg="bg-sky-400/10"
+          label="Ligações"
+          value={data.totalLigacoes}
+          subtitle="contatos no período"
+          color="text-gray-100"
+          campo="ligacoes"
+          periodoKey={data.periodoKey}
+          onSaved={fetchData}
+        />
+        <EditableMetricCard
+          icon={<CalendarPlus className="w-4 h-4 text-violet-400" />}
+          iconBg="bg-violet-400/10"
+          label="R. Agendadas"
+          value={data.totalReunioesAgendadas}
+          subtitle="reuniões marcadas"
+          color="text-violet-400"
+          campo="reunioesAgendadas"
+          periodoKey={data.periodoKey}
+          onSaved={fetchData}
+        />
         <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="w-8 h-8 bg-emerald-400/10 rounded-lg flex items-center justify-center flex-shrink-0"><CalendarCheck className="w-4 h-4 text-emerald-400" /></div>
-            <p className="text-xs text-gray-400">Reuniões</p>
+            <p className="text-xs text-gray-400">R. Efetivadas</p>
           </div>
           <p className="text-3xl font-bold text-emerald-400">{data.totalReunioes}</p>
           <p className="text-xs text-gray-500 mt-1">
-            {data.totalLigacoes > 0 ? `${Math.round((data.totalReunioes / data.totalLigacoes) * 100)}% de presença` : "—"}
+            {data.totalReunioesAgendadas > 0 ? `${Math.round((data.totalReunioes / data.totalReunioesAgendadas) * 100)}% efetividade` : "—"}
           </p>
         </div>
-        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-rose-400/10 rounded-lg flex items-center justify-center flex-shrink-0"><XCircle className="w-4 h-4 text-rose-400" /></div>
-            <p className="text-xs text-gray-400">CPF Negado</p>
-          </div>
-          <p className="text-3xl font-bold text-rose-400">{data.totalCpfNegado}</p>
-          <p className="text-xs text-gray-500 mt-1">leads por CPF</p>
-        </div>
-        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-orange-400/10 rounded-lg flex items-center justify-center flex-shrink-0"><UserX className="w-4 h-4 text-orange-400" /></div>
-            <p className="text-xs text-gray-400">Desqualificados</p>
-          </div>
-          <p className="text-3xl font-bold text-orange-400">{data.totalDesqualificados}</p>
-          <p className="text-xs text-gray-500 mt-1">leads finalizados</p>
-        </div>
-        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-amber-400/10 rounded-lg flex items-center justify-center flex-shrink-0"><AlertTriangle className="w-4 h-4 text-amber-400" /></div>
-            <p className="text-xs text-gray-400">No-shows</p>
-          </div>
-          <p className="text-3xl font-bold text-amber-400">{data.totalNoShow}</p>
-          <p className="text-xs text-gray-500 mt-1">não compareceram</p>
-        </div>
+        <EditableMetricCard
+          icon={<XCircle className="w-4 h-4 text-rose-400" />}
+          iconBg="bg-rose-400/10"
+          label="CPF Negado"
+          value={data.totalCpfNegado}
+          subtitle="leads por CPF"
+          color="text-rose-400"
+          campo="cpfNegado"
+          periodoKey={data.periodoKey}
+          onSaved={fetchData}
+        />
+        <EditableMetricCard
+          icon={<UserX className="w-4 h-4 text-orange-400" />}
+          iconBg="bg-orange-400/10"
+          label="Desqualificados"
+          value={data.totalDesqualificados}
+          subtitle="leads finalizados"
+          color="text-orange-400"
+          campo="desqualificados"
+          periodoKey={data.periodoKey}
+          onSaved={fetchData}
+        />
+        <EditableMetricCard
+          icon={<AlertTriangle className="w-4 h-4 text-amber-400" />}
+          iconBg="bg-amber-400/10"
+          label="No-shows"
+          value={data.totalNoShow}
+          subtitle="não compareceram"
+          color="text-amber-400"
+          campo="noShow"
+          periodoKey={data.periodoKey}
+          onSaved={fetchData}
+        />
       </div>
 
       {/* Ligações por dia */}

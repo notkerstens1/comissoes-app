@@ -70,12 +70,33 @@ export async function GET(request: NextRequest) {
   const ligacoesRecords = await prisma.ligacoesSDR.findMany({ where: whereLigacoes });
   const totalLigacoesReal = ligacoesRecords.reduce((acc, l) => acc + l.quantidade, 0);
 
-  // ── Totais gerais ─────────────────────────────────────────────────────────────
-  const totalLigacoes = totalLigacoesReal;
-  const totalReunioes = registros.filter((r) => r.compareceu).length;
-  const totalCpfNegado = registros.filter((r) => r.motivoFinalizacao === "CPF negada").length;
-  const totalNoShow = registros.filter((r) => !r.compareceu && r.motivoNaoCompareceu).length;
-  const totalDesqualificados = registros.filter((r) => r.statusLead === "FINALIZADO").length;
+  // ── Totais auto-calculados ────────────────────────────────────────────────────
+  const autoLigacoes = totalLigacoesReal;
+  const autoReunioes = registros.filter((r) => r.compareceu).length;
+  const autoReunioesAgendadas = registros.filter((r) => r.statusLead === "AGENDADO").length;
+  const autoCpfNegado = registros.filter((r) => r.motivoFinalizacao === "CPF negada").length;
+  const autoNoShow = registros.filter((r) => !r.compareceu && r.motivoNaoCompareceu).length;
+  const autoDesqualificados = registros.filter((r) => r.statusLead === "FINALIZADO").length;
+
+  // ── Buscar override manual do supervisor ────────────────────────────────────
+  let periodoKey: string;
+  if (tipo === "dia" && data) {
+    periodoKey = `dia:${data}`;
+  } else if (tipo === "semana" && semana) {
+    periodoKey = `semana:${semana}`;
+  } else {
+    const mesVal = mes ?? new Date().toISOString().slice(0, 7);
+    periodoKey = `mes:${mesVal}`;
+  }
+
+  const override = await prisma.metricasSDROverride.findUnique({ where: { periodo: periodoKey } });
+
+  const totalLigacoes = override?.ligacoes ?? autoLigacoes;
+  const totalReunioes = autoReunioes;
+  const totalReunioesAgendadas = override?.reunioesAgendadas ?? autoReunioesAgendadas;
+  const totalCpfNegado = override?.cpfNegado ?? autoCpfNegado;
+  const totalNoShow = override?.noShow ?? autoNoShow;
+  const totalDesqualificados = override?.desqualificados ?? autoDesqualificados;
 
   // ── Ligações por dia (do modelo LigacoesSDR) ──────────────────────────────────
   const ligacoesPorDiaMap: Record<string, number> = {};
@@ -148,9 +169,18 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     totalLigacoes,
     totalReunioes,
+    totalReunioesAgendadas,
     totalCpfNegado,
     totalNoShow,
     totalDesqualificados,
+    periodoKey,
+    override: override ? {
+      ligacoes: override.ligacoes,
+      reunioesAgendadas: override.reunioesAgendadas,
+      cpfNegado: override.cpfNegado,
+      desqualificados: override.desqualificados,
+      noShow: override.noShow,
+    } : null,
     ligacoesPorDia,
     motivosNaoCompareceu,
     motivosFinalizacao,
