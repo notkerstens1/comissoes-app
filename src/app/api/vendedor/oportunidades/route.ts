@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const vendedorFiltro = searchParams.get("vendedor");
   const tab = searchParams.get("tab"); // "pipeline" (default) ou "descartados"
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
 
   const where: any = {};
 
@@ -35,6 +37,13 @@ export async function GET(request: NextRequest) {
     where.statusLead = "FINALIZADO";
   } else {
     where.statusLead = { in: ["AGENDADO", "COMPARECEU"] };
+  }
+
+  // Filtro por data da reuniao
+  if (startDate || endDate) {
+    where.dataReuniao = {};
+    if (startDate) where.dataReuniao.gte = startDate;
+    if (endDate) where.dataReuniao.lte = endDate;
   }
 
   const registros = await prisma.registroSDR.findMany({

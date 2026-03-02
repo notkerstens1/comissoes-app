@@ -12,6 +12,7 @@ import {
   Trash2,
   RotateCcw,
   ShoppingCart,
+  CalendarDays,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { isAdmin as checkAdmin } from "@/lib/roles";
@@ -35,6 +36,45 @@ const MOTIVOS_FINALIZACAO = [
   "Outro",
 ];
 
+type PeriodoFiltro = "todos" | "esta_semana" | "semana_passada" | "este_mes" | "mes_passado";
+
+function getDateRange(periodo: PeriodoFiltro): { startDate: string; endDate: string } | null {
+  if (periodo === "todos") return null;
+  const hoje = new Date();
+  const y = hoje.getFullYear();
+  const m = hoje.getMonth();
+  const d = hoje.getDate();
+  const dow = hoje.getDay(); // 0=dom
+
+  const fmt = (dt: Date) => dt.toISOString().split("T")[0];
+
+  if (periodo === "esta_semana") {
+    const seg = new Date(y, m, d - (dow === 0 ? 6 : dow - 1));
+    const dom = new Date(seg);
+    dom.setDate(seg.getDate() + 6);
+    return { startDate: fmt(seg), endDate: fmt(dom) };
+  }
+  if (periodo === "semana_passada") {
+    const segAtual = new Date(y, m, d - (dow === 0 ? 6 : dow - 1));
+    const segPassada = new Date(segAtual);
+    segPassada.setDate(segAtual.getDate() - 7);
+    const domPassado = new Date(segPassada);
+    domPassado.setDate(segPassada.getDate() + 6);
+    return { startDate: fmt(segPassada), endDate: fmt(domPassado) };
+  }
+  if (periodo === "este_mes") {
+    const inicio = new Date(y, m, 1);
+    const fim = new Date(y, m + 1, 0);
+    return { startDate: fmt(inicio), endDate: fmt(fim) };
+  }
+  if (periodo === "mes_passado") {
+    const inicio = new Date(y, m - 1, 1);
+    const fim = new Date(y, m, 0);
+    return { startDate: fmt(inicio), endDate: fmt(fim) };
+  }
+  return null;
+}
+
 type Registro = {
   id: string;
   nomeCliente: string;
@@ -55,6 +95,8 @@ type EditState = {
   estagioOportunidade: string;
   probabilidade: string;
   dataFechamentoEsperado: string;
+  descartado: boolean;
+  motivoDescarte: string;
 };
 
 export default function OportunidadesPage() {
@@ -71,6 +113,9 @@ export default function OportunidadesPage() {
   const [vendedorFiltro, setVendedorFiltro] = useState("");
   const [vendedores, setVendedores] = useState<{ id: string; nome: string }[]>([]);
 
+  // Filtro por periodo
+  const [periodo, setPeriodo] = useState<PeriodoFiltro>("todos");
+
   // Edicao inline
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<EditState>({
@@ -78,6 +123,8 @@ export default function OportunidadesPage() {
     estagioOportunidade: "REUNIAO",
     probabilidade: "50",
     dataFechamentoEsperado: "",
+    descartado: false,
+    motivoDescarte: "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -119,6 +166,10 @@ export default function OportunidadesPage() {
     try {
       let url = `/api/vendedor/oportunidades?tab=${tab}`;
       if (vendedorFiltro) url += `&vendedor=${vendedorFiltro}`;
+      const range = getDateRange(periodo);
+      if (range) {
+        url += `&startDate=${range.startDate}&endDate=${range.endDate}`;
+      }
       const res = await fetch(url);
       const data = await res.json();
       setRegistros(data.registros ?? []);
@@ -128,7 +179,7 @@ export default function OportunidadesPage() {
     } finally {
       setLoading(false);
     }
-  }, [tab, vendedorFiltro]);
+  }, [tab, vendedorFiltro, periodo]);
 
   useEffect(() => {
     fetchOportunidades();
@@ -155,23 +206,39 @@ export default function OportunidadesPage() {
       estagioOportunidade: r.estagioOportunidade,
       probabilidade: String(r.probabilidade),
       dataFechamentoEsperado: r.dataFechamentoEsperado ?? "",
+      descartado: false,
+      motivoDescarte: "",
     });
   }
 
   async function saveEdit(id: string) {
+    if (editData.descartado && !editData.motivoDescarte) return;
     setSaving(true);
     try {
-      await fetch("/api/vendedor/oportunidades", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          registroId: id,
-          valorForecast: editData.valorForecast ? Number(editData.valorForecast) : null,
-          estagioOportunidade: editData.estagioOportunidade,
-          probabilidade: Number(editData.probabilidade),
-          dataFechamentoEsperado: editData.dataFechamentoEsperado || null,
-        }),
-      });
+      if (editData.descartado) {
+        // Descartar via edit
+        await fetch("/api/vendedor/oportunidades", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            registroId: id,
+            statusLead: "FINALIZADO",
+            motivoFinalizacao: editData.motivoDescarte,
+          }),
+        });
+      } else {
+        await fetch("/api/vendedor/oportunidades", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            registroId: id,
+            valorForecast: editData.valorForecast ? Number(editData.valorForecast) : null,
+            estagioOportunidade: editData.estagioOportunidade,
+            probabilidade: Number(editData.probabilidade),
+            dataFechamentoEsperado: editData.dataFechamentoEsperado || null,
+          }),
+        });
+      }
       setEditingId(null);
       await fetchOportunidades();
     } finally {
@@ -436,18 +503,42 @@ export default function OportunidadesPage() {
                 {admin ? "Todas as oportunidades do time" : "Leads qualificados pelo SDR destinados a voce"}
               </p>
             </div>
-            {admin && vendedores.length > 0 && (
-              <select
-                value={vendedorFiltro}
-                onChange={(e) => setVendedorFiltro(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
-              >
-                <option value="">Todos os vendedores</option>
-                {vendedores.map((v) => (
-                  <option key={v.id} value={v.id}>{v.nome}</option>
+            <div className="flex flex-wrap items-center gap-3">
+              {admin && vendedores.length > 0 && (
+                <select
+                  value={vendedorFiltro}
+                  onChange={(e) => setVendedorFiltro(e.target.value)}
+                  className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
+                >
+                  <option value="">Todos os vendedores</option>
+                  {vendedores.map((v) => (
+                    <option key={v.id} value={v.id}>{v.nome}</option>
+                  ))}
+                </select>
+              )}
+              <div className="flex items-center gap-1 bg-[#141820] rounded-lg p-1">
+                <CalendarDays className="w-4 h-4 text-gray-500 ml-2" />
+                {([
+                  { key: "todos", label: "Todos" },
+                  { key: "esta_semana", label: "Semana" },
+                  { key: "semana_passada", label: "Sem. Ant." },
+                  { key: "este_mes", label: "Mês" },
+                  { key: "mes_passado", label: "Mês Ant." },
+                ] as { key: PeriodoFiltro; label: string }[]).map((p) => (
+                  <button
+                    key={p.key}
+                    onClick={() => setPeriodo(p.key)}
+                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                      periodo === p.key
+                        ? "bg-lime-400 text-gray-900"
+                        : "text-gray-400 hover:text-gray-200"
+                    }`}
+                  >
+                    {p.label}
+                  </button>
                 ))}
-              </select>
-            )}
+              </div>
+            </div>
           </div>
 
           {/* Alerta 5+ dias */}
@@ -646,58 +737,99 @@ export default function OportunidadesPage() {
                         {isEditing && (
                           <tr className="bg-[#141820] border-b border-[#232a3b]/40">
                             <td colSpan={admin ? 9 : 8} className="px-3 py-4">
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                <div>
-                                  <label className="block text-xs text-gray-500 mb-1">Valor Forecast (R$)</label>
+                              {/* Toggle descartado */}
+                              <div className="mb-3">
+                                <label className="inline-flex items-center gap-2 cursor-pointer select-none">
                                   <input
-                                    type="number"
-                                    value={editData.valorForecast}
-                                    onChange={(e) => setEditData((p) => ({ ...p, valorForecast: e.target.value }))}
-                                    className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-lime-400 outline-none"
-                                    placeholder="Ex: 45000"
+                                    type="checkbox"
+                                    checked={editData.descartado}
+                                    onChange={(e) => setEditData((p) => ({ ...p, descartado: e.target.checked, motivoDescarte: "" }))}
+                                    className="w-4 h-4 rounded border-[#232a3b] bg-[#0b0f19] text-red-500 focus:ring-red-400"
                                   />
-                                </div>
-                                <div>
-                                  <label className="block text-xs text-gray-500 mb-1">Estagio</label>
+                                  <span className={`text-sm font-medium ${editData.descartado ? "text-red-400" : "text-gray-400"}`}>
+                                    Marcar como Descartado
+                                  </span>
+                                </label>
+                              </div>
+
+                              {editData.descartado ? (
+                                /* Motivo do descarte */
+                                <div className="bg-red-400/5 border border-red-400/20 rounded-lg p-4">
+                                  <label className="block text-xs text-red-400 font-medium mb-2">Motivo do descarte</label>
                                   <select
-                                    value={editData.estagioOportunidade}
-                                    onChange={(e) => setEditData((p) => ({ ...p, estagioOportunidade: e.target.value }))}
-                                    className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-lime-400 outline-none"
+                                    value={editData.motivoDescarte}
+                                    onChange={(e) => setEditData((p) => ({ ...p, motivoDescarte: e.target.value }))}
+                                    className="w-full bg-[#0b0f19] border border-red-400/30 rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-red-400 outline-none"
                                   >
-                                    {ESTAGIOS.map((e) => (
-                                      <option key={e.key} value={e.key}>{e.label}</option>
+                                    <option value="">Selecione o motivo...</option>
+                                    {MOTIVOS_FINALIZACAO.map((m) => (
+                                      <option key={m} value={m}>{m}</option>
                                     ))}
                                   </select>
                                 </div>
-                                <div>
-                                  <label className="block text-xs text-gray-500 mb-1">Probabilidade (%)</label>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    value={editData.probabilidade}
-                                    onChange={(e) => setEditData((p) => ({ ...p, probabilidade: e.target.value }))}
-                                    className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-lime-400 outline-none"
-                                  />
+                              ) : (
+                                /* Campos normais de edicao */
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                  <div>
+                                    <label className="block text-xs text-gray-500 mb-1">Valor Forecast (R$)</label>
+                                    <input
+                                      type="number"
+                                      value={editData.valorForecast}
+                                      onChange={(e) => setEditData((p) => ({ ...p, valorForecast: e.target.value }))}
+                                      className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-lime-400 outline-none"
+                                      placeholder="Ex: 45000"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs text-gray-500 mb-1">Estagio</label>
+                                    <select
+                                      value={editData.estagioOportunidade}
+                                      onChange={(e) => setEditData((p) => ({ ...p, estagioOportunidade: e.target.value }))}
+                                      className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-lime-400 outline-none"
+                                    >
+                                      {ESTAGIOS.map((e) => (
+                                        <option key={e.key} value={e.key}>{e.label}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs text-gray-500 mb-1">Probabilidade (%)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      value={editData.probabilidade}
+                                      onChange={(e) => setEditData((p) => ({ ...p, probabilidade: e.target.value }))}
+                                      className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-lime-400 outline-none"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="block text-xs text-gray-500 mb-1">Data Fechamento</label>
+                                    <input
+                                      type="date"
+                                      value={editData.dataFechamentoEsperado}
+                                      onChange={(e) => setEditData((p) => ({ ...p, dataFechamentoEsperado: e.target.value }))}
+                                      className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-lime-400 outline-none"
+                                    />
+                                  </div>
                                 </div>
-                                <div>
-                                  <label className="block text-xs text-gray-500 mb-1">Data Fechamento</label>
-                                  <input
-                                    type="date"
-                                    value={editData.dataFechamentoEsperado}
-                                    onChange={(e) => setEditData((p) => ({ ...p, dataFechamentoEsperado: e.target.value }))}
-                                    className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-lime-400 outline-none"
-                                  />
-                                </div>
-                              </div>
+                              )}
+
                               <div className="flex gap-2 mt-3">
                                 <button
                                   onClick={() => saveEdit(r.id)}
-                                  disabled={saving}
-                                  className="flex items-center gap-1.5 px-4 py-2 bg-lime-400 text-gray-900 rounded-lg text-sm font-medium hover:bg-lime-300 disabled:opacity-50 transition"
+                                  disabled={saving || (editData.descartado && !editData.motivoDescarte)}
+                                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition ${
+                                    editData.descartado
+                                      ? "bg-red-500 text-white hover:bg-red-600"
+                                      : "bg-lime-400 text-gray-900 hover:bg-lime-300"
+                                  }`}
                                 >
-                                  <Check className="w-3.5 h-3.5" />
-                                  {saving ? "Salvando..." : "Salvar"}
+                                  {editData.descartado ? (
+                                    <><Trash2 className="w-3.5 h-3.5" /> {saving ? "Descartando..." : "Descartar"}</>
+                                  ) : (
+                                    <><Check className="w-3.5 h-3.5" /> {saving ? "Salvando..." : "Salvar"}</>
+                                  )}
                                 </button>
                                 <button
                                   onClick={() => setEditingId(null)}
