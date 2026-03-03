@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { formatCurrency, cn } from "@/lib/utils";
 import {
   DollarSign,
@@ -9,8 +9,26 @@ import {
   TrendingUp,
   Loader2,
   CheckCircle,
+  FileText,
+  Eye,
+  ChevronDown,
+  ChevronUp,
+  MessageSquare,
+  Image as ImageIcon,
 } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
+
+interface SDRInfo {
+  id: string;
+  nomeCliente: string;
+  sdrNome: string;
+  dataReuniao: string;
+  compareceu: boolean;
+  motivoNaoCompareceu: string | null;
+  consideracoes: string | null;
+  imagemUrl: string | null;
+  statusLead: string;
+}
 
 interface VendaFinanceiro {
   id: string;
@@ -26,6 +44,11 @@ interface VendaFinanceiro {
   comissaoTotal: number;
   dataConversao: string;
   status: string;
+  orcamentoUrl: string | null;
+  kwp: number;
+  quantidadePlacas: number;
+  quantidadeInversores: number;
+  registrosSDR: SDRInfo[];
 }
 
 interface DadosFinanceiro {
@@ -51,6 +74,7 @@ export default function FinanceiroPage() {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   });
   const [pagando, setPagando] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const fetchDados = async () => {
     setLoading(true);
@@ -190,46 +214,191 @@ export default function FinanceiroPage() {
                       <th className="text-right px-4 py-3 font-medium">Comissao</th>
                       <th className="text-center px-4 py-3 font-medium">Data</th>
                       <th className="text-center px-4 py-3 font-medium">Status</th>
+                      <th className="text-center px-4 py-3 font-medium">Detalhes</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#232a3b]">
                     {dados.vendas.map((v) => (
-                      <tr key={v.id} className="hover:bg-[#232a3b]/50">
-                        <td className="px-4 py-3 font-medium text-gray-100">{v.cliente}</td>
-                        <td className="px-4 py-3 text-gray-300">{v.vendedor}</td>
-                        <td className="px-4 py-3 text-right text-gray-100">{formatCurrency(v.valorVenda)}</td>
-                        <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(v.custoEquipamentos)}</td>
-                        <td className="px-4 py-3 text-gray-300">{v.distribuidora || "-"}</td>
-                        <td className="px-4 py-3 text-right font-medium text-emerald-400">
-                          {formatCurrency(v.comissaoTotal)}
-                        </td>
-                        <td className="px-4 py-3 text-center text-gray-400">{formatDate(v.dataConversao)}</td>
-                        <td className="px-4 py-3 text-center">
-                          {v.status === "PAGO" ? (
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-full font-medium bg-blue-400/10 text-blue-400">
-                              <CheckCircle className="w-3 h-3" />
-                              Pago
-                            </span>
-                          ) : v.status === "APROVADO" ? (
-                            <button
-                              onClick={() => marcarComoPago(v.id)}
-                              disabled={pagando === v.id}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg font-medium bg-emerald-400 text-gray-900 hover:bg-emerald-500 transition disabled:opacity-50"
-                            >
-                              {pagando === v.id ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <Banknote className="w-3 h-3" />
+                      <React.Fragment key={v.id}>
+                        <tr className="hover:bg-[#232a3b]/50">
+                          <td className="px-4 py-3 font-medium text-gray-100">{v.cliente}</td>
+                          <td className="px-4 py-3 text-gray-300">{v.vendedor}</td>
+                          <td className="px-4 py-3 text-right text-gray-100">{formatCurrency(v.valorVenda)}</td>
+                          <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(v.custoEquipamentos)}</td>
+                          <td className="px-4 py-3 text-gray-300">{v.distribuidora || "-"}</td>
+                          <td className="px-4 py-3 text-right font-medium text-emerald-400">
+                            {formatCurrency(v.comissaoTotal)}
+                          </td>
+                          <td className="px-4 py-3 text-center text-gray-400">{formatDate(v.dataConversao)}</td>
+                          <td className="px-4 py-3 text-center">
+                            {v.status === "PAGO" ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-full font-medium bg-blue-400/10 text-blue-400">
+                                <CheckCircle className="w-3 h-3" />
+                                Pago
+                              </span>
+                            ) : v.status === "APROVADO" ? (
+                              <button
+                                onClick={() => marcarComoPago(v.id)}
+                                disabled={pagando === v.id}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg font-medium bg-emerald-400 text-gray-900 hover:bg-emerald-500 transition disabled:opacity-50"
+                              >
+                                {pagando === v.id ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Banknote className="w-3 h-3" />
+                                )}
+                                Marcar Pago
+                              </button>
+                            ) : (
+                              <span className={`inline-block px-2.5 py-1 text-xs rounded-full font-medium ${statusColors[v.status] || "bg-[#1a1f2e] text-gray-400"}`}>
+                                {v.status}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            <div className="flex items-center justify-center gap-1">
+                              {v.orcamentoUrl && (
+                                <button
+                                  onClick={() => {
+                                    const link = document.createElement("a");
+                                    link.href = v.orcamentoUrl!;
+                                    link.download = `orcamento-${v.cliente.replace(/\s+/g, "-")}.pdf`;
+                                    link.click();
+                                  }}
+                                  className="p-1.5 rounded-lg hover:bg-lime-400/10 text-lime-400 transition"
+                                  title="Baixar Orcamento PDF"
+                                >
+                                  <FileText className="w-4 h-4" />
+                                </button>
                               )}
-                              Marcar Pago
-                            </button>
-                          ) : (
-                            <span className={`inline-block px-2.5 py-1 text-xs rounded-full font-medium ${statusColors[v.status] || "bg-[#1a1f2e] text-gray-400"}`}>
-                              {v.status}
-                            </span>
-                          )}
-                        </td>
-                      </tr>
+                              {(v.registrosSDR.length > 0 || v.orcamentoUrl) && (
+                                <button
+                                  onClick={() => setExpandedId(expandedId === v.id ? null : v.id)}
+                                  className="p-1.5 rounded-lg hover:bg-sky-400/10 text-gray-500 hover:text-sky-400 transition"
+                                  title="Ver detalhes"
+                                >
+                                  {expandedId === v.id ? (
+                                    <ChevronUp className="w-4 h-4" />
+                                  ) : (
+                                    <Eye className="w-4 h-4" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+
+                        {/* Expanded details row */}
+                        {expandedId === v.id && (
+                          <tr className="bg-[#141820]">
+                            <td colSpan={9} className="px-4 py-4">
+                              <div className="space-y-4">
+                                {/* Sale details */}
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                  <div className="bg-[#1a1f2e] rounded-lg p-3">
+                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">kWp</p>
+                                    <p className="text-sm text-gray-100 font-medium">{v.kwp}</p>
+                                  </div>
+                                  <div className="bg-[#1a1f2e] rounded-lg p-3">
+                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Placas</p>
+                                    <p className="text-sm text-gray-100 font-medium">{v.quantidadePlacas}</p>
+                                  </div>
+                                  <div className="bg-[#1a1f2e] rounded-lg p-3">
+                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Inversores</p>
+                                    <p className="text-sm text-gray-100 font-medium">{v.quantidadeInversores}</p>
+                                  </div>
+                                  <div className="bg-[#1a1f2e] rounded-lg p-3">
+                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Pagamento</p>
+                                    <p className="text-sm text-gray-100 font-medium">{v.formaPagamento || "-"}</p>
+                                  </div>
+                                </div>
+
+                                {/* Orcamento PDF */}
+                                {v.orcamentoUrl && (
+                                  <div className="bg-lime-400/5 border border-lime-400/20 rounded-lg p-4">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center gap-2">
+                                        <FileText className="w-5 h-5 text-lime-400" />
+                                        <div>
+                                          <p className="text-sm font-medium text-lime-400">Orcamento PDF</p>
+                                          <p className="text-xs text-gray-500">Enviado pelo vendedor ao fechar a venda</p>
+                                        </div>
+                                      </div>
+                                      <button
+                                        onClick={() => {
+                                          const link = document.createElement("a");
+                                          link.href = v.orcamentoUrl!;
+                                          link.download = `orcamento-${v.cliente.replace(/\s+/g, "-")}.pdf`;
+                                          link.click();
+                                        }}
+                                        className="px-3 py-1.5 rounded-lg bg-lime-400 text-gray-900 text-xs font-medium hover:bg-lime-500 transition"
+                                      >
+                                        Baixar PDF
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* SDR Info */}
+                                {v.registrosSDR.length > 0 && (
+                                  <div className="space-y-3">
+                                    <p className="text-xs font-semibold text-sky-400 uppercase tracking-wider flex items-center gap-1">
+                                      <Eye className="w-3.5 h-3.5" /> Informacoes do SDR
+                                    </p>
+                                    {v.registrosSDR.map((sdr) => (
+                                      <div key={sdr.id} className="bg-[#1a1f2e] rounded-lg p-4 space-y-3">
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                          <div>
+                                            <p className="text-[11px] text-gray-500 uppercase">SDR</p>
+                                            <p className="text-sm text-gray-100">{sdr.sdrNome}</p>
+                                          </div>
+                                          <div>
+                                            <p className="text-[11px] text-gray-500 uppercase">Reuniao</p>
+                                            <p className="text-sm text-gray-100">{formatDate(sdr.dataReuniao)}</p>
+                                          </div>
+                                          <div>
+                                            <p className="text-[11px] text-gray-500 uppercase">Compareceu</p>
+                                            <p className={`text-sm font-medium ${sdr.compareceu ? "text-emerald-400" : "text-red-400"}`}>
+                                              {sdr.compareceu ? "Sim" : "Nao"}
+                                            </p>
+                                          </div>
+                                          {sdr.motivoNaoCompareceu && (
+                                            <div>
+                                              <p className="text-[11px] text-gray-500 uppercase">Motivo</p>
+                                              <p className="text-sm text-amber-400">{sdr.motivoNaoCompareceu}</p>
+                                            </div>
+                                          )}
+                                        </div>
+                                        {sdr.consideracoes && (
+                                          <div>
+                                            <p className="text-[11px] text-gray-500 uppercase mb-1 flex items-center gap-1">
+                                              <MessageSquare className="w-3 h-3" /> Consideracoes
+                                            </p>
+                                            <p className="text-sm text-gray-200 whitespace-pre-wrap bg-[#141820] rounded-lg p-3">{sdr.consideracoes}</p>
+                                          </div>
+                                        )}
+                                        {sdr.imagemUrl && (
+                                          <div>
+                                            <p className="text-[11px] text-gray-500 uppercase mb-1 flex items-center gap-1">
+                                              <ImageIcon className="w-3 h-3" /> Documento
+                                            </p>
+                                            <img
+                                              src={sdr.imagemUrl}
+                                              alt="Documento"
+                                              className="max-w-xs max-h-48 rounded-lg border border-[#232a3b] cursor-pointer hover:opacity-80"
+                                              onClick={() => window.open(sdr.imagemUrl!, "_blank")}
+                                            />
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
                     ))}
                   </tbody>
                   {/* Footer totals */}
@@ -248,7 +417,7 @@ export default function FinanceiroPage() {
                       <td className="px-4 py-3 text-right font-semibold text-emerald-400">
                         {formatCurrency(dados.totalComissoes)}
                       </td>
-                      <td className="px-4 py-3" colSpan={2} />
+                      <td className="px-4 py-3" colSpan={3} />
                     </tr>
                   </tfoot>
                 </table>

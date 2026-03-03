@@ -17,7 +17,22 @@ export async function GET(request: NextRequest) {
   // Buscar todas as vendas do mes com dados do vendedor
   const vendas = await prisma.venda.findMany({
     where: { mesReferencia: mes },
-    include: { vendedor: { select: { nome: true, email: true } } },
+    include: {
+      vendedor: { select: { nome: true, email: true } },
+      registrosSDR: {
+        select: {
+          id: true,
+          nomeCliente: true,
+          sdr: { select: { nome: true } },
+          dataReuniao: true,
+          compareceu: true,
+          motivoNaoCompareceu: true,
+          consideracoes: true,
+          imagemUrl: true,
+          statusLead: true,
+        },
+      },
+    },
     orderBy: { dataConversao: "desc" },
   });
 
@@ -123,6 +138,18 @@ export async function GET(request: NextRequest) {
       over: v.over,
       status: v.status,
       dataConversao: v.dataConversao,
+      orcamentoUrl: v.orcamentoUrl,
+      registrosSDR: v.registrosSDR.map((sdr) => ({
+        id: sdr.id,
+        nomeCliente: sdr.nomeCliente,
+        sdrNome: sdr.sdr.nome,
+        dataReuniao: sdr.dataReuniao,
+        compareceu: sdr.compareceu,
+        motivoNaoCompareceu: sdr.motivoNaoCompareceu,
+        consideracoes: sdr.consideracoes,
+        imagemUrl: sdr.imagemUrl,
+        statusLead: sdr.statusLead,
+      })),
     })),
   });
 }

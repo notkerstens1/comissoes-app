@@ -13,6 +13,12 @@ import {
   RotateCcw,
   ShoppingCart,
   CalendarDays,
+  Eye,
+  Paperclip,
+  FileText,
+  Upload,
+  Image as ImageIcon,
+  MessageSquare,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { isAdmin as checkAdmin } from "@/lib/roles";
@@ -88,6 +94,10 @@ type Registro = {
   sdr: { id: string; nome: string };
   vendedora: { id: string; nome: string };
   compareceu: boolean;
+  // Campos SDR visíveis ao vendedor
+  consideracoes: string | null;
+  imagemUrl: string | null;
+  motivoNaoCompareceu: string | null;
 };
 
 type EditState = {
@@ -131,6 +141,9 @@ export default function OportunidadesPage() {
   });
   const [saving, setSaving] = useState(false);
 
+  // Detalhes SDR expandível
+  const [detailsId, setDetailsId] = useState<string | null>(null);
+
   // Modal de descarte
   const [descartando, setDescartando] = useState<string | null>(null);
   const [motivoDescarte, setMotivoDescarte] = useState("");
@@ -148,6 +161,23 @@ export default function OportunidadesPage() {
   });
   const [salvandoVenda, setSalvandoVenda] = useState(false);
   const [erroVenda, setErroVenda] = useState("");
+
+  // PDF do orcamento
+  const [orcamentoPdf, setOrcamentoPdf] = useState<string | null>(null);
+  const [orcamentoNome, setOrcamentoNome] = useState("");
+
+  const handleOrcamentoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 15 * 1024 * 1024) {
+      setErroVenda("PDF muito grande. Maximo 15MB.");
+      return;
+    }
+    setOrcamentoNome(file.name);
+    const reader = new FileReader();
+    reader.onload = () => setOrcamentoPdf(reader.result as string);
+    reader.readAsDataURL(file);
+  };
 
   // Carregar vendedores para admin
   useEffect(() => {
@@ -305,6 +335,7 @@ export default function OportunidadesPage() {
         quantidadePlacas: parseInt(vendaForm.quantidadePlacas) || 0,
         fonte: vendaForm.fonte,
         dataConversao: new Date().toISOString().split("T")[0],
+        orcamentoUrl: orcamentoPdf || null,
       };
 
       if (!payload.valorVenda || !payload.custoEquipamentos) {
@@ -334,6 +365,8 @@ export default function OportunidadesPage() {
         quantidadePlacas: "",
         fonte: "",
       });
+      setOrcamentoPdf(null);
+      setOrcamentoNome("");
       await fetchOportunidades();
     } catch (error: any) {
       setErroVenda(error.message || "Erro ao criar venda");
@@ -478,12 +511,50 @@ export default function OportunidadesPage() {
                     </div>
                   </div>
 
+                  {/* Upload do Orcamento PDF */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">
+                      <Paperclip className="w-3 h-3 inline mr-1" />
+                      Orcamento (PDF)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        onChange={handleOrcamentoChange}
+                        className="hidden"
+                        id="orcamento-upload"
+                      />
+                      <label
+                        htmlFor="orcamento-upload"
+                        className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg border border-dashed border-[#232a3b] bg-[#141820] text-gray-400 text-sm cursor-pointer hover:border-lime-400/50 hover:text-lime-400 transition"
+                      >
+                        <Upload className="w-4 h-4" />
+                        {orcamentoNome ? (
+                          <span className="text-lime-400 truncate">{orcamentoNome}</span>
+                        ) : (
+                          <span>Clique para anexar PDF do orcamento</span>
+                        )}
+                      </label>
+                      {orcamentoPdf && (
+                        <button
+                          type="button"
+                          onClick={() => { setOrcamentoPdf(null); setOrcamentoNome(""); }}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-red-400/10 text-gray-500 hover:text-red-400 transition"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-gray-600 mt-1">Maximo 15MB. Visivel para financeiro, admin e diretoria.</p>
+                  </div>
+
                   {erroVenda && (
                     <div className="bg-red-400/10 text-red-400 px-4 py-2 rounded-lg text-sm">{erroVenda}</div>
                   )}
                 </div>
                 <div className="p-5 border-t border-[#232a3b] flex gap-3">
-                  <button onClick={() => { setFechandoVenda(null); setErroVenda(""); }}
+                  <button onClick={() => { setFechandoVenda(null); setErroVenda(""); setOrcamentoPdf(null); setOrcamentoNome(""); }}
                     className="flex-1 px-4 py-2 rounded-lg border border-[#232a3b] text-gray-400 hover:bg-[#232a3b] transition text-sm">
                     Cancelar
                   </button>
@@ -726,6 +797,13 @@ export default function OportunidadesPage() {
                               {tab === "pipeline" && (
                                 <>
                                   <button
+                                    onClick={() => setDetailsId(detailsId === r.id ? null : r.id)}
+                                    className="p-1 rounded-lg hover:bg-sky-400/10 text-gray-500 hover:text-sky-400 transition"
+                                    title="Ver info SDR"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
                                     onClick={() => isEditing ? setEditingId(null) : startEdit(r)}
                                     className="p-1 rounded-lg hover:bg-[#232a3b] text-gray-500 hover:text-gray-100 transition"
                                     title="Editar"
@@ -772,6 +850,66 @@ export default function OportunidadesPage() {
                             </div>
                           </td>
                         </tr>
+
+                        {/* SDR Details row */}
+                        {detailsId === r.id && (
+                          <tr className="bg-sky-400/5 border-b border-[#232a3b]/40">
+                            <td colSpan={admin ? 9 : 8} className="px-4 py-4">
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-sky-400">
+                                  <Eye className="w-4 h-4" />
+                                  Informacoes do SDR — {r.nomeCliente}
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                  <div className="bg-[#141820] rounded-lg p-3">
+                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">SDR Responsavel</p>
+                                    <p className="text-sm text-gray-100 font-medium">{r.sdr.nome}</p>
+                                  </div>
+                                  <div className="bg-[#141820] rounded-lg p-3">
+                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Data Reuniao</p>
+                                    <p className="text-sm text-gray-100">{formatDate(r.dataReuniao)}</p>
+                                  </div>
+                                  <div className="bg-[#141820] rounded-lg p-3">
+                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Compareceu</p>
+                                    <p className={`text-sm font-medium ${r.compareceu ? "text-emerald-400" : "text-red-400"}`}>
+                                      {r.compareceu ? "Sim" : "Nao"}
+                                    </p>
+                                  </div>
+                                  {!r.compareceu && r.motivoNaoCompareceu && (
+                                    <div className="bg-[#141820] rounded-lg p-3">
+                                      <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Motivo Nao Compareceu</p>
+                                      <p className="text-sm text-amber-400">{r.motivoNaoCompareceu}</p>
+                                    </div>
+                                  )}
+                                </div>
+                                {r.consideracoes && (
+                                  <div className="bg-[#141820] rounded-lg p-3">
+                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                      <MessageSquare className="w-3 h-3" /> Consideracoes da SDR
+                                    </p>
+                                    <p className="text-sm text-gray-200 whitespace-pre-wrap">{r.consideracoes}</p>
+                                  </div>
+                                )}
+                                {r.imagemUrl && (
+                                  <div className="bg-[#141820] rounded-lg p-3">
+                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                      <ImageIcon className="w-3 h-3" /> Documento Anexado (Conta de Luz / Documento)
+                                    </p>
+                                    <img
+                                      src={r.imagemUrl}
+                                      alt="Documento do cliente"
+                                      className="max-w-xs max-h-64 rounded-lg border border-[#232a3b] cursor-pointer hover:opacity-80 transition"
+                                      onClick={() => window.open(r.imagemUrl!, "_blank")}
+                                    />
+                                  </div>
+                                )}
+                                {!r.consideracoes && !r.imagemUrl && !r.motivoNaoCompareceu && (
+                                  <p className="text-xs text-gray-600 italic">Nenhuma informacao adicional registrada pela SDR.</p>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        )}
 
                         {/* Inline edit row */}
                         {isEditing && (

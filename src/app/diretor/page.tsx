@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 import {
   BarChart3,
@@ -15,6 +15,11 @@ import {
   CheckCircle,
   XCircle,
   X,
+  FileText,
+  Eye,
+  ChevronUp,
+  MessageSquare,
+  Image as ImageIcon,
 } from "lucide-react";
 import { EditVendaPanel, VendaEditavel } from "@/components/EditVendaPanel";
 
@@ -31,6 +36,18 @@ interface SolicitacaoMargem {
   createdAt: string;
   solicitante: { nome: string };
   venda: { valorVenda: number; mesReferencia: string };
+}
+
+interface SDRInfoDiretor {
+  id: string;
+  nomeCliente: string;
+  sdrNome: string;
+  dataReuniao: string;
+  compareceu: boolean;
+  motivoNaoCompareceu: string | null;
+  consideracoes: string | null;
+  imagemUrl: string | null;
+  statusLead: string;
 }
 
 interface VendaFinanceira {
@@ -54,6 +71,8 @@ interface VendaFinanceira {
   margem: number;
   status: string;
   dataConversao: string;
+  orcamentoUrl: string | null;
+  registrosSDR: SDRInfoDiretor[];
 }
 
 interface DadosFinanceiros {
@@ -99,6 +118,7 @@ export default function DiretorDashboardPage() {
   const [solicitacoes, setSolicitacoes] = useState<SolicitacaoMargem[]>([]);
   const [showSolicitacoes, setShowSolicitacoes] = useState(false);
   const [processandoId, setProcessandoId] = useState<string | null>(null);
+  const [expandedVendaId, setExpandedVendaId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDados();
@@ -428,9 +448,15 @@ export default function DiretorDashboardPage() {
               <tbody className="divide-y divide-[#232a3b]">
                 {dados.vendas.map((v) => {
                   const outrosCustos = v.custoVisitaTecnica + v.custoCosern + v.custoTrtCrea + (v.custoEngenheiro || 0) + (v.custoMaterialCA || 0);
+                  const formatDateStr = (d: string) => {
+                    try {
+                      const [y, m, day] = d.split("-");
+                      return `${day}/${m}/${y}`;
+                    } catch { return d; }
+                  };
                   return (
+                    <React.Fragment key={v.id}>
                     <tr
-                      key={v.id}
                       className={
                         v.margemLucroLiquido < 0.20
                           ? "bg-red-400/5 hover:bg-red-400/10"
@@ -463,37 +489,158 @@ export default function DiretorDashboardPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <button
-                          onClick={() => {
-                            setVendaEditando({
-                              id: v.id,
-                              cliente: v.cliente,
-                              vendedor: v.vendedor,
-                              valorVenda: v.valorVenda,
-                              custoEquipamentos: v.custoEquipamentos,
-                              margem: v.margem,
-                              quantidadePlacas: v.quantidadePlacas,
-                              quantidadeInversores: v.quantidadeInversores,
-                              custoInstalacao: v.custoInstalacao,
-                              custoVisitaTecnica: v.custoVisitaTecnica,
-                              custoCosern: v.custoCosern,
-                              custoTrtCrea: v.custoTrtCrea,
-                              custoEngenheiro: v.custoEngenheiro,
-                              custoMaterialCA: v.custoMaterialCA,
-                              custoImposto: v.custoImposto,
-                              comissaoVendedor: v.comissaoVendedor,
-                              lucroLiquido: v.lucroLiquido,
-                              margemLucroLiquido: v.margemLucroLiquido,
-                            });
-                            setEditPanelOpen(true);
-                          }}
-                          className="p-1.5 rounded-lg hover:bg-amber-400/10 text-gray-500 hover:text-amber-400 transition"
-                          title="Editar custos"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-0.5">
+                          {(v.orcamentoUrl || (v.registrosSDR && v.registrosSDR.length > 0)) && (
+                            <button
+                              onClick={() => setExpandedVendaId(expandedVendaId === v.id ? null : v.id)}
+                              className="p-1.5 rounded-lg hover:bg-sky-400/10 text-gray-500 hover:text-sky-400 transition"
+                              title="Ver detalhes SDR e orcamento"
+                            >
+                              {expandedVendaId === v.id ? <ChevronUp className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          )}
+                          {v.orcamentoUrl && (
+                            <button
+                              onClick={() => {
+                                const link = document.createElement("a");
+                                link.href = v.orcamentoUrl!;
+                                link.download = `orcamento-${v.cliente.replace(/\s+/g, "-")}.pdf`;
+                                link.click();
+                              }}
+                              className="p-1.5 rounded-lg hover:bg-lime-400/10 text-lime-400 transition"
+                              title="Baixar PDF"
+                            >
+                              <FileText className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setVendaEditando({
+                                id: v.id,
+                                cliente: v.cliente,
+                                vendedor: v.vendedor,
+                                valorVenda: v.valorVenda,
+                                custoEquipamentos: v.custoEquipamentos,
+                                margem: v.margem,
+                                quantidadePlacas: v.quantidadePlacas,
+                                quantidadeInversores: v.quantidadeInversores,
+                                custoInstalacao: v.custoInstalacao,
+                                custoVisitaTecnica: v.custoVisitaTecnica,
+                                custoCosern: v.custoCosern,
+                                custoTrtCrea: v.custoTrtCrea,
+                                custoEngenheiro: v.custoEngenheiro,
+                                custoMaterialCA: v.custoMaterialCA,
+                                custoImposto: v.custoImposto,
+                                comissaoVendedor: v.comissaoVendedor,
+                                lucroLiquido: v.lucroLiquido,
+                                margemLucroLiquido: v.margemLucroLiquido,
+                              });
+                              setEditPanelOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-amber-400/10 text-gray-500 hover:text-amber-400 transition"
+                            title="Editar custos"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
+
+                    {/* Expanded details row */}
+                    {expandedVendaId === v.id && (
+                      <tr className="bg-[#141820]">
+                        <td colSpan={12} className="px-4 py-4">
+                          <div className="space-y-4">
+                            {/* Orcamento PDF */}
+                            {v.orcamentoUrl && (
+                              <div className="bg-lime-400/5 border border-lime-400/20 rounded-lg p-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="w-5 h-5 text-lime-400" />
+                                    <div>
+                                      <p className="text-sm font-medium text-lime-400">Orcamento PDF</p>
+                                      <p className="text-xs text-gray-500">Enviado pelo vendedor</p>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      const link = document.createElement("a");
+                                      link.href = v.orcamentoUrl!;
+                                      link.download = `orcamento-${v.cliente.replace(/\s+/g, "-")}.pdf`;
+                                      link.click();
+                                    }}
+                                    className="px-3 py-1.5 rounded-lg bg-lime-400 text-gray-900 text-xs font-medium hover:bg-lime-500 transition"
+                                  >
+                                    Baixar PDF
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* SDR Info */}
+                            {v.registrosSDR && v.registrosSDR.length > 0 && (
+                              <div className="space-y-3">
+                                <p className="text-xs font-semibold text-sky-400 uppercase tracking-wider flex items-center gap-1">
+                                  <Eye className="w-3.5 h-3.5" /> Informacoes do SDR
+                                </p>
+                                {v.registrosSDR.map((sdr) => (
+                                  <div key={sdr.id} className="bg-[#1a1f2e] rounded-lg p-4 space-y-3">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                      <div>
+                                        <p className="text-[11px] text-gray-500 uppercase">SDR</p>
+                                        <p className="text-sm text-gray-100">{sdr.sdrNome}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-[11px] text-gray-500 uppercase">Reuniao</p>
+                                        <p className="text-sm text-gray-100">{formatDateStr(sdr.dataReuniao)}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-[11px] text-gray-500 uppercase">Compareceu</p>
+                                        <p className={`text-sm font-medium ${sdr.compareceu ? "text-emerald-400" : "text-red-400"}`}>
+                                          {sdr.compareceu ? "Sim" : "Nao"}
+                                        </p>
+                                      </div>
+                                      {sdr.motivoNaoCompareceu && (
+                                        <div>
+                                          <p className="text-[11px] text-gray-500 uppercase">Motivo</p>
+                                          <p className="text-sm text-amber-400">{sdr.motivoNaoCompareceu}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                    {sdr.consideracoes && (
+                                      <div>
+                                        <p className="text-[11px] text-gray-500 uppercase mb-1 flex items-center gap-1">
+                                          <MessageSquare className="w-3 h-3" /> Consideracoes
+                                        </p>
+                                        <p className="text-sm text-gray-200 whitespace-pre-wrap bg-[#141820] rounded-lg p-3">{sdr.consideracoes}</p>
+                                      </div>
+                                    )}
+                                    {sdr.imagemUrl && (
+                                      <div>
+                                        <p className="text-[11px] text-gray-500 uppercase mb-1 flex items-center gap-1">
+                                          <ImageIcon className="w-3 h-3" /> Documento
+                                        </p>
+                                        <img
+                                          src={sdr.imagemUrl}
+                                          alt="Documento"
+                                          className="max-w-xs max-h-48 rounded-lg border border-[#232a3b] cursor-pointer hover:opacity-80"
+                                          onClick={() => window.open(sdr.imagemUrl!, "_blank")}
+                                        />
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {!v.orcamentoUrl && (!v.registrosSDR || v.registrosSDR.length === 0) && (
+                              <p className="text-xs text-gray-600 italic">Nenhuma informacao adicional disponivel.</p>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>

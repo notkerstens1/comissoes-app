@@ -20,7 +20,22 @@ export async function GET(request: NextRequest) {
 
   const vendas = await prisma.venda.findMany({
     where: { mesReferencia: mes },
-    include: { vendedor: { select: { id: true, nome: true } } },
+    include: {
+      vendedor: { select: { id: true, nome: true } },
+      registrosSDR: {
+        select: {
+          id: true,
+          nomeCliente: true,
+          sdr: { select: { nome: true } },
+          dataReuniao: true,
+          compareceu: true,
+          motivoNaoCompareceu: true,
+          consideracoes: true,
+          imagemUrl: true,
+          statusLead: true,
+        },
+      },
+    },
     orderBy: { dataConversao: "desc" },
   });
 
@@ -45,6 +60,21 @@ export async function GET(request: NextRequest) {
       comissaoTotal: v.comissaoTotal,
       dataConversao: v.dataConversao,
       status: v.status,
+      orcamentoUrl: v.orcamentoUrl,
+      kwp: v.kwp,
+      quantidadePlacas: v.quantidadePlacas,
+      quantidadeInversores: v.quantidadeInversores,
+      registrosSDR: v.registrosSDR.map((sdr) => ({
+        id: sdr.id,
+        nomeCliente: sdr.nomeCliente,
+        sdrNome: sdr.sdr.nome,
+        dataReuniao: sdr.dataReuniao,
+        compareceu: sdr.compareceu,
+        motivoNaoCompareceu: sdr.motivoNaoCompareceu,
+        consideracoes: sdr.consideracoes,
+        imagemUrl: sdr.imagemUrl,
+        statusLead: sdr.statusLead,
+      })),
     })),
     totalVendas,
     totalEquipamentos,

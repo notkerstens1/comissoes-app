@@ -60,6 +60,7 @@ export async function POST(request: NextRequest) {
       quantidadePlacas,
       dataConversao,
       fonte,
+      orcamentoUrl,
     } = body;
 
     // Validacoes
@@ -145,6 +146,7 @@ export async function POST(request: NextRequest) {
         margemLucroLiquido: custos.margemLucroLiquido,
         dataConversao: data,
         fonte: fonte || "",
+        orcamentoUrl: orcamentoUrl || null,
         mesReferencia,
       },
     });
