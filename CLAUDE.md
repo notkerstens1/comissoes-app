@@ -84,8 +84,15 @@ User, Venda, SolicitacaoMargem, Configuracao, DailyTraffic, DailyCommercial, Fai
 - Info SDR (consideracoes, documento, compareceu) visivel no Financeiro e Diretor
 - API vendas POST agora salva orcamentoUrl
 - APIs financeiro e diretor retornam registrosSDR e orcamentoUrl
+- **Notas do Supervisor**: campo `notaAdmin` no RegistroSDR, visivel somente para ADMIN/DIRETOR
+  - Editavel inline na secao expandida (botao olho) das oportunidades
+  - Card com fundo amber diferenciado para notas privadas
+  - Indicador visual (bolinha amber) no botao olho quando tem nota
+  - API GET filtra `notaAdmin` para vendedores (nao veem o campo)
+  - API PUT aceita `notaAdmin` somente de admin/diretor
 
 ## Notas para o Proximo Chat
 - O campo orcamentoUrl ja existe no schema Prisma, mas o `db push` precisa ser rodado no ambiente com DATABASE_URL valida (Railway)
+- O campo notaAdmin foi adicionado ao schema - `db push` rodara automaticamente no deploy (script start)
 - Se houver erro de Prisma validation na URL, a .env local nao tem a URL do banco - rodar em producao
 - O arquivo comissoes-app esta em /Users/ERICK/comissoes-app/

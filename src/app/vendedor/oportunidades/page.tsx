@@ -19,6 +19,8 @@ import {
   Upload,
   Image as ImageIcon,
   MessageSquare,
+  StickyNote,
+  Save,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { isAdmin as checkAdmin } from "@/lib/roles";
@@ -98,6 +100,8 @@ type Registro = {
   consideracoes: string | null;
   imagemUrl: string | null;
   motivoNaoCompareceu: string | null;
+  // Nota do supervisor (apenas admin/diretor)
+  notaAdmin?: string | null;
 };
 
 type EditState = {
@@ -165,6 +169,11 @@ export default function OportunidadesPage() {
   // PDF do orcamento
   const [orcamentoPdf, setOrcamentoPdf] = useState<string | null>(null);
   const [orcamentoNome, setOrcamentoNome] = useState("");
+
+  // Notas do supervisor (admin/diretor)
+  const [editingNotaId, setEditingNotaId] = useState<string | null>(null);
+  const [notaAdminText, setNotaAdminText] = useState("");
+  const [salvandoNota, setSalvandoNota] = useState(false);
 
   const handleOrcamentoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -372,6 +381,25 @@ export default function OportunidadesPage() {
       setErroVenda(error.message || "Erro ao criar venda");
     }
     setSalvandoVenda(false);
+  }
+
+  // Salvar nota do supervisor
+  async function salvarNotaAdmin(registroId: string) {
+    setSalvandoNota(true);
+    try {
+      await fetch("/api/vendedor/oportunidades", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          registroId,
+          notaAdmin: notaAdminText,
+        }),
+      });
+      setEditingNotaId(null);
+      await fetchOportunidades();
+    } finally {
+      setSalvandoNota(false);
+    }
   }
 
   function getEstagioStyle(key: string) {
@@ -798,10 +826,13 @@ export default function OportunidadesPage() {
                                 <>
                                   <button
                                     onClick={() => setDetailsId(detailsId === r.id ? null : r.id)}
-                                    className="p-1 rounded-lg hover:bg-sky-400/10 text-gray-500 hover:text-sky-400 transition"
+                                    className="p-1 rounded-lg hover:bg-sky-400/10 text-gray-500 hover:text-sky-400 transition relative"
                                     title="Ver info SDR"
                                   >
                                     <Eye className="w-3.5 h-3.5" />
+                                    {admin && r.notaAdmin && (
+                                      <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-400 rounded-full" />
+                                    )}
                                   </button>
                                   <button
                                     onClick={() => isEditing ? setEditingId(null) : startEdit(r)}
@@ -905,6 +936,59 @@ export default function OportunidadesPage() {
                                 )}
                                 {!r.consideracoes && !r.imagemUrl && !r.motivoNaoCompareceu && (
                                   <p className="text-xs text-gray-600 italic">Nenhuma informacao adicional registrada pela SDR.</p>
+                                )}
+
+                                {/* Notas do Supervisor — somente admin/diretor */}
+                                {admin && (
+                                  <div className="mt-3 bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <p className="text-[11px] text-amber-400 uppercase tracking-wider font-semibold flex items-center gap-1">
+                                        <StickyNote className="w-3 h-3" /> Notas do Supervisor
+                                      </p>
+                                      {editingNotaId !== r.id && (
+                                        <button
+                                          onClick={() => {
+                                            setEditingNotaId(r.id);
+                                            setNotaAdminText(r.notaAdmin ?? "");
+                                          }}
+                                          className="text-[11px] text-amber-400/70 hover:text-amber-400 transition flex items-center gap-1"
+                                        >
+                                          <Pencil className="w-3 h-3" /> Editar
+                                        </button>
+                                      )}
+                                    </div>
+                                    {editingNotaId === r.id ? (
+                                      <div className="space-y-2">
+                                        <textarea
+                                          value={notaAdminText}
+                                          onChange={(e) => setNotaAdminText(e.target.value)}
+                                          placeholder="Escreva observacoes, lembretes ou notas sobre esta oportunidade..."
+                                          rows={3}
+                                          className="w-full bg-[#0b0f19] border border-amber-500/30 rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-amber-400 outline-none resize-none placeholder:text-gray-600"
+                                        />
+                                        <div className="flex gap-2">
+                                          <button
+                                            onClick={() => salvarNotaAdmin(r.id)}
+                                            disabled={salvandoNota}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-gray-900 rounded-lg text-xs font-semibold hover:bg-amber-400 transition disabled:opacity-50"
+                                          >
+                                            <Save className="w-3 h-3" />
+                                            {salvandoNota ? "Salvando..." : "Salvar Nota"}
+                                          </button>
+                                          <button
+                                            onClick={() => setEditingNotaId(null)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#232a3b] text-gray-300 rounded-lg text-xs font-medium hover:bg-[#2a3040] transition"
+                                          >
+                                            <X className="w-3 h-3" /> Cancelar
+                                          </button>
+                                        </div>
+                                      </div>
+                                    ) : r.notaAdmin ? (
+                                      <p className="text-sm text-amber-200/80 whitespace-pre-wrap">{r.notaAdmin}</p>
+                                    ) : (
+                                      <p className="text-xs text-gray-600 italic">Nenhuma nota adicionada.</p>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             </td>

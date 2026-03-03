@@ -75,7 +75,12 @@ export async function GET(request: NextRequest) {
       }).length
     : 0;
 
-  return NextResponse.json({ registros, totalForecast, totalPonderado, alertas5dias });
+  // Se nao for admin/diretor, esconder notaAdmin dos registros
+  const registrosResponse = isAdmin(role)
+    ? registros
+    : registros.map(({ notaAdmin: _notaAdmin, ...rest }) => rest);
+
+  return NextResponse.json({ registros: registrosResponse, totalForecast, totalPonderado, alertas5dias });
 }
 
 // PUT — atualizar campos de forecast ou descartar/reativar
@@ -98,6 +103,8 @@ export async function PUT(request: Request) {
     // Descarte / Reativacao
     statusLead,
     motivoFinalizacao,
+    // Nota do supervisor (apenas admin/diretor)
+    notaAdmin,
   } = body;
 
   if (!registroId) {
@@ -127,6 +134,11 @@ export async function PUT(request: Request) {
   if (statusLead === "COMPARECEU") {
     data.statusLead = "COMPARECEU";
     data.motivoFinalizacao = null;
+  }
+
+  // Nota do supervisor (somente admin/diretor pode salvar)
+  if (notaAdmin !== undefined && isAdmin(role)) {
+    data.notaAdmin = notaAdmin || null;
   }
 
   const updated = await prisma.registroSDR.update({

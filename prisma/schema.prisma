@@ -205,6 +205,8 @@ model RegistroSDR {
   pagoPor             User?    @relation("pagoPor", fields: [pagoPorId], references: [id])
   // Imagem anexada (conta de luz ou documento do cliente, base64)
   imagemUrl           String?
+  // Nota privada do supervisor (visivel apenas para ADMIN e DIRETOR)
+  notaAdmin           String?
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 }

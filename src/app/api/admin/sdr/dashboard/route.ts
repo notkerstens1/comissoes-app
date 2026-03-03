@@ -27,8 +27,10 @@ export async function GET(request: NextRequest) {
 
   const where: any = {};
 
+  // Filtrar por dataReuniao (data da reuniao) em vez de dataRegistro (data de cadastro)
+  // Isso garante que dia/semana/mes mostrem dados diferentes baseados nas reunioes reais
   if (tipo === "dia" && data) {
-    where.dataRegistro = data;
+    where.dataReuniao = data;
   } else if (tipo === "semana" && semana) {
     // semana = domingo (ex: "2026-02-23")
     const [y, m, d] = semana.split("-").map(Number);
@@ -36,11 +38,11 @@ export async function GET(request: NextRequest) {
     const sabado = new Date(y, m - 1, d + 6);
     const domingoStr = domingo.toISOString().split("T")[0];
     const sabadoStr = sabado.toISOString().split("T")[0];
-    where.dataRegistro = { gte: domingoStr, lte: sabadoStr };
+    where.dataReuniao = { gte: domingoStr, lte: sabadoStr };
   } else {
     // mes (default)
     const mesVal = mes ?? new Date().toISOString().slice(0, 7);
-    where.dataRegistro = { startsWith: mesVal };
+    where.dataReuniao = { startsWith: mesVal };
   }
 
   const registros = await prisma.registroSDR.findMany({
@@ -130,7 +132,7 @@ export async function GET(request: NextRequest) {
       // Para cada dia com override, calcular o delta vs auto-calculado daquele dia
       for (const ov of dayOverrides) {
         const diaStr = ov.periodo.replace("dia:", "");
-        const regsOfDay = registros.filter((r) => r.dataRegistro === diaStr);
+        const regsOfDay = registros.filter((r) => r.dataReuniao === diaStr);
         const ligOfDay = ligacoesRecords.filter((l) => l.data === diaStr);
 
         const autoLigDay = ligOfDay.reduce((s, l) => s + l.quantidade, 0);
@@ -154,7 +156,7 @@ export async function GET(request: NextRequest) {
 
       for (const ov of dayOverrides) {
         const diaStr = ov.periodo.replace("dia:", "");
-        const regsOfDay = registros.filter((r) => r.dataRegistro === diaStr);
+        const regsOfDay = registros.filter((r) => r.dataReuniao === diaStr);
         const ligOfDay = ligacoesRecords.filter((l) => l.data === diaStr);
 
         const autoLigDay = ligOfDay.reduce((s, l) => s + l.quantidade, 0);
