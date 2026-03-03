@@ -116,6 +116,9 @@ export default function OportunidadesPage() {
   // Filtro por periodo
   const [periodo, setPeriodo] = useState<PeriodoFiltro>("todos");
 
+  // Filtro por estagio
+  const [estagioFiltro, setEstagioFiltro] = useState("todos");
+
   // Edicao inline
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editData, setEditData] = useState<EditState>({
@@ -353,6 +356,11 @@ export default function OportunidadesPage() {
 
   const hoje = new Date().toISOString().split("T")[0];
 
+  // Aplicar filtro por estagio (client-side)
+  const registrosFiltrados = estagioFiltro === "todos"
+    ? registros
+    : registros.filter((r) => r.estagioOportunidade === estagioFiltro);
+
   return (
     <div className="space-y-6">
 
@@ -538,6 +546,27 @@ export default function OportunidadesPage() {
                   </button>
                 ))}
               </div>
+              {tab === "pipeline" && (
+                <div className="flex items-center gap-1 bg-[#141820] rounded-lg p-1">
+                  <Target className="w-4 h-4 text-gray-500 ml-2" />
+                  {[
+                    { key: "todos", label: "Todos" },
+                    ...ESTAGIOS.map((e) => ({ key: e.key, label: e.label })),
+                  ].map((e) => (
+                    <button
+                      key={e.key}
+                      onClick={() => setEstagioFiltro(e.key)}
+                      className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                        estagioFiltro === e.key
+                          ? "bg-lime-400 text-gray-900"
+                          : "text-gray-400 hover:text-gray-200"
+                      }`}
+                    >
+                      {e.label}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -555,17 +584,24 @@ export default function OportunidadesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-[#1a1f2e] rounded-xl p-5">
               <p className="text-xs text-gray-500 uppercase tracking-wider">Oportunidades</p>
-              <p className="text-3xl font-bold text-lime-400 mt-2">{registros.length}</p>
-              <p className="text-xs text-gray-500 mt-1">{tab === "pipeline" ? "abertas no momento" : "descartadas"}</p>
+              <p className="text-3xl font-bold text-lime-400 mt-2">{registrosFiltrados.length}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {tab === "pipeline" ? "abertas no momento" : "descartadas"}
+                {estagioFiltro !== "todos" && ` (${getEstagioLabel(estagioFiltro)})`}
+              </p>
             </div>
             <div className="bg-[#1a1f2e] rounded-xl p-5">
               <p className="text-xs text-gray-500 uppercase tracking-wider">Forecast Total</p>
-              <p className="text-3xl font-bold text-lime-400 mt-2">{formatCurrency(totalForecast)}</p>
+              <p className="text-3xl font-bold text-lime-400 mt-2">
+                {formatCurrency(registrosFiltrados.reduce((s, r) => s + (r.valorForecast ?? 0), 0))}
+              </p>
               <p className="text-xs text-gray-500 mt-1">soma dos valores estimados</p>
             </div>
             <div className="bg-[#1a1f2e] rounded-xl p-5">
               <p className="text-xs text-gray-500 uppercase tracking-wider">Forecast Ponderado</p>
-              <p className="text-3xl font-bold text-emerald-400 mt-2">{formatCurrency(totalPonderado)}</p>
+              <p className="text-3xl font-bold text-emerald-400 mt-2">
+                {formatCurrency(registrosFiltrados.reduce((s, r) => s + (r.valorForecast ?? 0) * (r.probabilidade / 100), 0))}
+              </p>
               <p className="text-xs text-gray-500 mt-1">valor x probabilidade</p>
             </div>
           </div>
@@ -573,7 +609,7 @@ export default function OportunidadesPage() {
           {/* Tabs */}
           <div className="flex gap-1 bg-[#141820] rounded-lg p-1 w-fit">
             <button
-              onClick={() => setTab("pipeline")}
+              onClick={() => { setTab("pipeline"); setEstagioFiltro("todos"); }}
               className={`px-4 py-2 rounded-md text-sm font-medium transition ${
                 tab === "pipeline" ? "bg-lime-400 text-gray-900" : "text-gray-400 hover:text-gray-200"
               }`}
@@ -581,7 +617,7 @@ export default function OportunidadesPage() {
               Pipeline
             </button>
             <button
-              onClick={() => setTab("descartados")}
+              onClick={() => { setTab("descartados"); setEstagioFiltro("todos"); }}
               className={`px-4 py-2 rounded-md text-sm font-medium transition ${
                 tab === "descartados" ? "bg-gray-500 text-white" : "text-gray-400 hover:text-gray-200"
               }`}
@@ -594,10 +630,14 @@ export default function OportunidadesPage() {
           <div className="bg-[#1a1f2e] rounded-xl overflow-hidden">
             {loading ? (
               <div className="p-12 text-center text-gray-500">Carregando...</div>
-            ) : registros.length === 0 ? (
+            ) : registrosFiltrados.length === 0 ? (
               <div className="p-12 text-center text-gray-500">
                 <Target className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p>{tab === "pipeline" ? "Nenhuma oportunidade aberta" : "Nenhum lead descartado"}</p>
+                <p>
+                  {estagioFiltro !== "todos"
+                    ? `Nenhuma oportunidade em "${getEstagioLabel(estagioFiltro)}"`
+                    : tab === "pipeline" ? "Nenhuma oportunidade aberta" : "Nenhum lead descartado"}
+                </p>
               </div>
             ) : (
               <table className="w-full text-xs table-fixed">
@@ -634,7 +674,7 @@ export default function OportunidadesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {registros.map((r) => {
+                  {registrosFiltrados.map((r) => {
                     const dias = getDiasNoPipe(r.dataReuniao);
                     const vencido = r.dataFechamentoEsperado && r.dataFechamentoEsperado < hoje;
                     const isEditing = editingId === r.id;
