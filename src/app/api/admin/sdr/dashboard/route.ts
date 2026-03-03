@@ -79,6 +79,7 @@ export async function GET(request: NextRequest) {
   const autoDesqualificados = registros.filter((r) => r.statusLead === "FINALIZADO").length;
 
   // ── Buscar override manual do supervisor ────────────────────────────────────
+  // periodoKey usado pelo frontend para salvar edições
   let periodoKey: string;
   if (tipo === "dia" && data) {
     periodoKey = `dia:${data}`;
@@ -89,14 +90,96 @@ export async function GET(request: NextRequest) {
     periodoKey = `mes:${mesVal}`;
   }
 
-  const override = await prisma.metricasSDROverride.findUnique({ where: { periodo: periodoKey } });
+  let totalLigacoes = autoLigacoes;
+  let totalReunioesAgendadas = autoReunioesAgendadas;
+  let totalCpfNegado = autoCpfNegado;
+  let totalNoShow = autoNoShow;
+  let totalDesqualificados = autoDesqualificados;
+  let override: {
+    ligacoes: number | null;
+    reunioesAgendadas: number | null;
+    cpfNegado: number | null;
+    desqualificados: number | null;
+    noShow: number | null;
+  } | null = null;
 
-  const totalLigacoes = override?.ligacoes ?? autoLigacoes;
+  if (tipo === "dia") {
+    // Para dia: buscar override direto da chave dia:YYYY-MM-DD
+    const ov = await prisma.metricasSDROverride.findUnique({ where: { periodo: periodoKey } });
+    if (ov) {
+      override = { ligacoes: ov.ligacoes, reunioesAgendadas: ov.reunioesAgendadas, cpfNegado: ov.cpfNegado, desqualificados: ov.desqualificados, noShow: ov.noShow };
+      totalLigacoes = ov.ligacoes ?? autoLigacoes;
+      totalReunioesAgendadas = ov.reunioesAgendadas ?? autoReunioesAgendadas;
+      totalCpfNegado = ov.cpfNegado ?? autoCpfNegado;
+      totalNoShow = ov.noShow ?? autoNoShow;
+      totalDesqualificados = ov.desqualificados ?? autoDesqualificados;
+    }
+  } else {
+    // Para semana/mes: agregar overrides de dia dentro do range
+    if (tipo === "semana" && semana) {
+      const [y, m, d] = semana.split("-").map(Number);
+      const dom = new Date(y, m - 1, d);
+      const sab = new Date(y, m - 1, d + 6);
+      const domStr = dom.toISOString().split("T")[0];
+      const sabStr = sab.toISOString().split("T")[0];
+      // Buscar dia:YYYY-MM-DD dentro do range
+      const dayOverrides = await prisma.metricasSDROverride.findMany({
+        where: { periodo: { gte: `dia:${domStr}`, lte: `dia:${sabStr}` } },
+      });
+
+      // Para cada dia com override, calcular o delta vs auto-calculado daquele dia
+      for (const ov of dayOverrides) {
+        const diaStr = ov.periodo.replace("dia:", "");
+        const regsOfDay = registros.filter((r) => r.dataRegistro === diaStr);
+        const ligOfDay = ligacoesRecords.filter((l) => l.data === diaStr);
+
+        const autoLigDay = ligOfDay.reduce((s, l) => s + l.quantidade, 0);
+        const autoAgendDay = regsOfDay.filter((r) => r.statusLead === "AGENDADO").length;
+        const autoCpfDay = regsOfDay.filter((r) => r.motivoFinalizacao === "CPF negada").length;
+        const autoNoShowDay = regsOfDay.filter((r) => !r.compareceu && r.motivoNaoCompareceu).length;
+        const autoDesqDay = regsOfDay.filter((r) => r.statusLead === "FINALIZADO").length;
+
+        if (ov.ligacoes != null) totalLigacoes += (ov.ligacoes - autoLigDay);
+        if (ov.reunioesAgendadas != null) totalReunioesAgendadas += (ov.reunioesAgendadas - autoAgendDay);
+        if (ov.cpfNegado != null) totalCpfNegado += (ov.cpfNegado - autoCpfDay);
+        if (ov.noShow != null) totalNoShow += (ov.noShow - autoNoShowDay);
+        if (ov.desqualificados != null) totalDesqualificados += (ov.desqualificados - autoDesqDay);
+      }
+    } else {
+      // mes
+      const mesVal = mes ?? new Date().toISOString().slice(0, 7);
+      const dayOverrides = await prisma.metricasSDROverride.findMany({
+        where: { periodo: { startsWith: `dia:${mesVal}` } },
+      });
+
+      for (const ov of dayOverrides) {
+        const diaStr = ov.periodo.replace("dia:", "");
+        const regsOfDay = registros.filter((r) => r.dataRegistro === diaStr);
+        const ligOfDay = ligacoesRecords.filter((l) => l.data === diaStr);
+
+        const autoLigDay = ligOfDay.reduce((s, l) => s + l.quantidade, 0);
+        const autoAgendDay = regsOfDay.filter((r) => r.statusLead === "AGENDADO").length;
+        const autoCpfDay = regsOfDay.filter((r) => r.motivoFinalizacao === "CPF negada").length;
+        const autoNoShowDay = regsOfDay.filter((r) => !r.compareceu && r.motivoNaoCompareceu).length;
+        const autoDesqDay = regsOfDay.filter((r) => r.statusLead === "FINALIZADO").length;
+
+        if (ov.ligacoes != null) totalLigacoes += (ov.ligacoes - autoLigDay);
+        if (ov.reunioesAgendadas != null) totalReunioesAgendadas += (ov.reunioesAgendadas - autoAgendDay);
+        if (ov.cpfNegado != null) totalCpfNegado += (ov.cpfNegado - autoCpfDay);
+        if (ov.noShow != null) totalNoShow += (ov.noShow - autoNoShowDay);
+        if (ov.desqualificados != null) totalDesqualificados += (ov.desqualificados - autoDesqDay);
+      }
+    }
+  }
+
+  // Garantir que não fique negativo
+  totalLigacoes = Math.max(0, totalLigacoes);
+  totalReunioesAgendadas = Math.max(0, totalReunioesAgendadas);
+  totalCpfNegado = Math.max(0, totalCpfNegado);
+  totalNoShow = Math.max(0, totalNoShow);
+  totalDesqualificados = Math.max(0, totalDesqualificados);
+
   const totalReunioes = autoReunioes;
-  const totalReunioesAgendadas = override?.reunioesAgendadas ?? autoReunioesAgendadas;
-  const totalCpfNegado = override?.cpfNegado ?? autoCpfNegado;
-  const totalNoShow = override?.noShow ?? autoNoShow;
-  const totalDesqualificados = override?.desqualificados ?? autoDesqualificados;
 
   // ── Ligações por dia (do modelo LigacoesSDR) ──────────────────────────────────
   const ligacoesPorDiaMap: Record<string, number> = {};

@@ -194,7 +194,11 @@ function EditableMetricCard({
   const [saving, setSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Edição só é permitida na aba "dia" (override granular por dia)
+  const canEdit = periodoKey.startsWith("dia:");
+
   const startEdit = () => {
+    if (!canEdit) return;
     setInputVal(String(value));
     setEditing(true);
     setTimeout(() => inputRef.current?.focus(), 50);
@@ -220,7 +224,7 @@ function EditableMetricCard({
       <div className="flex items-center gap-2 mb-2">
         <div className={`w-8 h-8 ${iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>{icon}</div>
         <p className="text-xs text-gray-400">{label}</p>
-        {!editing && (
+        {!editing && canEdit && (
           <button onClick={startEdit} className="ml-auto opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-[#232a3b] text-gray-500 hover:text-gray-300 transition" title="Editar">
             <Pencil className="w-3 h-3" />
           </button>
