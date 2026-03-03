@@ -27,10 +27,11 @@ import {
   ClipboardCheck,
   ShieldCheck,
   Trash2,
+  Banknote,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { isAdmin as checkAdmin, isDiretor as checkDiretor, isSDR as checkSDR, isPosVenda as checkPosVenda } from "@/lib/roles";
+import { isAdmin as checkAdmin, isDiretor as checkDiretor, isSDR as checkSDR, isPosVenda as checkPosVenda, isFinanceiro as checkFinanceiro } from "@/lib/roles";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -41,6 +42,7 @@ export function Sidebar() {
   const diretor = checkDiretor(userRole);
   const sdr = checkSDR(userRole);
   const posVenda = checkPosVenda(userRole);
+  const financeiro = checkFinanceiro(userRole);
 
   const menuVendedor = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -74,6 +76,10 @@ export function Sidebar() {
     { href: "/admin/configuracoes", label: "Configuracoes", icon: Settings },
   ];
 
+  const menuFinanceiro = [
+    { href: "/financeiro", label: "Painel Financeiro", icon: Banknote },
+  ];
+
   const menuDiretor = [
     { href: "/diretor", label: "Painel Financeiro", icon: BarChart3 },
     { href: "/diretor/ranking", label: "Ranking Vendedores", icon: Trophy },
@@ -86,6 +92,7 @@ export function Sidebar() {
     if (admin) return { bg: "bg-purple-400/10 text-purple-400", label: "Supervisor" };
     if (sdr) return { bg: "bg-sky-400/10 text-sky-400", label: "SDR" };
     if (posVenda) return { bg: "bg-orange-400/10 text-orange-400", label: "Pós Venda" };
+    if (financeiro) return { bg: "bg-emerald-400/10 text-emerald-400", label: "Financeiro" };
     return { bg: "bg-lime-400/10 text-lime-400", label: "Vendedor" };
   };
 
@@ -166,8 +173,8 @@ export function Sidebar() {
 
         {/* Menu */}
         <nav className="px-3 py-4 space-y-1 overflow-y-auto" style={{ maxHeight: "calc(100vh - 220px)" }}>
-          {/* Menu Vendedor — SDR e POS_VENDA NAO veem */}
-          {!sdr && !posVenda && (
+          {/* Menu Vendedor — SDR, POS_VENDA e FINANCEIRO NAO veem */}
+          {!sdr && !posVenda && !financeiro && (
             <>
               {admin && (
                 <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
@@ -222,6 +229,17 @@ export function Sidebar() {
               </p>
               {sdr && renderMenuSection(menuSDR, "text-sky-400", "bg-sky-400/10")}
               {admin && renderMenuSection(menuAdminSDR, "text-sky-400", "bg-sky-400/10")}
+            </>
+          )}
+
+          {/* Menu Financeiro */}
+          {(financeiro || admin) && (
+            <>
+              {!financeiro && <div className="my-3 border-t border-[#232a3b]" />}
+              <p className="px-3 text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">
+                Financeiro
+              </p>
+              {renderMenuSection(menuFinanceiro, "text-emerald-400", "bg-emerald-400/10")}
             </>
           )}
 

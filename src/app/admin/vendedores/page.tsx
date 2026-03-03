@@ -131,6 +131,7 @@ export default function VendedoresPage() {
     if (r === "DIRETOR") return "Diretor";
     if (r === "SDR") return "SDR";
     if (r === "POS_VENDA") return "Pós Venda";
+    if (r === "FINANCEIRO") return "Financeiro";
     if (r === "VENDEDOR_EXTERNO") return "Vend. Externo";
     return "Vendedor";
   };
@@ -140,6 +141,7 @@ export default function VendedoresPage() {
     if (r === "DIRETOR") return "bg-amber-400/15 text-amber-400";
     if (r === "SDR") return "bg-sky-400/15 text-sky-400";
     if (r === "POS_VENDA") return "bg-orange-400/15 text-orange-400";
+    if (r === "FINANCEIRO") return "bg-emerald-400/15 text-emerald-400";
     return "bg-lime-400/15 text-lime-400";
   };
 
@@ -263,6 +265,7 @@ export default function VendedoresPage() {
                   <option value="VENDEDOR">Vendedor</option>
                   <option value="SDR">SDR</option>
                   <option value="POS_VENDA">Pós Venda</option>
+                  <option value="FINANCEIRO">Financeiro</option>
                   <option value="ADMIN">Administrador</option>
                 </select>
               </div>

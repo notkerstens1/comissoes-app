@@ -2,7 +2,7 @@
 // CONTROLE DE ROLES/PAPEIS DO SISTEMA
 // ============================================================
 
-export type UserRole = "VENDEDOR" | "VENDEDOR_EXTERNO" | "ADMIN" | "DIRETOR" | "SDR" | "POS_VENDA";
+export type UserRole = "VENDEDOR" | "VENDEDOR_EXTERNO" | "ADMIN" | "DIRETOR" | "SDR" | "POS_VENDA" | "FINANCEIRO";
 
 /**
  * Verifica se o usuario tem permissoes de supervisor (ADMIN ou DIRETOR)
@@ -54,6 +54,20 @@ export function isPosVenda(role: string | undefined | null): boolean {
 }
 
 /**
+ * Verifica se o usuario e financeiro
+ */
+export function isFinanceiro(role: string | undefined | null): boolean {
+  return role === "FINANCEIRO";
+}
+
+/**
+ * Verifica se o usuario pode acessar area financeira (FINANCEIRO, ADMIN ou DIRETOR)
+ */
+export function canAccessFinanceiro(role: string | undefined | null): boolean {
+  return role === "FINANCEIRO" || role === "ADMIN" || role === "DIRETOR";
+}
+
+/**
  * Retorna o label legivel do role
  */
 export function getRoleLabel(role: string | undefined | null): string {
@@ -70,6 +84,8 @@ export function getRoleLabel(role: string | undefined | null): string {
       return "SDR";
     case "POS_VENDA":
       return "Pós Venda";
+    case "FINANCEIRO":
+      return "Financeiro";
     default:
       return "Desconhecido";
   }
@@ -91,6 +107,8 @@ export function getDefaultRoute(role: string | undefined | null): string {
       return "/sdr";
     case "POS_VENDA":
       return "/pos-venda";
+    case "FINANCEIRO":
+      return "/financeiro";
     default:
       return "/dashboard";
   }

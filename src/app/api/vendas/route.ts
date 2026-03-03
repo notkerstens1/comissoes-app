@@ -155,6 +155,26 @@ export async function POST(request: NextRequest) {
     // Tentar vincular automaticamente a um registro SDR
     await tentarVincularVendaSDR(venda.id);
 
+    // Notificar todos os usuarios FINANCEIRO sobre nova venda
+    try {
+      const financeiros = await prisma.user.findMany({
+        where: { role: "FINANCEIRO", ativo: true },
+        select: { id: true },
+      });
+      if (financeiros.length > 0) {
+        await prisma.notificacao.createMany({
+          data: financeiros.map((f) => ({
+            userId: f.id,
+            tipo: "NOVA_VENDA",
+            mensagem: `Nova venda: ${cliente} - R$ ${vVenda.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+            vendaId: venda.id,
+          })),
+        });
+      }
+    } catch (notifErr) {
+      console.error("Erro ao criar notificacoes para financeiro:", notifErr);
+    }
+
     return NextResponse.json(venda, { status: 201 });
   } catch (error: any) {
     console.error("Erro ao criar venda:", error);
