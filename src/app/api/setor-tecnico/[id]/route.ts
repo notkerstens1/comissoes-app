@@ -2,9 +2,9 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isAdmin, isPosVenda } from "@/lib/roles";
+import { canAccessTecnico } from "@/lib/roles";
 
-// PUT — atualizar registro de pos venda
+// PUT — atualizar registro do setor tecnico
 export async function PUT(
   request: Request,
   { params }: { params: { id: string } }
@@ -12,35 +12,23 @@ export async function PUT(
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
 
-  const role = session.user.role;
-  if (!isPosVenda(role) && !isAdmin(role)) {
+  if (!canAccessTecnico(session.user.role)) {
     return NextResponse.json({ error: "Nao autorizado" }, { status: 403 });
   }
 
-  const registro = await prisma.posVenda.findUnique({ where: { id: params.id } });
+  const registro = await prisma.setorTecnico.findUnique({ where: { id: params.id } });
   if (!registro) return NextResponse.json({ error: "Registro nao encontrado" }, { status: 404 });
 
   const body = await request.json();
-  const {
-    nomeCliente,
-    telefone,
-    etapa,
-    ultimaAcao,
-    proximaAcao,
-    observacoes,
-    ultimoContato,
-    proximoContato,
-    anexos,
-  } = body;
+  const { nomeCliente, telefone, etapa, observacoes, ultimaAcao, proximaAcao, anexos } = body;
 
   const data: any = {};
+
   if (nomeCliente !== undefined) data.nomeCliente = nomeCliente.trim();
   if (telefone !== undefined) data.telefone = telefone?.trim() || null;
   if (etapa !== undefined) data.etapa = etapa;
-  if (ultimaAcao !== undefined) data.ultimaAcao = ultimaAcao?.trim() || null;
   if (observacoes !== undefined) data.observacoes = observacoes?.trim() || null;
-  if (ultimoContato !== undefined) data.ultimoContato = ultimoContato || null;
-  if (proximoContato !== undefined) data.proximoContato = proximoContato || null;
+  if (ultimaAcao !== undefined) data.ultimaAcao = ultimaAcao?.trim() || null;
   if (anexos !== undefined) data.anexos = anexos;
 
   // Historico de acoes: ao atualizar proximaAcao, salvar a anterior no historico
@@ -57,12 +45,9 @@ export async function PUT(
     data.proximaAcao = proximaAcao?.trim() || null;
   }
 
-  const updated = await prisma.posVenda.update({
+  const updated = await prisma.setorTecnico.update({
     where: { id: params.id },
     data,
-    include: {
-      operador: { select: { id: true, nome: true } },
-    },
   });
 
   return NextResponse.json(updated);
@@ -76,15 +61,14 @@ export async function DELETE(
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
 
-  const role = session.user.role;
-  if (!isPosVenda(role) && !isAdmin(role)) {
+  if (!canAccessTecnico(session.user.role)) {
     return NextResponse.json({ error: "Nao autorizado" }, { status: 403 });
   }
 
-  const registro = await prisma.posVenda.findUnique({ where: { id: params.id } });
+  const registro = await prisma.setorTecnico.findUnique({ where: { id: params.id } });
   if (!registro) return NextResponse.json({ error: "Registro nao encontrado" }, { status: 404 });
 
-  await prisma.posVenda.update({
+  await prisma.setorTecnico.update({
     where: { id: params.id },
     data: { ativo: false },
   });

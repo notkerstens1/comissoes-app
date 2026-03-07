@@ -157,6 +157,39 @@ export async function POST(request: NextRequest) {
     // Tentar vincular automaticamente a um registro SDR
     await tentarVincularVendaSDR(venda.id);
 
+    // Auto-criar registro no Setor Tecnico
+    try {
+      await prisma.setorTecnico.create({
+        data: {
+          nomeCliente: cliente,
+          vendaId: venda.id,
+          vendedorNome: session.user.name || "",
+          etapa: "NOVO_PROJETO",
+        },
+      });
+    } catch (tecErr) {
+      console.error("Erro ao criar registro no setor tecnico:", tecErr);
+    }
+
+    // Auto-criar registro no Pos Venda
+    try {
+      // Buscar primeiro operador POS_VENDA ativo, senao usa o proprio vendedor
+      const operadorPV = await prisma.user.findFirst({
+        where: { role: "POS_VENDA", ativo: true },
+        select: { id: true },
+      });
+      await prisma.posVenda.create({
+        data: {
+          operadorId: operadorPV?.id ?? session.user.id,
+          nomeCliente: cliente,
+          vendaId: venda.id,
+          etapa: "TRAMITES",
+        },
+      });
+    } catch (pvErr) {
+      console.error("Erro ao criar registro no pos venda:", pvErr);
+    }
+
     // Notificar todos os usuarios FINANCEIRO sobre nova venda
     try {
       const financeiros = await prisma.user.findMany({

@@ -2,7 +2,7 @@
 // CONTROLE DE ROLES/PAPEIS DO SISTEMA
 // ============================================================
 
-export type UserRole = "VENDEDOR" | "VENDEDOR_EXTERNO" | "ADMIN" | "DIRETOR" | "SDR" | "POS_VENDA" | "FINANCEIRO";
+export type UserRole = "VENDEDOR" | "VENDEDOR_EXTERNO" | "ADMIN" | "DIRETOR" | "SDR" | "POS_VENDA" | "FINANCEIRO" | "TECNICO";
 
 /**
  * Verifica se o usuario tem permissoes de supervisor (ADMIN ou DIRETOR)
@@ -61,6 +61,20 @@ export function isFinanceiro(role: string | undefined | null): boolean {
 }
 
 /**
+ * Verifica se o usuario e tecnico (engenheiro)
+ */
+export function isTecnico(role: string | undefined | null): boolean {
+  return role === "TECNICO";
+}
+
+/**
+ * Verifica se o usuario pode acessar o setor tecnico (TECNICO, POS_VENDA, ADMIN ou DIRETOR)
+ */
+export function canAccessTecnico(role: string | undefined | null): boolean {
+  return role === "TECNICO" || role === "POS_VENDA" || role === "ADMIN" || role === "DIRETOR";
+}
+
+/**
  * Verifica se o usuario pode acessar area financeira (FINANCEIRO, ADMIN ou DIRETOR)
  */
 export function canAccessFinanceiro(role: string | undefined | null): boolean {
@@ -86,6 +100,8 @@ export function getRoleLabel(role: string | undefined | null): string {
       return "Pós Venda";
     case "FINANCEIRO":
       return "Financeiro";
+    case "TECNICO":
+      return "Técnico";
     default:
       return "Desconhecido";
   }
@@ -107,6 +123,8 @@ export function getDefaultRoute(role: string | undefined | null): string {
       return "/sdr";
     case "POS_VENDA":
       return "/pos-venda";
+    case "TECNICO":
+      return "/tecnico";
     case "FINANCEIRO":
       return "/financeiro";
     default:

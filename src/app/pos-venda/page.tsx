@@ -14,6 +14,10 @@ import {
   Filter,
   RefreshCw,
   Trash2,
+  Paperclip,
+  Upload,
+  FileText,
+  Clock,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import {
@@ -36,6 +40,8 @@ type PosVendaRegistro = {
   proximoContato: string | null;
   createdAt: string;
   operador: { id: string; nome: string };
+  anexos: string | null;
+  historicoAcoes: string | null;
 };
 
 type FormData = {
@@ -79,6 +85,7 @@ export default function PosVendaPage() {
   const [filtroPeriodo, setFiltroPeriodo] = useState<"todos" | "semana" | "mes">("todos");
   const [trocandoEtapaId, setTrocandoEtapaId] = useState<string | null>(null);
   const [novaEtapaSel, setNovaEtapaSel] = useState("");
+  const [uploadingAnexoId, setUploadingAnexoId] = useState<string | null>(null);
 
   const hoje = new Date().toISOString().split("T")[0];
 
@@ -221,6 +228,45 @@ export default function PosVendaPage() {
       await fetchRegistros();
     } catch {
       setErroMsg("Erro ao remover");
+    }
+  }
+
+  async function handleAnexoUpload(r: PosVendaRegistro, file: File) {
+    if (file.size > 15 * 1024 * 1024) {
+      setErroMsg("Arquivo excede o limite de 15MB");
+      return;
+    }
+    setUploadingAnexoId(r.id);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const existingAnexos: { nome: string; url: string; data: string }[] = r.anexos
+        ? JSON.parse(r.anexos)
+        : [];
+      existingAnexos.push({
+        nome: file.name,
+        url: base64,
+        data: new Date().toISOString().split("T")[0],
+      });
+      const res = await fetch(`/api/pos-venda/${r.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ anexos: JSON.stringify(existingAnexos) }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || "Erro ao enviar anexo");
+        return;
+      }
+      await fetchRegistros();
+    } catch {
+      setErroMsg("Erro ao processar arquivo");
+    } finally {
+      setUploadingAnexoId(null);
     }
   }
 
@@ -565,6 +611,95 @@ export default function PosVendaPage() {
                             <p className="text-sm text-gray-300">{r.observacoes}</p>
                           </div>
                         )}
+
+                        {/* Histórico de Ações */}
+                        {(() => {
+                          const historico: { data: string; acao: string }[] = r.historicoAcoes
+                            ? JSON.parse(r.historicoAcoes)
+                            : [];
+                          if (historico.length === 0) return null;
+                          const historicoOrdenado = [...historico].reverse();
+                          return (
+                            <div className="mb-4 p-3 bg-[#141820] rounded-lg border border-[#232a3b]">
+                              <p className="text-xs text-gray-500 font-semibold uppercase mb-2 flex items-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5" />
+                                Ações Anteriores
+                              </p>
+                              <div className="space-y-1.5">
+                                {historicoOrdenado.map((h, idx) => (
+                                  <div key={idx} className="flex items-start gap-2 text-sm">
+                                    <span className="text-gray-500 text-xs mt-0.5 shrink-0">
+                                      {formatDate(h.data)}
+                                    </span>
+                                    <span className="text-gray-400">{h.acao}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })()}
+
+                        {/* Anexos */}
+                        <div className="mb-4 p-3 bg-[#141820] rounded-lg border border-[#232a3b]">
+                          <p className="text-xs text-gray-500 font-semibold uppercase mb-2 flex items-center gap-1.5">
+                            <Paperclip className="w-3.5 h-3.5" />
+                            Anexos
+                          </p>
+                          {/* Lista de anexos existentes */}
+                          {(() => {
+                            const anexos: { nome: string; url: string; data: string }[] = r.anexos
+                              ? JSON.parse(r.anexos)
+                              : [];
+                            return anexos.length > 0 ? (
+                              <div className="space-y-1.5 mb-3">
+                                {anexos.map((a, idx) => (
+                                  <div
+                                    key={idx}
+                                    className="flex items-center gap-2 text-sm"
+                                  >
+                                    <FileText className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+                                    <a
+                                      href={a.url}
+                                      download={a.nome}
+                                      className="text-orange-400 hover:text-orange-300 underline underline-offset-2 truncate"
+                                      title={a.nome}
+                                    >
+                                      {a.nome}
+                                    </a>
+                                    <span className="text-gray-500 text-xs shrink-0">
+                                      {formatDate(a.data)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-gray-600 mb-3">Nenhum anexo</p>
+                            );
+                          })()}
+                          {/* Upload button */}
+                          <input
+                            type="file"
+                            id={`anexo-upload-${r.id}`}
+                            className="hidden"
+                            accept=".pdf,.png,.jpg,.jpeg"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleAnexoUpload(r, file);
+                              e.target.value = "";
+                            }}
+                          />
+                          <label
+                            htmlFor={`anexo-upload-${r.id}`}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${
+                              uploadingAnexoId === r.id
+                                ? "bg-orange-400/20 text-orange-300 cursor-wait"
+                                : "bg-orange-400/10 text-orange-400 border border-orange-400/30 hover:bg-orange-400/20"
+                            }`}
+                          >
+                            <Upload className="w-3.5 h-3.5" />
+                            {uploadingAnexoId === r.id ? "Enviando..." : "Anexar Arquivo"}
+                          </label>
+                        </div>
 
                         {/* Botões */}
                         <div className="flex flex-wrap gap-2">

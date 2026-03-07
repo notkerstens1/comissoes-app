@@ -12,7 +12,7 @@ model User {
   nome      String
   email     String   @unique
   senha     String
-  role      String   @default("VENDEDOR") // VENDEDOR | VENDEDOR_EXTERNO | ADMIN | DIRETOR | SDR | POS_VENDA | FINANCEIRO
+  role      String   @default("VENDEDOR") // VENDEDOR | VENDEDOR_EXTERNO | ADMIN | DIRETOR | SDR | POS_VENDA | FINANCEIRO | TECNICO
   ativo     Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -83,6 +83,8 @@ model Venda {
   pendenciaVinculo   PendenciaVinculo?
   // Pos Venda
   posVenda           PosVenda?
+  // Setor Tecnico
+  setorTecnico       SetorTecnico?
   // Solicitações de exceção de margem pendentes
   solicitacoesMargem SolicitacaoMargem[]
   // Notificações
@@ -271,6 +273,36 @@ model PosVenda {
   observacoes      String?
   ultimoContato    String?  // "YYYY-MM-DD"
   proximoContato   String?  // "YYYY-MM-DD"
+  // Anexos (JSON array: [{nome, url, data}])
+  anexos           String?
+  // Historico de acoes anteriores (JSON array: [{data, acao}])
+  historicoAcoes   String?
+  // Controle
+  ativo            Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+// Setor Tecnico: acompanhamento do projeto tecnico apos venda
+model SetorTecnico {
+  id               String   @id @default(cuid())
+  nomeCliente      String
+  telefone         String?
+  // Vinculo com venda do sistema
+  vendaId          String?  @unique
+  venda            Venda?   @relation(fields: [vendaId], references: [id])
+  vendedorNome     String?
+  // Etapa atual do funil tecnico
+  etapa            String   @default("NOVO_PROJETO")
+  // "NOVO_PROJETO" | "CONSULTAR_CARGA" | "AUMENTO_CARGA" | "EMITIR_TRT" | "PROJETO_ENVIADO" | "PROJETO_APROVADO"
+  // Acompanhamento
+  observacoes      String?
+  ultimaAcao       String?
+  proximaAcao      String?
+  // Historico de acoes anteriores (JSON array: [{data, acao}])
+  historicoAcoes   String?
+  // Anexos (JSON array: [{nome, url, data}])
+  anexos           String?
   // Controle
   ativo            Boolean  @default(true)
   createdAt        DateTime @default(now())

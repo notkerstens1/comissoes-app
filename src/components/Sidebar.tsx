@@ -28,10 +28,11 @@ import {
   ShieldCheck,
   Trash2,
   Banknote,
+  Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { isAdmin as checkAdmin, isDiretor as checkDiretor, isSDR as checkSDR, isPosVenda as checkPosVenda, isFinanceiro as checkFinanceiro } from "@/lib/roles";
+import { isAdmin as checkAdmin, isDiretor as checkDiretor, isSDR as checkSDR, isPosVenda as checkPosVenda, isFinanceiro as checkFinanceiro, isTecnico as checkTecnico, canAccessTecnico as checkCanAccessTecnico } from "@/lib/roles";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -43,6 +44,8 @@ export function Sidebar() {
   const sdr = checkSDR(userRole);
   const posVenda = checkPosVenda(userRole);
   const financeiro = checkFinanceiro(userRole);
+  const tecnico = checkTecnico(userRole);
+  const canTecnico = checkCanAccessTecnico(userRole);
 
   const menuVendedor = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -92,6 +95,7 @@ export function Sidebar() {
     if (admin) return { bg: "bg-purple-400/10 text-purple-400", label: "Supervisor" };
     if (sdr) return { bg: "bg-sky-400/10 text-sky-400", label: "SDR" };
     if (posVenda) return { bg: "bg-orange-400/10 text-orange-400", label: "Pós Venda" };
+    if (tecnico) return { bg: "bg-teal-400/10 text-teal-400", label: "Técnico" };
     if (financeiro) return { bg: "bg-emerald-400/10 text-emerald-400", label: "Financeiro" };
     return { bg: "bg-lime-400/10 text-lime-400", label: "Vendedor" };
   };
@@ -173,8 +177,8 @@ export function Sidebar() {
 
         {/* Menu */}
         <nav className="px-3 py-4 space-y-1 overflow-y-auto" style={{ maxHeight: "calc(100vh - 220px)" }}>
-          {/* Menu Vendedor — SDR, POS_VENDA e FINANCEIRO NAO veem */}
-          {!sdr && !posVenda && !financeiro && (
+          {/* Menu Vendedor — SDR, POS_VENDA, FINANCEIRO e TECNICO NAO veem */}
+          {!sdr && !posVenda && !financeiro && !tecnico && (
             <>
               {admin && (
                 <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
@@ -216,6 +220,21 @@ export function Sidebar() {
                 [{ href: "/admin/pos-venda", label: "Visao Pos Venda", icon: ClipboardCheck }],
                 "text-orange-400",
                 "bg-orange-400/10"
+              )}
+            </>
+          )}
+
+          {/* Menu Setor Tecnico — TECNICO, POS_VENDA, ADMIN, DIRETOR */}
+          {canTecnico && (
+            <>
+              {!tecnico && <div className="my-3 border-t border-[#232a3b]" />}
+              <p className="px-3 text-xs font-semibold text-teal-400 uppercase tracking-wider mb-2">
+                Setor Técnico
+              </p>
+              {renderMenuSection(
+                [{ href: "/tecnico", label: "Setor Técnico", icon: Wrench }],
+                "text-teal-400",
+                "bg-teal-400/10"
               )}
             </>
           )}
