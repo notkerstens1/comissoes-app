@@ -3,12 +3,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
-import { isAdmin } from "@/lib/roles";
+import { isAdmin, isDiretor, canManageTeam } from "@/lib/roles";
 
-// GET - Listar vendedores (admin/diretor)
+// GET - Listar membros do time (admin/diretor/pos_venda)
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session || !isAdmin(session.user.role)) {
+  if (!session || !canManageTeam(session.user.role)) {
     return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
   }
 
@@ -28,15 +28,20 @@ export async function GET() {
   return NextResponse.json(vendedores);
 }
 
-// POST - Criar vendedor (admin/diretor)
+// POST - Criar membro do time (admin/diretor/pos_venda)
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions);
-  if (!session || !isAdmin(session.user.role)) {
+  if (!session || !canManageTeam(session.user.role)) {
     return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
   }
 
   const body = await request.json();
   const { nome, email, senha, role } = body;
+
+  // Somente DIRETOR pode criar usuarios com role DIRETOR
+  if (role === "DIRETOR" && !isDiretor(session.user.role)) {
+    return NextResponse.json({ error: "Somente o diretor pode criar outro diretor" }, { status: 403 });
+  }
 
   if (!nome || !email || !senha) {
     return NextResponse.json(

@@ -75,6 +75,14 @@ export function canAccessTecnico(role: string | undefined | null): boolean {
 }
 
 /**
+ * Verifica se o usuario pode acessar a pagina Time (gerenciar usuarios)
+ * ADMIN, DIRETOR e POS_VENDA podem acessar
+ */
+export function canManageTeam(role: string | undefined | null): boolean {
+  return role === "ADMIN" || role === "DIRETOR" || role === "POS_VENDA";
+}
+
+/**
  * Verifica se o usuario pode acessar area financeira (FINANCEIRO, ADMIN ou DIRETOR)
  */
 export function canAccessFinanceiro(role: string | undefined | null): boolean {

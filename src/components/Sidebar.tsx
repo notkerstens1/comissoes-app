@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { isAdmin as checkAdmin, isDiretor as checkDiretor, isSDR as checkSDR, isPosVenda as checkPosVenda, isFinanceiro as checkFinanceiro, isTecnico as checkTecnico, canAccessTecnico as checkCanAccessTecnico } from "@/lib/roles";
+import { isAdmin as checkAdmin, isDiretor as checkDiretor, isSDR as checkSDR, isPosVenda as checkPosVenda, isFinanceiro as checkFinanceiro, isTecnico as checkTecnico, canAccessTecnico as checkCanAccessTecnico, canManageTeam as checkCanManageTeam } from "@/lib/roles";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -46,6 +46,7 @@ export function Sidebar() {
   const financeiro = checkFinanceiro(userRole);
   const tecnico = checkTecnico(userRole);
   const canTecnico = checkCanAccessTecnico(userRole);
+  const canTeam = checkCanManageTeam(userRole);
 
   const menuVendedor = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -74,7 +75,6 @@ export function Sidebar() {
 
   const menuAdmin = [
     { href: "/admin", label: "Painel Supervisor", icon: Settings },
-    { href: "/admin/vendedores", label: "Vendedores", icon: Users },
     { href: "/admin/faixas", label: "Faixas", icon: Layers },
     { href: "/admin/configuracoes", label: "Configuracoes", icon: Settings },
   ];
@@ -284,10 +284,25 @@ export function Sidebar() {
             </>
           )}
 
+          {/* Menu Time — ADMIN, DIRETOR, POS_VENDA */}
+          {canTeam && (
+            <>
+              <div className="my-3 border-t border-[#232a3b]" />
+              <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Gestão
+              </p>
+              {renderMenuSection(
+                [{ href: "/admin/vendedores", label: "Time", icon: Users }],
+                "text-purple-400",
+                "bg-purple-400/10"
+              )}
+            </>
+          )}
+
           {/* Menu Admin */}
           {admin && (
             <>
-              <div className="my-3 border-t border-[#232a3b]" />
+              {!canTeam && <div className="my-3 border-t border-[#232a3b]" />}
               <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
                 Supervisor
               </p>

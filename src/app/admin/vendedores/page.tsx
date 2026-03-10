@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Plus, UserCheck, UserX, KeyRound, Trash2, X, AlertTriangle, Check } from "lucide-react";
 
 interface Vendedor {
@@ -13,6 +14,8 @@ interface Vendedor {
 }
 
 export default function VendedoresPage() {
+  const { data: session } = useSession();
+  const userRole = session?.user?.role;
   const [vendedores, setVendedores] = useState<Vendedor[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -133,6 +136,7 @@ export default function VendedoresPage() {
     if (r === "POS_VENDA") return "Pós Venda";
     if (r === "FINANCEIRO") return "Financeiro";
     if (r === "VENDEDOR_EXTERNO") return "Vend. Externo";
+    if (r === "TECNICO") return "Engenharia";
     return "Vendedor";
   };
 
@@ -142,6 +146,7 @@ export default function VendedoresPage() {
     if (r === "SDR") return "bg-sky-400/15 text-sky-400";
     if (r === "POS_VENDA") return "bg-orange-400/15 text-orange-400";
     if (r === "FINANCEIRO") return "bg-emerald-400/15 text-emerald-400";
+    if (r === "TECNICO") return "bg-teal-400/15 text-teal-400";
     return "bg-lime-400/15 text-lime-400";
   };
 
@@ -214,22 +219,22 @@ export default function VendedoresPage() {
 
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-100">Vendedores</h1>
-          <p className="text-gray-400">Gerencie sua equipe de vendas</p>
+          <h1 className="text-2xl font-bold text-gray-100">Time</h1>
+          <p className="text-gray-400">Gerencie sua equipe</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
           className="bg-lime-400 text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-lime-500 transition flex items-center gap-2 text-sm"
         >
           <Plus className="w-4 h-4" />
-          Novo Vendedor
+          Novo Membro
         </button>
       </div>
 
       {/* Formulario de criacao */}
       {showForm && (
         <div className="bg-[#1a1f2e] rounded-xl p-6 shadow-sm border border-[#232a3b]">
-          <h3 className="font-semibold text-gray-100 mb-4">Novo Vendedor</h3>
+          <h3 className="font-semibold text-gray-100 mb-4">Novo Membro</h3>
           <form onSubmit={criarVendedor} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -263,10 +268,15 @@ export default function VendedoresPage() {
                   className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none"
                 >
                   <option value="VENDEDOR">Vendedor</option>
+                  <option value="VENDEDOR_EXTERNO">Vendedor Externo</option>
                   <option value="SDR">SDR</option>
                   <option value="POS_VENDA">Pós Venda</option>
                   <option value="FINANCEIRO">Financeiro</option>
-                  <option value="ADMIN">Administrador</option>
+                  <option value="TECNICO">Engenharia</option>
+                  <option value="ADMIN">Supervisor</option>
+                  {userRole === "DIRETOR" && (
+                    <option value="DIRETOR">Diretor</option>
+                  )}
                 </select>
               </div>
             </div>

@@ -3,20 +3,25 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
-import { isAdmin } from "@/lib/roles";
+import { isAdmin, isDiretor, canManageTeam } from "@/lib/roles";
 
-// PUT - Atualizar vendedor (ativar/desativar, alterar dados)
+// PUT - Atualizar membro do time (ativar/desativar, alterar dados)
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions);
-  if (!session || !isAdmin(session.user.role)) {
+  if (!session || !canManageTeam(session.user.role)) {
     return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
   }
 
   const body = await request.json();
   const { nome, email, senha, role, ativo } = body;
+
+  // Somente DIRETOR pode alterar role para DIRETOR
+  if (role === "DIRETOR" && !isDiretor(session.user.role)) {
+    return NextResponse.json({ error: "Somente o diretor pode definir esse perfil" }, { status: 403 });
+  }
 
   const updateData: any = {};
   if (nome !== undefined) updateData.nome = nome;
@@ -46,7 +51,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions);
-  if (!session || !isAdmin(session.user.role)) {
+  if (!session || !canManageTeam(session.user.role)) {
     return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
   }
 
