@@ -31,6 +31,8 @@ export async function PUT(
     ultimoContato,
     proximoContato,
     anexos,
+    tarefas,
+    anotacoes,
   } = body;
 
   const data: any = {};
@@ -42,6 +44,8 @@ export async function PUT(
   if (ultimoContato !== undefined) data.ultimoContato = ultimoContato || null;
   if (proximoContato !== undefined) data.proximoContato = proximoContato || null;
   if (anexos !== undefined) data.anexos = anexos;
+  if (tarefas !== undefined) data.tarefas = tarefas;
+  if (anotacoes !== undefined) data.anotacoes = anotacoes?.trim() || null;
 
   // Historico de acoes: ao atualizar proximaAcao, salvar a anterior no historico
   if (proximaAcao !== undefined) {

@@ -18,6 +18,10 @@ import {
   Upload,
   FileText,
   Clock,
+  ListTodo,
+  PlusCircle,
+  MessageSquare,
+  Save,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import {
@@ -42,6 +46,8 @@ type PosVendaRegistro = {
   operador: { id: string; nome: string };
   anexos: string | null;
   historicoAcoes: string | null;
+  tarefas: string | null;
+  anotacoes: string | null;
 };
 
 type FormData = {
@@ -86,6 +92,13 @@ export default function PosVendaPage() {
   const [trocandoEtapaId, setTrocandoEtapaId] = useState<string | null>(null);
   const [novaEtapaSel, setNovaEtapaSel] = useState("");
   const [uploadingAnexoId, setUploadingAnexoId] = useState<string | null>(null);
+  // Tarefas
+  const [novaTarefaTexto, setNovaTarefaTexto] = useState<Record<string, string>>({});
+  const [filtroTarefa, setFiltroTarefa] = useState<Record<string, string>>({});
+  const [salvandoTarefa, setSalvandoTarefa] = useState<string | null>(null);
+  // Anotações
+  const [anotacoesEdit, setAnotacoesEdit] = useState<Record<string, string>>({});
+  const [salvandoAnotacao, setSalvandoAnotacao] = useState<string | null>(null);
 
   const hoje = new Date().toISOString().split("T")[0];
 
@@ -269,6 +282,90 @@ export default function PosVendaPage() {
       setUploadingAnexoId(null);
     }
   }
+
+  // ======= TAREFAS =======
+  type Tarefa = { id: string; descricao: string; status: string; criadoEm: string };
+
+  function getTarefas(r: PosVendaRegistro): Tarefa[] {
+    if (!r.tarefas) return [];
+    try { return JSON.parse(r.tarefas); } catch { return []; }
+  }
+
+  async function adicionarTarefa(r: PosVendaRegistro) {
+    const texto = (novaTarefaTexto[r.id] || "").trim();
+    if (!texto) return;
+    setSalvandoTarefa(r.id);
+    const tarefasAtuais = getTarefas(r);
+    tarefasAtuais.push({
+      id: Date.now().toString(),
+      descricao: texto,
+      status: "PENDENTE",
+      criadoEm: hoje,
+    });
+    try {
+      await fetch(`/api/pos-venda/${r.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tarefas: JSON.stringify(tarefasAtuais) }),
+      });
+      setNovaTarefaTexto((p) => ({ ...p, [r.id]: "" }));
+      await fetchRegistros();
+    } finally {
+      setSalvandoTarefa(null);
+    }
+  }
+
+  async function alterarStatusTarefa(r: PosVendaRegistro, tarefaId: string, novoStatus: string) {
+    setSalvandoTarefa(r.id);
+    const tarefasAtuais = getTarefas(r).map((t) =>
+      t.id === tarefaId ? { ...t, status: novoStatus } : t
+    );
+    try {
+      await fetch(`/api/pos-venda/${r.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tarefas: JSON.stringify(tarefasAtuais) }),
+      });
+      await fetchRegistros();
+    } finally {
+      setSalvandoTarefa(null);
+    }
+  }
+
+  async function removerTarefa(r: PosVendaRegistro, tarefaId: string) {
+    setSalvandoTarefa(r.id);
+    const tarefasAtuais = getTarefas(r).filter((t) => t.id !== tarefaId);
+    try {
+      await fetch(`/api/pos-venda/${r.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tarefas: JSON.stringify(tarefasAtuais) }),
+      });
+      await fetchRegistros();
+    } finally {
+      setSalvandoTarefa(null);
+    }
+  }
+
+  async function salvarAnotacoes(r: PosVendaRegistro) {
+    setSalvandoAnotacao(r.id);
+    try {
+      await fetch(`/api/pos-venda/${r.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ anotacoes: anotacoesEdit[r.id] ?? r.anotacoes ?? "" }),
+      });
+      await fetchRegistros();
+    } finally {
+      setSalvandoAnotacao(null);
+    }
+  }
+
+  const STATUS_CORES: Record<string, { bg: string; text: string; label: string }> = {
+    PENDENTE: { bg: "bg-amber-400/15", text: "text-amber-400", label: "#pendente" },
+    FAZENDO: { bg: "bg-sky-400/15", text: "text-sky-400", label: "#fazendo" },
+    FINALIZADO: { bg: "bg-emerald-400/15", text: "text-emerald-400", label: "#finalizado" },
+  };
 
   // Filtrar registros: primeiro por período, depois por etapa
   let clientesFiltrados = registros;
@@ -612,32 +709,158 @@ export default function PosVendaPage() {
                           </div>
                         )}
 
-                        {/* Histórico de Ações */}
+                        {/* Tarefas */}
                         {(() => {
-                          const historico: { data: string; acao: string }[] = r.historicoAcoes
-                            ? JSON.parse(r.historicoAcoes)
-                            : [];
-                          if (historico.length === 0) return null;
-                          const historicoOrdenado = [...historico].reverse();
+                          const tarefas = getTarefas(r);
+                          const filtroAtual = filtroTarefa[r.id] || "TODOS";
+                          const tarefasFiltradas = filtroAtual === "TODOS"
+                            ? tarefas
+                            : tarefas.filter((t) => t.status === filtroAtual);
+                          const countPendente = tarefas.filter((t) => t.status === "PENDENTE").length;
+                          const countFazendo = tarefas.filter((t) => t.status === "FAZENDO").length;
+                          const countFinalizado = tarefas.filter((t) => t.status === "FINALIZADO").length;
+
                           return (
                             <div className="mb-4 p-3 bg-[#141820] rounded-lg border border-[#232a3b]">
-                              <p className="text-xs text-gray-500 font-semibold uppercase mb-2 flex items-center gap-1.5">
-                                <Clock className="w-3.5 h-3.5" />
-                                Ações Anteriores
+                              <p className="text-xs text-gray-500 font-semibold uppercase mb-3 flex items-center gap-1.5">
+                                <ListTodo className="w-3.5 h-3.5" />
+                                Tarefas
                               </p>
-                              <div className="space-y-1.5">
-                                {historicoOrdenado.map((h, idx) => (
-                                  <div key={idx} className="flex items-start gap-2 text-sm">
-                                    <span className="text-gray-500 text-xs mt-0.5 shrink-0">
-                                      {formatDate(h.data)}
-                                    </span>
-                                    <span className="text-gray-400">{h.acao}</span>
-                                  </div>
-                                ))}
+
+                              {/* Filtros de status */}
+                              <div className="flex gap-1.5 mb-3 flex-wrap">
+                                <button
+                                  onClick={() => setFiltroTarefa((p) => ({ ...p, [r.id]: "TODOS" }))}
+                                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                                    filtroAtual === "TODOS"
+                                      ? "bg-orange-400/20 text-orange-400"
+                                      : "bg-[#232a3b] text-gray-400 hover:bg-[#2a3040]"
+                                  }`}
+                                >
+                                  Todos ({tarefas.length})
+                                </button>
+                                <button
+                                  onClick={() => setFiltroTarefa((p) => ({ ...p, [r.id]: "PENDENTE" }))}
+                                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                                    filtroAtual === "PENDENTE"
+                                      ? "bg-amber-400/20 text-amber-400"
+                                      : "bg-[#232a3b] text-gray-400 hover:bg-[#2a3040]"
+                                  }`}
+                                >
+                                  #pendente ({countPendente})
+                                </button>
+                                <button
+                                  onClick={() => setFiltroTarefa((p) => ({ ...p, [r.id]: "FAZENDO" }))}
+                                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                                    filtroAtual === "FAZENDO"
+                                      ? "bg-sky-400/20 text-sky-400"
+                                      : "bg-[#232a3b] text-gray-400 hover:bg-[#2a3040]"
+                                  }`}
+                                >
+                                  #fazendo ({countFazendo})
+                                </button>
+                                <button
+                                  onClick={() => setFiltroTarefa((p) => ({ ...p, [r.id]: "FINALIZADO" }))}
+                                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                                    filtroAtual === "FINALIZADO"
+                                      ? "bg-emerald-400/20 text-emerald-400"
+                                      : "bg-[#232a3b] text-gray-400 hover:bg-[#2a3040]"
+                                  }`}
+                                >
+                                  #finalizado ({countFinalizado})
+                                </button>
+                              </div>
+
+                              {/* Lista de tarefas */}
+                              {tarefasFiltradas.length > 0 ? (
+                                <div className="space-y-2 mb-3 max-h-48 overflow-y-auto pr-1">
+                                  {tarefasFiltradas.map((t) => {
+                                    const cor = STATUS_CORES[t.status] || STATUS_CORES.PENDENTE;
+                                    return (
+                                      <div
+                                        key={t.id}
+                                        className="flex items-center gap-2 bg-[#0b0f19] rounded-lg px-3 py-2 border border-[#232a3b]"
+                                      >
+                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cor.bg} ${cor.text} shrink-0`}>
+                                          {cor.label}
+                                        </span>
+                                        <span className={`text-sm flex-1 ${t.status === "FINALIZADO" ? "text-gray-500 line-through" : "text-gray-300"}`}>
+                                          {t.descricao}
+                                        </span>
+                                        <select
+                                          value={t.status}
+                                          onChange={(e) => alterarStatusTarefa(r, t.id, e.target.value)}
+                                          disabled={salvandoTarefa === r.id}
+                                          className="bg-[#141820] border border-[#232a3b] rounded-md px-1.5 py-1 text-xs text-gray-300 outline-none cursor-pointer"
+                                        >
+                                          <option value="PENDENTE">Pendente</option>
+                                          <option value="FAZENDO">Fazendo</option>
+                                          <option value="FINALIZADO">Finalizado</option>
+                                        </select>
+                                        <button
+                                          onClick={() => removerTarefa(r, t.id)}
+                                          disabled={salvandoTarefa === r.id}
+                                          className="text-gray-600 hover:text-red-400 transition"
+                                          title="Remover tarefa"
+                                        >
+                                          <X className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-gray-600 mb-3">
+                                  {tarefas.length === 0 ? "Nenhuma tarefa criada" : "Nenhuma tarefa neste filtro"}
+                                </p>
+                              )}
+
+                              {/* Adicionar nova tarefa */}
+                              <div className="flex gap-2">
+                                <input
+                                  value={novaTarefaTexto[r.id] || ""}
+                                  onChange={(e) => setNovaTarefaTexto((p) => ({ ...p, [r.id]: e.target.value }))}
+                                  onKeyDown={(e) => { if (e.key === "Enter") adicionarTarefa(r); }}
+                                  placeholder="Nova tarefa..."
+                                  className="flex-1 bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:border-orange-400 outline-none"
+                                />
+                                <button
+                                  onClick={() => adicionarTarefa(r)}
+                                  disabled={salvandoTarefa === r.id || !(novaTarefaTexto[r.id] || "").trim()}
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-orange-400/10 text-orange-400 border border-orange-400/30 rounded-lg text-xs font-semibold hover:bg-orange-400/20 disabled:opacity-40 transition"
+                                >
+                                  <PlusCircle className="w-3.5 h-3.5" />
+                                  Adicionar
+                                </button>
                               </div>
                             </div>
                           );
                         })()}
+
+                        {/* Anotações */}
+                        <div className="mb-4 p-3 bg-[#141820] rounded-lg border border-[#232a3b]">
+                          <p className="text-xs text-gray-500 font-semibold uppercase mb-2 flex items-center gap-1.5">
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            Anotações
+                          </p>
+                          <textarea
+                            value={anotacoesEdit[r.id] !== undefined ? anotacoesEdit[r.id] : (r.anotacoes || "")}
+                            onChange={(e) => setAnotacoesEdit((p) => ({ ...p, [r.id]: e.target.value }))}
+                            placeholder="Anotações pertinentes sobre este cliente..."
+                            rows={3}
+                            className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none resize-none"
+                          />
+                          {(anotacoesEdit[r.id] !== undefined && anotacoesEdit[r.id] !== (r.anotacoes || "")) && (
+                            <button
+                              onClick={() => salvarAnotacoes(r)}
+                              disabled={salvandoAnotacao === r.id}
+                              className="mt-2 flex items-center gap-1.5 px-3 py-1.5 bg-orange-400 text-gray-900 rounded-lg text-xs font-semibold hover:bg-orange-300 disabled:opacity-50 transition"
+                            >
+                              <Save className="w-3.5 h-3.5" />
+                              {salvandoAnotacao === r.id ? "Salvando..." : "Salvar Anotações"}
+                            </button>
+                          )}
+                        </div>
 
                         {/* Anexos */}
                         <div className="mb-4 p-3 bg-[#141820] rounded-lg border border-[#232a3b]">

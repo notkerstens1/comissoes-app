@@ -275,8 +275,12 @@ model PosVenda {
   proximoContato   String?  // "YYYY-MM-DD"
   // Anexos (JSON array: [{nome, url, data}])
   anexos           String?
-  // Historico de acoes anteriores (JSON array: [{data, acao}])
+  // Historico de acoes anteriores (JSON array: [{data, acao}]) — legado
   historicoAcoes   String?
+  // Tarefas (JSON array: [{id, descricao, status, criadoEm}]) status: PENDENTE|FAZENDO|FINALIZADO
+  tarefas          String?
+  // Anotacoes livres do operador pos-venda
+  anotacoes        String?
   // Controle
   ativo            Boolean  @default(true)
   createdAt        DateTime @default(now())
