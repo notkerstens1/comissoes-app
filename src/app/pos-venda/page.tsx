@@ -292,6 +292,29 @@ export default function PosVendaPage() {
     }
   }
 
+  async function handleRemoveAnexo(r: PosVendaRegistro, idx: number) {
+    if (!confirm("Excluir este anexo?")) return;
+    try {
+      const anexos: { nome: string; url: string; data: string }[] = r.anexos
+        ? JSON.parse(r.anexos)
+        : [];
+      anexos.splice(idx, 1);
+      const res = await fetch(`/api/pos-venda/${r.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ anexos: JSON.stringify(anexos) }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || "Erro ao excluir anexo");
+        return;
+      }
+      await fetchRegistros();
+    } catch {
+      setErroMsg("Erro ao excluir anexo");
+    }
+  }
+
   // ======= TAREFAS =======
   type Tarefa = { id: string; descricao: string; status: string; criadoEm: string };
 
@@ -1029,6 +1052,13 @@ export default function PosVendaPage() {
                                     >
                                       <Download className="w-3.5 h-3.5" />
                                     </a>
+                                    <button
+                                      onClick={() => handleRemoveAnexo(r, idx)}
+                                      className="flex items-center gap-1 px-2 py-1 rounded text-xs text-red-400 hover:bg-red-400/10 border border-red-400/30 transition shrink-0"
+                                      title="Excluir"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
                                   </div>
                                 ))}
                               </div>
