@@ -21,6 +21,8 @@ import {
   User,
   Clock,
   Zap,
+  MessageSquare,
+  Send,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { canAccessTecnico } from "@/lib/roles";
@@ -44,6 +46,13 @@ type HistoricoAcao = {
   acao: string;
 };
 
+type Comentario = {
+  id: string;
+  autor: string;
+  texto: string;
+  criadoEm: string;
+};
+
 type RegistroTecnico = {
   id: string;
   nomeCliente: string;
@@ -55,6 +64,7 @@ type RegistroTecnico = {
   proximaAcao: string | null;
   historicoAcoes: string | null;
   anexos: string | null;
+  comentarios: string | null;
   venda: {
     id: string;
     cliente: string;
@@ -127,6 +137,16 @@ function parseHistorico(raw: string | null): HistoricoAcao[] {
   }
 }
 
+function parseComentarios(raw: string | null): Comentario[] {
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function SetorTecnicoPage() {
   const { data: session, status } = useSession();
   const [registros, setRegistros] = useState<RegistroTecnico[]>([]);
@@ -142,6 +162,8 @@ export default function SetorTecnicoPage() {
   const [novaEtapaSel, setNovaEtapaSel] = useState("");
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [novoComentario, setNovoComentario] = useState<Record<string, string>>({});
+  const [salvandoComentario, setSalvandoComentario] = useState<string | null>(null);
 
   const fetchRegistros = useCallback(async () => {
     setLoading(true);
@@ -348,6 +370,38 @@ export default function SetorTecnicoPage() {
     }
   }
 
+  async function handleAdicionarComentario(r: RegistroTecnico) {
+    const texto = novoComentario[r.id]?.trim();
+    if (!texto) return;
+    setSalvandoComentario(r.id);
+    try {
+      const comentariosAtuais = parseComentarios(r.comentarios);
+      const novo: Comentario = {
+        id: crypto.randomUUID(),
+        autor: session?.user?.name || "Engenheiro",
+        texto,
+        criadoEm: new Date().toISOString(),
+      };
+      const comentariosAtualizados = [...comentariosAtuais, novo];
+      const res = await fetch(`/api/setor-tecnico/${r.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ comentarios: JSON.stringify(comentariosAtualizados) }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || "Erro ao salvar comentario");
+        return;
+      }
+      setNovoComentario((p) => ({ ...p, [r.id]: "" }));
+      await fetchRegistros();
+    } catch {
+      setErroMsg("Erro ao salvar comentario");
+    } finally {
+      setSalvandoComentario(null);
+    }
+  }
+
   // Filter registros by etapa
   let clientesFiltrados = registros;
   if (filterEtapa) {
@@ -511,6 +565,7 @@ export default function SetorTecnicoPage() {
                 const cores = ETAPA_TECNICO_CORES[r.etapa] ?? { bg: "bg-gray-400/10", text: "text-gray-400", border: "border-gray-400/30" };
                 const anexos = parseAnexos(r.anexos);
                 const historico = parseHistorico(r.historicoAcoes);
+                const comentarios = parseComentarios(r.comentarios);
                 const proximaEtapa = getProximaEtapaTecnico(r.etapa);
 
                 return (
@@ -709,6 +764,58 @@ export default function SetorTecnicoPage() {
                               ))}
                             </div>
                           )}
+                        </div>
+
+                        {/* Comentarios */}
+                        <div className="mb-4">
+                          <p className="text-xs text-gray-500 font-semibold uppercase mb-2 flex items-center gap-1.5">
+                            <MessageSquare className="w-3.5 h-3.5" />
+                            Comentários ({comentarios.length})
+                          </p>
+                          {comentarios.length > 0 && (
+                            <div className="space-y-2 mb-3 max-h-60 overflow-y-auto">
+                              {comentarios.map((c) => (
+                                <div
+                                  key={c.id}
+                                  className="p-3 bg-[#141820] rounded-lg border border-[#232a3b]"
+                                >
+                                  <div className="flex items-center justify-between mb-1">
+                                    <span className="text-xs font-semibold text-teal-400">
+                                      {c.autor}
+                                    </span>
+                                    <span className="text-xs text-gray-500">
+                                      {formatDate(c.criadoEm)}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm text-gray-300">{c.texto}</p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <div className="flex gap-2">
+                            <input
+                              value={novoComentario[r.id] || ""}
+                              onChange={(e) =>
+                                setNovoComentario((p) => ({ ...p, [r.id]: e.target.value }))
+                              }
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                  e.preventDefault();
+                                  handleAdicionarComentario(r);
+                                }
+                              }}
+                              className="flex-1 bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-teal-400 outline-none"
+                              placeholder="Escreva um comentário..."
+                            />
+                            <button
+                              onClick={() => handleAdicionarComentario(r)}
+                              disabled={salvandoComentario === r.id || !novoComentario[r.id]?.trim()}
+                              className="flex items-center gap-1.5 px-3 py-2 bg-teal-400 text-gray-900 rounded-lg text-sm font-medium hover:bg-teal-300 disabled:opacity-50 transition"
+                            >
+                              <Send className="w-3.5 h-3.5" />
+                              {salvandoComentario === r.id ? "..." : "Enviar"}
+                            </button>
+                          </div>
                         </div>
 
                         {/* Botoes */}

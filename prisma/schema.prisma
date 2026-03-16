@@ -266,7 +266,7 @@ model PosVenda {
   venda            Venda?   @relation(fields: [vendaId], references: [id])
   // Etapa atual do funil pos-venda
   etapa            String   @default("TRAMITES")
-  // "TRAMITES" | "AGUARDANDO_MATERIAL" | "VISITA_TECNICA" | "AGUARDANDO_VISTORIA" | "POS_ATIVACAO" | "CONCLUIDA"
+  // "TRAMITES" | "AGUARDANDO_MATERIAL" | "VISITA_TECNICA" | "AGUARDANDO_VISTORIA" | "CADASTRAR_APP" | "ACOMPANHAMENTO_30" | "CLIENTE_FINALIZADO" | "MANUTENCOES"
   // Acompanhamento
   ultimaAcao       String?
   proximaAcao      String?
@@ -307,6 +307,8 @@ model SetorTecnico {
   historicoAcoes   String?
   // Anexos (JSON array: [{nome, url, data}])
   anexos           String?
+  // Comentarios do engenheiro (JSON array: [{id, autor, texto, criadoEm}])
+  comentarios      String?
   // Controle
   ativo            Boolean  @default(true)
   createdAt        DateTime @default(now())

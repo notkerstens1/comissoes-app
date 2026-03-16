@@ -442,7 +442,7 @@ export default function AdminPosVendaPage() {
 
                         {/* Botões */}
                         <div className="flex flex-wrap gap-2">
-                          {r.etapa !== "CONCLUIDA" && trocandoEtapaId !== r.id && (
+                          {r.etapa !== "CLIENTE_FINALIZADO" && r.etapa !== "MANUTENCOES" && trocandoEtapaId !== r.id && (
                             <button
                               onClick={() => handleAvancar(r)}
                               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-400/10 text-orange-400 text-sm font-semibold rounded-lg border border-orange-400/30 hover:bg-orange-400/20 transition"

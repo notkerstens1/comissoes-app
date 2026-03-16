@@ -20,7 +20,7 @@ export async function PUT(
   if (!registro) return NextResponse.json({ error: "Registro nao encontrado" }, { status: 404 });
 
   const body = await request.json();
-  const { nomeCliente, telefone, etapa, observacoes, ultimaAcao, proximaAcao, anexos } = body;
+  const { nomeCliente, telefone, etapa, observacoes, ultimaAcao, proximaAcao, anexos, comentarios } = body;
 
   const data: any = {};
 
@@ -30,6 +30,7 @@ export async function PUT(
   if (observacoes !== undefined) data.observacoes = observacoes?.trim() || null;
   if (ultimaAcao !== undefined) data.ultimaAcao = ultimaAcao?.trim() || null;
   if (anexos !== undefined) data.anexos = anexos;
+  if (comentarios !== undefined) data.comentarios = comentarios;
 
   // Historico de acoes: ao atualizar proximaAcao, salvar a anterior no historico
   if (proximaAcao !== undefined) {

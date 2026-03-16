@@ -12,8 +12,10 @@ export const ETAPAS_POS_VENDA = [
   { key: "INSTALACAO",         label: "Instalação",            cor: "violet",  ordem: 7  },
   { key: "AGUARDANDO_VISTORIA",label: "Aguardando Vistoria",   cor: "rose",    ordem: 8  },
   { key: "SISTEMA_OPERACAO",   label: "Sistema em Operação",   cor: "blue",    ordem: 9  },
-  { key: "POS_ATIVACAO",       label: "Pós-Ativação",          cor: "emerald", ordem: 10 },
-  { key: "CONCLUIDA",          label: "Concluído",             cor: "gray",    ordem: 11 },
+  { key: "CADASTRAR_APP",      label: "Cadastrar no App",       cor: "emerald", ordem: 10 },
+  { key: "ACOMPANHAMENTO_30",  label: "Acompanhamento 30 dias", cor: "teal",   ordem: 11 },
+  { key: "CLIENTE_FINALIZADO", label: "Cliente Finalizado",     cor: "gray",    ordem: 12 },
+  { key: "MANUTENCOES",        label: "Manutenções",            cor: "slate",   ordem: 13 },
 ] as const;
 
 export type EtapaPosVenda = (typeof ETAPAS_POS_VENDA)[number]["key"];
@@ -28,7 +30,7 @@ export function getEtapaOrdem(key: string): number {
 
 export function getProximaEtapa(key: string): EtapaPosVenda | null {
   const atual = ETAPAS_POS_VENDA.find((e) => e.key === key);
-  if (!atual || atual.ordem >= 11) return null;
+  if (!atual || atual.ordem >= 13) return null;
   return (ETAPAS_POS_VENDA.find((e) => e.ordem === atual.ordem + 1)?.key ?? null) as EtapaPosVenda | null;
 }
 
@@ -43,6 +45,8 @@ export const ETAPA_CORES: Record<string, { bg: string; text: string; border: str
   INSTALACAO:          { bg: "bg-violet-400/10",  text: "text-violet-400",  border: "border-violet-400/30"  },
   AGUARDANDO_VISTORIA: { bg: "bg-rose-400/10",    text: "text-rose-400",    border: "border-rose-400/30"    },
   SISTEMA_OPERACAO:    { bg: "bg-blue-400/10",    text: "text-blue-400",    border: "border-blue-400/30"    },
-  POS_ATIVACAO:        { bg: "bg-emerald-400/10", text: "text-emerald-400", border: "border-emerald-400/30" },
-  CONCLUIDA:           { bg: "bg-gray-400/10",    text: "text-gray-400",    border: "border-gray-400/30"    },
+  CADASTRAR_APP:       { bg: "bg-emerald-400/10", text: "text-emerald-400", border: "border-emerald-400/30" },
+  ACOMPANHAMENTO_30:   { bg: "bg-teal-400/10",    text: "text-teal-400",    border: "border-teal-400/30"    },
+  CLIENTE_FINALIZADO:  { bg: "bg-gray-400/10",    text: "text-gray-400",    border: "border-gray-400/30"    },
+  MANUTENCOES:         { bg: "bg-slate-400/10",   text: "text-slate-400",   border: "border-slate-400/30"   },
 };
