@@ -22,6 +22,8 @@ import {
   PlusCircle,
   MessageSquare,
   Save,
+  Download,
+  Eye,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import {
@@ -881,17 +883,37 @@ export default function PosVendaPage() {
                                     className="flex items-center gap-2 text-sm"
                                   >
                                     <FileText className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                                    <a
-                                      href={a.url}
-                                      download={a.nome}
-                                      className="text-orange-400 hover:text-orange-300 underline underline-offset-2 truncate"
-                                      title={a.nome}
-                                    >
+                                    <span className="text-orange-400 truncate flex-1" title={a.nome}>
                                       {a.nome}
-                                    </a>
+                                    </span>
                                     <span className="text-gray-500 text-xs shrink-0">
                                       {formatDate(a.data)}
                                     </span>
+                                    <button
+                                      onClick={() => {
+                                        const w = window.open("", "_blank");
+                                        if (w) {
+                                          if (a.url.startsWith("data:application/pdf") || a.nome.toLowerCase().endsWith(".pdf")) {
+                                            w.document.write(`<iframe src="${a.url}" style="width:100%;height:100%;border:none;position:fixed;top:0;left:0;" />`);
+                                          } else {
+                                            w.document.write(`<img src="${a.url}" style="max-width:100%;height:auto;margin:auto;display:block;" />`);
+                                          }
+                                          w.document.title = a.nome;
+                                        }
+                                      }}
+                                      className="flex items-center gap-1 px-2 py-1 rounded text-xs text-sky-400 hover:bg-sky-400/10 border border-sky-400/30 transition shrink-0"
+                                      title="Visualizar"
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                    </button>
+                                    <a
+                                      href={a.url}
+                                      download={a.nome}
+                                      className="flex items-center gap-1 px-2 py-1 rounded text-xs text-orange-400 hover:bg-orange-400/10 border border-orange-400/30 transition shrink-0"
+                                      title="Baixar"
+                                    >
+                                      <Download className="w-3.5 h-3.5" />
+                                    </a>
                                   </div>
                                 ))}
                               </div>
