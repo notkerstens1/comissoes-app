@@ -23,6 +23,8 @@ import {
   Zap,
   MessageSquare,
   Send,
+  Eye,
+  Upload,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { canAccessTecnico } from "@/lib/roles";
@@ -402,6 +404,27 @@ export default function SetorTecnicoPage() {
     }
   }
 
+  async function handleRemoveAnexo(r: RegistroTecnico, idx: number) {
+    if (!confirm("Excluir este anexo?")) return;
+    try {
+      const anexosAtuais = parseAnexos(r.anexos);
+      anexosAtuais.splice(idx, 1);
+      const res = await fetch(`/api/setor-tecnico/${r.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ anexos: JSON.stringify(anexosAtuais) }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || "Erro ao excluir anexo");
+        return;
+      }
+      await fetchRegistros();
+    } catch {
+      setErroMsg("Erro ao excluir anexo");
+    }
+  }
+
   // Filter registros by etapa
   let clientesFiltrados = registros;
   if (filterEtapa) {
@@ -752,14 +775,38 @@ export default function SetorTecnicoPage() {
                                   <span className="text-xs text-gray-500 whitespace-nowrap">
                                     {formatDate(a.data)}
                                   </span>
+                                  <button
+                                    onClick={() => {
+                                      const w = window.open("", "_blank");
+                                      if (w) {
+                                        if (a.url.startsWith("data:application/pdf") || a.nome.toLowerCase().endsWith(".pdf")) {
+                                          w.document.write(`<iframe src="${a.url}" style="width:100%;height:100%;border:none;position:fixed;top:0;left:0;" />`);
+                                        } else {
+                                          w.document.write(`<img src="${a.url}" style="max-width:100%;height:auto;margin:auto;display:block;" />`);
+                                        }
+                                        w.document.title = a.nome;
+                                      }
+                                    }}
+                                    className="flex items-center gap-1 px-2 py-1 rounded text-xs text-sky-400 hover:bg-sky-400/10 border border-sky-400/30 transition shrink-0"
+                                    title="Visualizar"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </button>
                                   <a
                                     href={a.url}
                                     download={a.nome}
-                                    className="flex items-center gap-1 px-2 py-1 rounded text-xs text-teal-400 hover:bg-teal-400/10 transition"
+                                    className="flex items-center gap-1 px-2 py-1 rounded text-xs text-teal-400 hover:bg-teal-400/10 border border-teal-400/30 transition shrink-0"
+                                    title="Baixar"
                                   >
                                     <Download className="w-3.5 h-3.5" />
-                                    Baixar
                                   </a>
+                                  <button
+                                    onClick={() => handleRemoveAnexo(r, i)}
+                                    className="flex items-center gap-1 px-2 py-1 rounded text-xs text-red-400 hover:bg-red-400/10 border border-red-400/30 transition shrink-0"
+                                    title="Excluir"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
                                 </div>
                               ))}
                             </div>
