@@ -123,14 +123,16 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
     setMargemAlterada(nova !== Math.round(venda.margem * 100) / 100);
   };
 
-  const novoValorVenda = venda ? novaMargem * venda.custoEquipamentos : 0;
-  const variacaoValorVenda = venda ? novoValorVenda - venda.valorVenda : 0;
-  // Over = diferença entre valor original e novo valor (o que o vendedor "abre mão")
-  const overExcecao = venda ? Math.max(venda.valorVenda - novoValorVenda, 0) : 0;
-  // Comissão do vendedor: 35% sobre o over
+  // Over = valorVenda - (custoEquip × margem aplicada)
+  // Valor da venda e equipamento NÃO mudam; a margem define o threshold do over
+  const overExcecao = venda ? Math.max(venda.valorVenda - venda.custoEquipamentos * novaMargem, 0) : 0;
+  // Comissão do vendedor: 35% sobre o over + 2.5% sobre valor da venda
   const comissaoOverVendedor = overExcecao * 0.35;
-  // Repasse LIV = lucro líquido estimado com o novo valor de venda
-  const repasseLIV = venda ? novoValorVenda - venda.custoEquipamentos - (venda.custoInstalacao + venda.custoVisitaTecnica + venda.custoCosern + venda.custoTrtCrea + venda.custoEngenheiro + venda.custoMaterialCA + venda.custoImposto + (venda.comissaoVendedor ?? 0)) : 0;
+  const comissaoVendaVendedor = venda ? venda.valorVenda * 0.025 : 0;
+  const comissaoTotalVendedor = comissaoOverVendedor + comissaoVendaVendedor;
+  // Repasse LIV = valorVenda - equipamento - custos operacionais - comissão total vendedor
+  const custosOperacionais = venda ? (venda.custoInstalacao + venda.custoVisitaTecnica + venda.custoCosern + venda.custoTrtCrea + venda.custoEngenheiro + venda.custoMaterialCA + venda.custoImposto) : 0;
+  const repasseLIV = venda ? venda.valorVenda - venda.custoEquipamentos - custosOperacionais - comissaoTotalVendedor : 0;
 
   const salvarCustos = async () => {
     if (!venda) return;
@@ -279,26 +281,24 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
             </div>
 
             <div className="text-center flex-1">
-              <p className="text-xs text-gray-500 mb-1">Novo valor venda</p>
-              <p className={`text-lg font-bold ${margemAlterada ? "text-amber-400" : "text-gray-400"}`}>
-                {formatCurrency(novoValorVenda)}
-              </p>
-              <p className={`text-xs ${variacaoValorVenda > 0 ? "text-lime-400" : variacaoValorVenda < 0 ? "text-rose-400" : "text-gray-500"}`}>
-                {variacaoValorVenda !== 0 ? (variacaoValorVenda > 0 ? "+" : "") + formatCurrency(variacaoValorVenda) : "sem alteracao"}
+              <p className="text-xs text-gray-500 mb-1">Over</p>
+              <p className={`text-lg font-bold ${margemAlterada && overExcecao > 0 ? "text-amber-400" : "text-gray-400"}`}>
+                {formatCurrency(overExcecao)}
               </p>
             </div>
           </div>
 
-          {/* Over e Comissao da exceção */}
+          {/* Detalhamento da exceção */}
           {margemAlterada && overExcecao > 0 && (
             <div className="grid grid-cols-3 gap-3 mb-4">
               <div className="bg-[#0d1117] rounded-lg p-3 text-center">
-                <p className="text-[10px] text-gray-500 uppercase font-semibold">Over</p>
-                <p className="text-sm font-bold text-amber-400 mt-0.5">{formatCurrency(overExcecao)}</p>
+                <p className="text-[10px] text-gray-500 uppercase font-semibold">Comissao Over (35%)</p>
+                <p className="text-sm font-bold text-amber-400 mt-0.5">{formatCurrency(comissaoOverVendedor)}</p>
               </div>
               <div className="bg-[#0d1117] rounded-lg p-3 text-center">
-                <p className="text-[10px] text-gray-500 uppercase font-semibold">Comissao (35%)</p>
-                <p className="text-sm font-bold text-lime-400 mt-0.5">{formatCurrency(comissaoOverVendedor)}</p>
+                <p className="text-[10px] text-gray-500 uppercase font-semibold">Comissao Total</p>
+                <p className="text-sm font-bold text-lime-400 mt-0.5">{formatCurrency(comissaoTotalVendedor)}</p>
+                <p className="text-[9px] text-gray-500 mt-0.5">35% over + 2,5% venda</p>
               </div>
               <div className="bg-[#0d1117] rounded-lg p-3 text-center">
                 <p className="text-[10px] text-gray-500 uppercase font-semibold">Repasse LIV</p>

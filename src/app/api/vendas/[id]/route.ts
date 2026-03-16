@@ -78,28 +78,33 @@ export async function PUT(
   }
 
   // ── ADMIN ou DIRETOR: ajuste direto de margem ──
-  // Equipamentos permanecem fixos; valor da venda é recalculado
+  // Valor da venda e equipamento NÃO mudam.
+  // A margem define o threshold do over: over = valorVenda - (custoEquip × margem)
   if (isAdmin(session.user.role) && novaMargem !== undefined) {
     if (novaMargem <= 0) {
       return NextResponse.json({ error: "Margem invalida" }, { status: 400 });
     }
-    const novoValorVenda = novaMargem * vendaAtual.custoEquipamentos;
-    const aliquota = vendaAtual.aliquotaImposto ?? 0.06;
-    const novoCustoImposto = Math.max(novoValorVenda - vendaAtual.custoEquipamentos, 0) * aliquota;
-    const comissaoUsada = vendaAtual.comissaoVendedorCusto ?? vendaAtual.comissaoTotal;
+    const over = Math.max(vendaAtual.valorVenda - vendaAtual.custoEquipamentos * novaMargem, 0);
+    const comissaoOver = over * 0.35;
+    const comissaoVenda = vendaAtual.valorVenda * (vendaAtual.percentualComissaoOverride ?? 0.025);
+    const novaComissaoTotal = comissaoOver + comissaoVenda;
+
     const outrosCustos =
       (vendaAtual.custoInstalacao ?? 0) +
       (vendaAtual.custoVisitaTecnica ?? 0) +
       (vendaAtual.custoCosern ?? 0) +
       (vendaAtual.custoTrtCrea ?? 0) +
       (vendaAtual.custoEngenheiro ?? 0) +
-      (vendaAtual.custoMaterialCA ?? 0);
-    const novoLucro = novoValorVenda - vendaAtual.custoEquipamentos - novoCustoImposto - outrosCustos - comissaoUsada;
-    const novaMargemLucro = novoValorVenda > 0 ? novoLucro / novoValorVenda : 0;
+      (vendaAtual.custoMaterialCA ?? 0) +
+      (vendaAtual.custoImposto ?? 0);
+    const novoLucro = vendaAtual.valorVenda - vendaAtual.custoEquipamentos - outrosCustos - novaComissaoTotal;
+    const novaMargemLucro = vendaAtual.valorVenda > 0 ? novoLucro / vendaAtual.valorVenda : 0;
 
     updateData.margem = novaMargem;
-    updateData.valorVenda = novoValorVenda;
-    updateData.custoImposto = novoCustoImposto;
+    updateData.comissaoOver = comissaoOver;
+    updateData.comissaoVenda = comissaoVenda;
+    updateData.comissaoTotal = novaComissaoTotal;
+    updateData.comissaoVendedorCusto = novaComissaoTotal;
     updateData.lucroLiquido = novoLucro;
     updateData.margemLucroLiquido = novaMargemLucro;
   }
