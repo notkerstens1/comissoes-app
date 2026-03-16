@@ -125,6 +125,10 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
 
   const novoValorVenda = venda ? novaMargem * venda.custoEquipamentos : 0;
   const variacaoValorVenda = venda ? novoValorVenda - venda.valorVenda : 0;
+  // Over = diferença entre valor original e novo valor (o que o vendedor "abre mão")
+  const overExcecao = venda ? Math.max(venda.valorVenda - novoValorVenda, 0) : 0;
+  // Comissão do vendedor: 35% sobre o over
+  const comissaoOverVendedor = overExcecao * 0.35;
   // Repasse LIV = lucro líquido estimado com o novo valor de venda
   const repasseLIV = venda ? novoValorVenda - venda.custoEquipamentos - (venda.custoInstalacao + venda.custoVisitaTecnica + venda.custoCosern + venda.custoTrtCrea + venda.custoEngenheiro + venda.custoMaterialCA + venda.custoImposto + (venda.comissaoVendedor ?? 0)) : 0;
 
@@ -282,17 +286,30 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
               <p className={`text-xs ${variacaoValorVenda > 0 ? "text-lime-400" : variacaoValorVenda < 0 ? "text-rose-400" : "text-gray-500"}`}>
                 {variacaoValorVenda !== 0 ? (variacaoValorVenda > 0 ? "+" : "") + formatCurrency(variacaoValorVenda) : "sem alteracao"}
               </p>
-              {margemAlterada && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Repasse LIV: <span className={repasseLIV >= 0 ? "text-lime-400" : "text-rose-400"}>{formatCurrency(repasseLIV)}</span>
-                </p>
-              )}
             </div>
           </div>
 
+          {/* Over e Comissao da exceção */}
+          {margemAlterada && overExcecao > 0 && (
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="bg-[#0d1117] rounded-lg p-3 text-center">
+                <p className="text-[10px] text-gray-500 uppercase font-semibold">Over</p>
+                <p className="text-sm font-bold text-amber-400 mt-0.5">{formatCurrency(overExcecao)}</p>
+              </div>
+              <div className="bg-[#0d1117] rounded-lg p-3 text-center">
+                <p className="text-[10px] text-gray-500 uppercase font-semibold">Comissao (35%)</p>
+                <p className="text-sm font-bold text-lime-400 mt-0.5">{formatCurrency(comissaoOverVendedor)}</p>
+              </div>
+              <div className="bg-[#0d1117] rounded-lg p-3 text-center">
+                <p className="text-[10px] text-gray-500 uppercase font-semibold">Repasse LIV</p>
+                <p className={`text-sm font-bold mt-0.5 ${repasseLIV >= 0 ? "text-lime-400" : "text-rose-400"}`}>{formatCurrency(repasseLIV)}</p>
+              </div>
+            </div>
+          )}
+
           {novaMargem < 1.8 && margemAlterada && (
             <div className="bg-rose-400/10 border border-rose-400/20 rounded-lg px-3 py-2 text-xs text-rose-400 mb-3">
-              Margem {novaMargem.toFixed(2)}x abaixo do minimo (1.8x). Esta e uma excecao.
+              Margem {novaMargem.toFixed(2)}x abaixo do minimo (1.8x). Esta e uma excecao (max 2/mes).
             </div>
           )}
 

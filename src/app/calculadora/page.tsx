@@ -364,7 +364,7 @@ export default function CalculadoraPage() {
                   Venda de Exceção
                 </p>
                 <p className="text-[10px] text-gray-500 mt-0.5">
-                  Margem mín. 1.65x (máx 3/mês)
+                  Margem mín. 1.65x (máx 2/mês)
                 </p>
               </div>
             </label>
@@ -461,7 +461,7 @@ export default function CalculadoraPage() {
               <Info className="w-5 h-5 text-amber-400 shrink-0" />
               <p className="text-sm text-amber-300">
                 Esta venda usa <strong>margem de exceção</strong> (1.65x mínimo).
-                Você pode usar no máximo <strong>3 vendas de exceção por mês</strong>.
+                Você pode usar no máximo <strong>2 vendas de exceção por mês</strong>.
               </p>
             </div>
           )}
