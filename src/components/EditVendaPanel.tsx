@@ -123,8 +123,10 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
     setMargemAlterada(nova !== Math.round(venda.margem * 100) / 100);
   };
 
-  const novoCustoEquip = venda ? venda.valorVenda / novaMargem : 0;
-  const variacaoCustoEquip = venda ? novoCustoEquip - venda.custoEquipamentos : 0;
+  const novoValorVenda = venda ? novaMargem * venda.custoEquipamentos : 0;
+  const variacaoValorVenda = venda ? novoValorVenda - venda.valorVenda : 0;
+  // Repasse LIV = lucro líquido estimado com o novo valor de venda
+  const repasseLIV = venda ? novoValorVenda - venda.custoEquipamentos - (venda.custoInstalacao + venda.custoVisitaTecnica + venda.custoCosern + venda.custoTrtCrea + venda.custoEngenheiro + venda.custoMaterialCA + venda.custoImposto + (venda.comissaoVendedor ?? 0)) : 0;
 
   const salvarCustos = async () => {
     if (!venda) return;
@@ -273,13 +275,18 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
             </div>
 
             <div className="text-center flex-1">
-              <p className="text-xs text-gray-500 mb-1">Novo equipamentos</p>
+              <p className="text-xs text-gray-500 mb-1">Novo valor venda</p>
               <p className={`text-lg font-bold ${margemAlterada ? "text-amber-400" : "text-gray-400"}`}>
-                {formatCurrency(novoCustoEquip)}
+                {formatCurrency(novoValorVenda)}
               </p>
-              <p className={`text-xs ${variacaoCustoEquip > 0 ? "text-lime-400" : variacaoCustoEquip < 0 ? "text-rose-400" : "text-gray-500"}`}>
-                {variacaoCustoEquip !== 0 ? (variacaoCustoEquip > 0 ? "+" : "") + formatCurrency(variacaoCustoEquip) : "sem alteracao"}
+              <p className={`text-xs ${variacaoValorVenda > 0 ? "text-lime-400" : variacaoValorVenda < 0 ? "text-rose-400" : "text-gray-500"}`}>
+                {variacaoValorVenda !== 0 ? (variacaoValorVenda > 0 ? "+" : "") + formatCurrency(variacaoValorVenda) : "sem alteracao"}
               </p>
+              {margemAlterada && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Repasse LIV: <span className={repasseLIV >= 0 ? "text-lime-400" : "text-rose-400"}>{formatCurrency(repasseLIV)}</span>
+                </p>
+              )}
             </div>
           </div>
 

@@ -78,15 +78,14 @@ export async function PUT(
   }
 
   // ── ADMIN ou DIRETOR: ajuste direto de margem ──
+  // Equipamentos permanecem fixos; valor da venda é recalculado
   if (isAdmin(session.user.role) && novaMargem !== undefined) {
     if (novaMargem <= 0) {
       return NextResponse.json({ error: "Margem invalida" }, { status: 400 });
     }
-    const novoCustoEquipamentos = vendaAtual.valorVenda / novaMargem;
+    const novoValorVenda = novaMargem * vendaAtual.custoEquipamentos;
     const aliquota = vendaAtual.aliquotaImposto ?? 0.06;
-    // Imposto recalculado com novo custo de equipamentos
-    const novoCustoImposto = Math.max(vendaAtual.valorVenda - novoCustoEquipamentos, 0) * aliquota;
-    // P&L: mantém comissões como estão (valores de exceção já aprovados)
+    const novoCustoImposto = Math.max(novoValorVenda - vendaAtual.custoEquipamentos, 0) * aliquota;
     const comissaoUsada = vendaAtual.comissaoVendedorCusto ?? vendaAtual.comissaoTotal;
     const outrosCustos =
       (vendaAtual.custoInstalacao ?? 0) +
@@ -95,11 +94,11 @@ export async function PUT(
       (vendaAtual.custoTrtCrea ?? 0) +
       (vendaAtual.custoEngenheiro ?? 0) +
       (vendaAtual.custoMaterialCA ?? 0);
-    const novoLucro = vendaAtual.valorVenda - novoCustoEquipamentos - novoCustoImposto - outrosCustos - comissaoUsada;
-    const novaMargemLucro = vendaAtual.valorVenda > 0 ? novoLucro / vendaAtual.valorVenda : 0;
+    const novoLucro = novoValorVenda - vendaAtual.custoEquipamentos - novoCustoImposto - outrosCustos - comissaoUsada;
+    const novaMargemLucro = novoValorVenda > 0 ? novoLucro / novoValorVenda : 0;
 
     updateData.margem = novaMargem;
-    updateData.custoEquipamentos = novoCustoEquipamentos;
+    updateData.valorVenda = novoValorVenda;
     updateData.custoImposto = novoCustoImposto;
     updateData.lucroLiquido = novoLucro;
     updateData.margemLucroLiquido = novaMargemLucro;
