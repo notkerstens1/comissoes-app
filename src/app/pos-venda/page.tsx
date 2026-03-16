@@ -5,6 +5,7 @@ import {
   ClipboardCheck,
   Plus,
   ChevronRight,
+  ChevronDown,
   Pencil,
   X,
   Check,
@@ -101,6 +102,8 @@ export default function PosVendaPage() {
   // Anotações
   const [anotacoesEdit, setAnotacoesEdit] = useState<Record<string, string>>({});
   const [salvandoAnotacao, setSalvandoAnotacao] = useState<string | null>(null);
+  // Card expandido
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const hoje = new Date().toISOString().split("T")[0];
 
@@ -606,50 +609,98 @@ export default function PosVendaPage() {
                 const isEditing = editingId === r.id;
                 const vencido = r.proximoContato && r.proximoContato < hoje;
                 const cores = ETAPA_CORES[r.etapa];
+                const isExpanded = expandedId === r.id;
+                const anexosCount = r.anexos ? (JSON.parse(r.anexos) as unknown[]).length : 0;
+                const tarefasCount = r.tarefas ? (JSON.parse(r.tarefas) as unknown[]).length : 0;
 
                 return (
                   <div key={r.id}>
                     {/* Card */}
                     {!isEditing && (
                       <div
-                        className={`bg-[#1a1f2e] border-2 rounded-xl p-5 transition ${
+                        className={`bg-[#1a1f2e] border-2 rounded-xl transition ${
                           vencido
                             ? "border-rose-500/50 shadow-lg shadow-rose-500/10"
                             : "border-[#232a3b] hover:border-[#2a3050]"
                         }`}
                       >
-                        {/* Cabeçalho: Nome + Etapa + Status */}
-                        <div className="flex items-start justify-between gap-4 mb-4">
+                        {/* === CABEÇALHO CLICÁVEL (sempre visível) === */}
+                        <button
+                          onClick={() => setExpandedId(isExpanded ? null : r.id)}
+                          className="w-full text-left p-5 flex items-center gap-4"
+                        >
+                          {/* Seta de expansão */}
+                          <ChevronDown
+                            className={`w-5 h-5 text-gray-500 shrink-0 transition-transform duration-200 ${
+                              isExpanded ? "rotate-0" : "-rotate-90"
+                            }`}
+                          />
+
+                          {/* Info principal */}
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-bold text-gray-100">
-                              {r.nomeCliente}
-                            </h3>
-                            {r.telefone && (
-                              <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
-                                <Phone className="w-4 h-4" />
-                                {r.telefone}
-                              </div>
-                            )}
+                            <div className="flex items-center gap-3">
+                              <h3 className="text-lg font-bold text-gray-100 truncate">
+                                {r.nomeCliente}
+                              </h3>
+                              {r.telefone && (
+                                <span className="hidden sm:flex items-center gap-1.5 text-sm text-gray-500">
+                                  <Phone className="w-3.5 h-3.5" />
+                                  {r.telefone}
+                                </span>
+                              )}
+                            </div>
+                            {/* Resumo compacto */}
+                            <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
+                              {r.proximaAcao && (
+                                <span className="truncate max-w-[200px]">
+                                  <span className="text-gray-600">Próxima:</span>{" "}
+                                  <span className="text-orange-300/80">{r.proximaAcao}</span>
+                                </span>
+                              )}
+                              {r.proximoContato && (
+                                <span className={`flex items-center gap-1 shrink-0 font-semibold ${
+                                  vencido ? "text-rose-400" : "text-emerald-400/80"
+                                }`}>
+                                  <Calendar className="w-3 h-3" />
+                                  {formatDate(r.proximoContato)}
+                                </span>
+                              )}
+                              {anexosCount > 0 && (
+                                <span className="flex items-center gap-1 text-gray-500 shrink-0">
+                                  <Paperclip className="w-3 h-3" />
+                                  {anexosCount}
+                                </span>
+                              )}
+                              {tarefasCount > 0 && (
+                                <span className="flex items-center gap-1 text-gray-500 shrink-0">
+                                  <ListTodo className="w-3 h-3" />
+                                  {tarefasCount}
+                                </span>
+                              )}
+                            </div>
                           </div>
 
-                          {/* Badges: Etapa + Status */}
-                          <div className="flex gap-2 flex-shrink-0">
+                          {/* Badges */}
+                          <div className="flex gap-2 shrink-0">
                             <span
                               className={`px-3 py-1.5 rounded-lg text-xs font-bold ${cores.bg} ${cores.text}`}
                             >
                               {getEtapaLabel(r.etapa as EtapaPosVenda)}
                             </span>
                             {vencido && (
-                              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">
-                                <AlertCircle className="w-4 h-4" />
+                              <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                                <AlertCircle className="w-3.5 h-3.5" />
                                 Vencido
                               </span>
                             )}
                           </div>
-                        </div>
+                        </button>
 
+                        {/* === CONTEÚDO EXPANDIDO === */}
+                        {isExpanded && (
+                          <div className="px-5 pb-5 pt-0 border-t border-[#232a3b]">
                         {/* Conteúdo */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-4">
                           {/* Coluna 1 */}
                           <div className="space-y-3">
                             {r.ultimaAcao && (
@@ -1015,6 +1066,8 @@ export default function PosVendaPage() {
                             </button>
                           )}
                         </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
