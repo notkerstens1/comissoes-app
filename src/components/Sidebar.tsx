@@ -29,6 +29,7 @@ import {
   Trash2,
   Banknote,
   Wrench,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -88,6 +89,7 @@ export function Sidebar() {
     { href: "/diretor/ranking", label: "Ranking Vendedores", icon: Trophy },
     { href: "/diretor/custos", label: "Custos por Venda", icon: Calculator },
     { href: "/diretor/backup", label: "Backup de Dados", icon: ShieldCheck },
+    { href: "/diretor/previsoes", label: "Previsões", icon: CalendarDays },
   ];
 
   const getRoleBadge = () => {

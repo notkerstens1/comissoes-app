@@ -281,6 +281,9 @@ model PosVenda {
   tarefas          String?
   // Anotacoes livres do operador pos-venda
   anotacoes        String?
+  // Previsoes de datas (operador preenche)
+  previsaoMaterial    String?  // "YYYY-MM-DD"
+  previsaoInstalacao  String?  // "YYYY-MM-DD"
   // Controle
   ativo            Boolean  @default(true)
   createdAt        DateTime @default(now())

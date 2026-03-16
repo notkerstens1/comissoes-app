@@ -25,6 +25,8 @@ import {
   Save,
   Download,
   Eye,
+  Package,
+  Hammer,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import {
@@ -51,6 +53,8 @@ type PosVendaRegistro = {
   historicoAcoes: string | null;
   tarefas: string | null;
   anotacoes: string | null;
+  previsaoMaterial: string | null;
+  previsaoInstalacao: string | null;
 };
 
 type FormData = {
@@ -665,6 +669,18 @@ export default function PosVendaPage() {
                                   {formatDate(r.proximoContato)}
                                 </span>
                               )}
+                              {r.previsaoMaterial && (
+                                <span className="flex items-center gap-1 text-yellow-400/70 shrink-0">
+                                  <Package className="w-3 h-3" />
+                                  {formatDate(r.previsaoMaterial)}
+                                </span>
+                              )}
+                              {r.previsaoInstalacao && (
+                                <span className="flex items-center gap-1 text-violet-400/70 shrink-0">
+                                  <Hammer className="w-3 h-3" />
+                                  {formatDate(r.previsaoInstalacao)}
+                                </span>
+                              )}
                               {anexosCount > 0 && (
                                 <span className="flex items-center gap-1 text-gray-500 shrink-0">
                                   <Paperclip className="w-3 h-3" />
@@ -749,6 +765,54 @@ export default function PosVendaPage() {
                                 </div>
                               </div>
                             )}
+                          </div>
+                        </div>
+
+                        {/* Previsões de Material e Instalação */}
+                        <div className="mb-4 p-3 bg-[#141820] rounded-lg border border-[#232a3b]">
+                          <p className="text-xs text-gray-500 font-semibold uppercase mb-3 flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5" />
+                            Previsões
+                          </p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                              <label className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
+                                <Package className="w-3 h-3" />
+                                Chegada do Material
+                              </label>
+                              <input
+                                type="date"
+                                value={r.previsaoMaterial || ""}
+                                onChange={async (e) => {
+                                  await fetch(`/api/pos-venda/${r.id}`, {
+                                    method: "PUT",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ previsaoMaterial: e.target.value }),
+                                  });
+                                  fetchRegistros();
+                                }}
+                                className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
+                                <Hammer className="w-3 h-3" />
+                                Instalação Prevista
+                              </label>
+                              <input
+                                type="date"
+                                value={r.previsaoInstalacao || ""}
+                                onChange={async (e) => {
+                                  await fetch(`/api/pos-venda/${r.id}`, {
+                                    method: "PUT",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ previsaoInstalacao: e.target.value }),
+                                  });
+                                  fetchRegistros();
+                                }}
+                                className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
+                              />
+                            </div>
                           </div>
                         </div>
 
