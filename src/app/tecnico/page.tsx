@@ -6,6 +6,7 @@ import {
   Wrench,
   Plus,
   ChevronRight,
+  ChevronDown,
   Pencil,
   X,
   Check,
@@ -166,6 +167,7 @@ export default function SetorTecnicoPage() {
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const [novoComentario, setNovoComentario] = useState<Record<string, string>>({});
   const [salvandoComentario, setSalvandoComentario] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const fetchRegistros = useCallback(async () => {
     setLoading(true);
@@ -590,47 +592,81 @@ export default function SetorTecnicoPage() {
                 const historico = parseHistorico(r.historicoAcoes);
                 const comentarios = parseComentarios(r.comentarios);
                 const proximaEtapa = getProximaEtapaTecnico(r.etapa);
+                const isExpanded = expandedId === r.id;
 
                 return (
                   <div key={r.id}>
                     {/* Card de visualizacao */}
                     {!isEditing && (
-                      <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5 transition hover:border-[#2a3050]">
-                        {/* Cabecalho: Nome + Etapa */}
-                        <div className="flex items-start justify-between gap-4 mb-4">
+                      <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl transition hover:border-[#2a3050]">
+                        {/* === CABEÇALHO CLICÁVEL (sempre visível) === */}
+                        <button
+                          onClick={() => setExpandedId(isExpanded ? null : r.id)}
+                          className="w-full text-left p-5 flex items-center gap-4"
+                        >
+                          {/* Seta de expansão */}
+                          <ChevronDown
+                            className={`w-5 h-5 text-gray-500 shrink-0 transition-transform duration-200 ${
+                              isExpanded ? "rotate-0" : "-rotate-90"
+                            }`}
+                          />
+
+                          {/* Info principal */}
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-bold text-gray-100">
-                              {r.nomeCliente}
-                            </h3>
-                            <div className="flex flex-wrap items-center gap-3 mt-1">
+                            <div className="flex items-center gap-3">
+                              <h3 className="text-lg font-bold text-gray-100 truncate">
+                                {r.nomeCliente}
+                              </h3>
                               {r.telefone && (
-                                <div className="flex items-center gap-1.5 text-sm text-gray-400">
+                                <span className="hidden sm:flex items-center gap-1.5 text-sm text-gray-500">
                                   <Phone className="w-3.5 h-3.5" />
                                   {r.telefone}
-                                </div>
+                                </span>
                               )}
+                            </div>
+                            {/* Resumo compacto */}
+                            <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
                               {r.vendedorNome && (
-                                <div className="flex items-center gap-1.5 text-sm text-gray-400">
-                                  <User className="w-3.5 h-3.5" />
+                                <span className="flex items-center gap-1 shrink-0">
+                                  <User className="w-3 h-3" />
                                   {r.vendedorNome}
-                                </div>
+                                </span>
+                              )}
+                              {r.proximaAcao && (
+                                <span className="truncate max-w-[200px]">
+                                  <span className="text-gray-600">Próxima:</span>{" "}
+                                  <span className="text-teal-300/80">{r.proximaAcao}</span>
+                                </span>
+                              )}
+                              {anexos.length > 0 && (
+                                <span className="flex items-center gap-1 text-gray-500 shrink-0">
+                                  <Paperclip className="w-3 h-3" />
+                                  {anexos.length}
+                                </span>
+                              )}
+                              {comentarios.length > 0 && (
+                                <span className="flex items-center gap-1 text-gray-500 shrink-0">
+                                  <MessageSquare className="w-3 h-3" />
+                                  {comentarios.length}
+                                </span>
                               )}
                             </div>
                           </div>
 
                           {/* Badge Etapa */}
-                          <div className="flex gap-2 flex-shrink-0">
-                            <span
-                              className={`px-3 py-1.5 rounded-lg text-xs font-bold ${cores.bg} ${cores.text}`}
-                            >
-                              {getEtapaTecnicoLabel(r.etapa)}
-                            </span>
-                          </div>
-                        </div>
+                          <span
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold shrink-0 ${cores.bg} ${cores.text}`}
+                          >
+                            {getEtapaTecnicoLabel(r.etapa)}
+                          </span>
+                        </button>
 
+                        {/* === CONTEÚDO EXPANDIDO === */}
+                        {isExpanded && (
+                          <div className="px-5 pb-5 border-t border-[#232a3b]">
                         {/* Dados da venda vinculada */}
                         {r.venda && (
-                          <div className="mb-4 p-3 bg-[#141820] rounded-lg border border-[#232a3b]">
+                          <div className="mt-4 mb-4 p-3 bg-[#141820] rounded-lg border border-[#232a3b]">
                             <p className="text-xs text-gray-500 font-semibold uppercase mb-2">
                               Dados da Venda
                             </p>
@@ -665,7 +701,6 @@ export default function SetorTecnicoPage() {
 
                         {/* Conteudo */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                          {/* Coluna 1 */}
                           <div className="space-y-3">
                             {r.ultimaAcao && (
                               <div>
@@ -685,8 +720,6 @@ export default function SetorTecnicoPage() {
                               </div>
                             </div>
                           </div>
-
-                          {/* Coluna 2 */}
                           <div className="space-y-3">
                             {r.proximaAcao && (
                               <div>
@@ -866,7 +899,7 @@ export default function SetorTecnicoPage() {
                         </div>
 
                         {/* Botoes */}
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 mt-4">
                           {proximaEtapa && trocandoEtapaId !== r.id && (
                             <button
                               onClick={() => handleAvancar(r)}
@@ -934,6 +967,8 @@ export default function SetorTecnicoPage() {
                             </button>
                           )}
                         </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
