@@ -60,6 +60,7 @@ type RegistroTecnico = {
   id: string;
   nomeCliente: string;
   telefone: string | null;
+  email: string | null;
   vendedorNome: string | null;
   etapa: string;
   observacoes: string | null;
@@ -81,6 +82,7 @@ type RegistroTecnico = {
 type FormData = {
   nomeCliente: string;
   telefone: string;
+  email: string;
   etapa: string;
   observacoes: string;
 };
@@ -88,6 +90,7 @@ type FormData = {
 type EditFormData = {
   nomeCliente: string;
   telefone: string;
+  email: string;
   etapa: string;
   observacoes: string;
   ultimaAcao: string;
@@ -97,6 +100,7 @@ type EditFormData = {
 const FORM_INICIAL: FormData = {
   nomeCliente: "",
   telefone: "",
+  email: "",
   etapa: "NOVO_PROJETO",
   observacoes: "",
 };
@@ -104,6 +108,7 @@ const FORM_INICIAL: FormData = {
 const EDIT_FORM_INICIAL: EditFormData = {
   nomeCliente: "",
   telefone: "",
+  email: "",
   etapa: "NOVO_PROJETO",
   observacoes: "",
   ultimaAcao: "",
@@ -232,6 +237,7 @@ export default function SetorTecnicoPage() {
     setEditForm({
       nomeCliente: r.nomeCliente,
       telefone: r.telefone ?? "",
+      email: r.email ?? "",
       etapa: r.etapa,
       observacoes: r.observacoes ?? "",
       ultimaAcao: r.ultimaAcao ?? "",
@@ -498,6 +504,16 @@ export default function SetorTecnicoPage() {
                     onChange={(e) => setForm((p) => ({ ...p, telefone: e.target.value }))}
                     className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-teal-400 outline-none"
                     placeholder="(84) 99999-9999"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Email</label>
+                  <input
+                    value={form.email}
+                    onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+                    className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-teal-400 outline-none"
+                    placeholder="cliente@email.com"
+                    type="email"
                   />
                 </div>
                 <div>
@@ -994,6 +1010,18 @@ export default function SetorTecnicoPage() {
                                 setEditForm((p) => ({ ...p, telefone: e.target.value }))
                               }
                               className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-teal-400 outline-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs text-gray-500 mb-1">Email</label>
+                            <input
+                              value={editForm.email}
+                              onChange={(e) =>
+                                setEditForm((p) => ({ ...p, email: e.target.value }))
+                              }
+                              className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-teal-400 outline-none"
+                              placeholder="cliente@email.com"
+                              type="email"
                             />
                           </div>
                           <div>

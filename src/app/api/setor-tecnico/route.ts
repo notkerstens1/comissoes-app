@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json();
-  const { nomeCliente, telefone, etapa, observacoes, vendaId, vendedorNome } = body;
+  const { nomeCliente, telefone, email, etapa, observacoes, vendaId, vendedorNome } = body;
 
   if (!nomeCliente) {
     return NextResponse.json({ error: "Nome do cliente obrigatorio" }, { status: 400 });
@@ -44,6 +44,7 @@ export async function POST(request: Request) {
     data: {
       nomeCliente: nomeCliente.trim(),
       telefone: telefone?.trim() || null,
+      email: email?.trim() || null,
       etapa: etapa || "NOVO_PROJETO",
       observacoes: observacoes?.trim() || null,
       vendaId: vendaId || null,

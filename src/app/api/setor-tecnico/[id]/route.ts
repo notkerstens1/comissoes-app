@@ -20,12 +20,13 @@ export async function PUT(
   if (!registro) return NextResponse.json({ error: "Registro nao encontrado" }, { status: 404 });
 
   const body = await request.json();
-  const { nomeCliente, telefone, etapa, observacoes, ultimaAcao, proximaAcao, anexos, comentarios } = body;
+  const { nomeCliente, telefone, email, etapa, observacoes, ultimaAcao, proximaAcao, anexos, comentarios } = body;
 
   const data: any = {};
 
   if (nomeCliente !== undefined) data.nomeCliente = nomeCliente.trim();
   if (telefone !== undefined) data.telefone = telefone?.trim() || null;
+  if (email !== undefined) data.email = email?.trim() || null;
   if (etapa !== undefined) data.etapa = etapa;
   if (observacoes !== undefined) data.observacoes = observacoes?.trim() || null;
   if (ultimaAcao !== undefined) data.ultimaAcao = ultimaAcao?.trim() || null;

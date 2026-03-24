@@ -303,6 +303,7 @@ model SetorTecnico {
   id               String   @id @default(cuid())
   nomeCliente      String
   telefone         String?
+  email            String?
   // Vinculo com venda do sistema
   vendaId          String?  @unique
   venda            Venda?   @relation(fields: [vendaId], references: [id])
