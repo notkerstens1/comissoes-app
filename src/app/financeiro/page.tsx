@@ -16,7 +16,9 @@ import {
   MessageSquare,
   Image as ImageIcon,
 } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
+import { EditVendaPanel, VendaEditavel } from "@/components/EditVendaPanel";
 
 interface SDRInfo {
   id: string;
@@ -49,6 +51,23 @@ interface VendaFinanceiro {
   quantidadePlacas: number;
   quantidadeInversores: number;
   registrosSDR: SDRInfo[];
+  margem: number;
+  over: number;
+  custoInstalacao: number;
+  custoVisitaTecnica: number;
+  custoCosern: number;
+  custoTrtCrea: number;
+  custoEngenheiro: number;
+  custoMaterialCA: number;
+  custoImposto: number;
+  lucroLiquido: number;
+  margemLucroLiquido: number;
+  percentualComissaoOverride: number | null;
+  mesReferencia: string;
+  excecao: boolean;
+  historicoAlteracoes: string | null;
+  comissaoVendaPaga: boolean;
+  comissaoOverPaga: boolean;
 }
 
 interface DadosFinanceiro {
@@ -75,6 +94,8 @@ export default function FinanceiroPage() {
   });
   const [pagando, setPagando] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [vendaEditando, setVendaEditando] = useState<VendaEditavel | null>(null);
+  const [editPanelOpen, setEditPanelOpen] = useState(false);
 
   const fetchDados = async () => {
     setLoading(true);
@@ -95,23 +116,28 @@ export default function FinanceiroPage() {
     fetchDados();
   }, [mes]);
 
-  const marcarComoPago = async (vendaId: string) => {
+  const marcarComoPago = async (vendaId: string, tipo?: "VENDA" | "OVER") => {
     setPagando(vendaId);
     try {
       const res = await fetch("/api/financeiro/vendas", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ vendaId }),
+        body: JSON.stringify({ vendaId, tipo }),
       });
       if (res.ok) {
-        // Atualizar localmente
         setDados((prev) => {
           if (!prev) return prev;
           return {
             ...prev,
-            vendas: prev.vendas.map((v) =>
-              v.id === vendaId ? { ...v, status: "PAGO" } : v
-            ),
+            vendas: prev.vendas.map((v) => {
+              if (v.id !== vendaId) return v;
+              const newV = { ...v };
+              if (tipo === "VENDA") newV.comissaoVendaPaga = true;
+              else if (tipo === "OVER") newV.comissaoOverPaga = true;
+              else { newV.comissaoVendaPaga = true; newV.comissaoOverPaga = true; }
+              if (newV.comissaoVendaPaga && newV.comissaoOverPaga) newV.status = "PAGO";
+              return newV;
+            }),
           };
         });
       }
@@ -211,7 +237,9 @@ export default function FinanceiroPage() {
                       <th className="text-right px-4 py-3 font-medium">Valor Venda</th>
                       <th className="text-right px-4 py-3 font-medium">Equipamentos</th>
                       <th className="text-left px-4 py-3 font-medium">Distribuidora</th>
-                      <th className="text-right px-4 py-3 font-medium">Comissao</th>
+                      <th className="text-right px-4 py-3 font-medium">Com. Venda</th>
+                      <th className="text-right px-4 py-3 font-medium">Com. Over</th>
+                      <th className="text-right px-4 py-3 font-medium">Total</th>
                       <th className="text-center px-4 py-3 font-medium">Data</th>
                       <th className="text-center px-4 py-3 font-medium">Status</th>
                       <th className="text-center px-4 py-3 font-medium">Detalhes</th>
@@ -226,37 +254,96 @@ export default function FinanceiroPage() {
                           <td className="px-4 py-3 text-right text-gray-100">{formatCurrency(v.valorVenda)}</td>
                           <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(v.custoEquipamentos)}</td>
                           <td className="px-4 py-3 text-gray-300">{v.distribuidora || "-"}</td>
+                          <td className="px-4 py-3 text-right text-gray-400">
+                            {formatCurrency(v.comissaoVenda)}
+                          </td>
+                          <td className="px-4 py-3 text-right text-yellow-400">
+                            {formatCurrency(v.comissaoOver)}
+                          </td>
                           <td className="px-4 py-3 text-right font-medium text-emerald-400">
                             {formatCurrency(v.comissaoTotal)}
                           </td>
                           <td className="px-4 py-3 text-center text-gray-400">{formatDate(v.dataConversao)}</td>
                           <td className="px-4 py-3 text-center">
-                            {v.status === "PAGO" ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-1 text-xs rounded-full font-medium bg-blue-400/10 text-blue-400">
-                                <CheckCircle className="w-3 h-3" />
-                                Pago
+                            {v.status === "AGUARDANDO" ? (
+                              <span className={`inline-block px-2.5 py-1 text-xs rounded-full font-medium ${statusColors.AGUARDANDO}`}>
+                                AGUARDANDO
                               </span>
-                            ) : v.status === "APROVADO" ? (
-                              <button
-                                onClick={() => marcarComoPago(v.id)}
-                                disabled={pagando === v.id}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 text-xs rounded-lg font-medium bg-emerald-400 text-gray-900 hover:bg-emerald-500 transition disabled:opacity-50"
-                              >
-                                {pagando === v.id ? (
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                ) : (
-                                  <Banknote className="w-3 h-3" />
-                                )}
-                                Marcar Pago
-                              </button>
                             ) : (
-                              <span className={`inline-block px-2.5 py-1 text-xs rounded-full font-medium ${statusColors[v.status] || "bg-[#1a1f2e] text-gray-400"}`}>
-                                {v.status}
-                              </span>
+                              <div className="flex flex-col gap-1 items-center">
+                                {v.comissaoVendaPaga ? (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded-full font-medium bg-blue-400/10 text-blue-400">
+                                    <CheckCircle className="w-2.5 h-2.5" />
+                                    Venda
+                                  </span>
+                                ) : (
+                                  <button
+                                    onClick={() => marcarComoPago(v.id, "VENDA")}
+                                    disabled={pagando === v.id}
+                                    className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded-lg font-medium bg-emerald-400/20 text-emerald-400 hover:bg-emerald-400/30 border border-emerald-400/30 transition disabled:opacity-50"
+                                  >
+                                    {pagando === v.id ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Banknote className="w-2.5 h-2.5" />}
+                                    Pagar Venda
+                                  </button>
+                                )}
+                                {v.comissaoOver > 0 && (
+                                  v.comissaoOverPaga ? (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded-full font-medium bg-blue-400/10 text-blue-400">
+                                      <CheckCircle className="w-2.5 h-2.5" />
+                                      Over
+                                    </span>
+                                  ) : (
+                                    <button
+                                      onClick={() => marcarComoPago(v.id, "OVER")}
+                                      disabled={pagando === v.id}
+                                      className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] rounded-lg font-medium bg-yellow-400/20 text-yellow-400 hover:bg-yellow-400/30 border border-yellow-400/30 transition disabled:opacity-50"
+                                    >
+                                      {pagando === v.id ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <Banknote className="w-2.5 h-2.5" />}
+                                      Pagar Over
+                                    </button>
+                                  )
+                                )}
+                              </div>
                             )}
                           </td>
                           <td className="px-4 py-3 text-center">
                             <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => {
+                                  setVendaEditando({
+                                    id: v.id,
+                                    cliente: v.cliente,
+                                    vendedor: v.vendedor,
+                                    valorVenda: v.valorVenda,
+                                    custoEquipamentos: v.custoEquipamentos,
+                                    margem: v.margem || 1.8,
+                                    quantidadePlacas: v.quantidadePlacas || 0,
+                                    quantidadeInversores: v.quantidadeInversores || 1,
+                                    custoInstalacao: v.custoInstalacao || 0,
+                                    custoVisitaTecnica: v.custoVisitaTecnica || 120,
+                                    custoCosern: v.custoCosern || 70,
+                                    custoTrtCrea: v.custoTrtCrea || 65,
+                                    custoEngenheiro: v.custoEngenheiro || 400,
+                                    custoMaterialCA: v.custoMaterialCA || 500,
+                                    custoImposto: v.custoImposto || 0,
+                                    lucroLiquido: v.lucroLiquido || 0,
+                                    margemLucroLiquido: v.margemLucroLiquido || 0,
+                                    comissaoVenda: v.comissaoVenda,
+                                    comissaoOver: v.comissaoOver,
+                                    comissaoTotal: v.comissaoTotal,
+                                    over: v.over,
+                                    vendedorId: v.vendedorId,
+                                    mesReferencia: v.mesReferencia,
+                                    excecao: v.excecao,
+                                    historicoAlteracoes: v.historicoAlteracoes,
+                                  });
+                                  setEditPanelOpen(true);
+                                }}
+                                className="p-1.5 rounded-lg hover:bg-amber-400/10 text-gray-500 hover:text-amber-400 transition"
+                                title="Editar venda"
+                              >
+                                <Pencil className="w-4 h-4" />
+                              </button>
                               {v.orcamentoUrl && (
                                 <button
                                   onClick={() => {
@@ -428,6 +515,12 @@ export default function FinanceiroPage() {
       ) : (
         <div className="text-center text-gray-500 py-12">Erro ao carregar dados</div>
       )}
+      <EditVendaPanel
+        venda={vendaEditando}
+        isOpen={editPanelOpen}
+        onClose={() => { setEditPanelOpen(false); setVendaEditando(null); }}
+        onSaved={() => { setEditPanelOpen(false); setVendaEditando(null); fetchDados(); }}
+      />
     </div>
   );
 }

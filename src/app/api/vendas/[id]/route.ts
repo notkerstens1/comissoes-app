@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isAdmin } from "@/lib/roles";
+import { isAdmin, canEditVenda } from "@/lib/roles";
 import { calcularCustosVenda, ConfiguracaoCustos } from "@/lib/custos";
 
 // DELETE - Excluir venda
@@ -39,7 +39,7 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions);
-  if (!session || !isAdmin(session.user.role)) {
+  if (!session || !canEditVenda(session.user.role)) {
     return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
   }
 
@@ -49,9 +49,12 @@ export async function PUT(
     quantidadePlacas, quantidadeInversores,
     custoCosern, custoVisitaTecnica, custoTrtCrea, custoEngenheiro, custoMaterialCA,
     aliquotaImposto, percentualComissaoOverride,
-    // Ajuste de margem (exceção): apenas DIRETOR aplica direto; ADMIN cria solicitação
     novaMargem,
     dataConversao,
+    motivo,
+    excecao,
+    valorVenda: novoValorVenda,
+    custoEquipamentos: novoCustoEquipamentos,
   } = body;
 
   const vendaAtual = await prisma.venda.findUnique({
@@ -77,14 +80,18 @@ export async function PUT(
     updateData.mesReferencia = `${novaData.getFullYear()}-${String(novaData.getMonth() + 1).padStart(2, "0")}`;
   }
 
-  // ── ADMIN ou DIRETOR: ajuste direto de margem ──
-  // Valor da venda e equipamento NÃO mudam.
-  // A margem define o threshold do over: over = valorVenda - (custoEquip × margem)
-  if (isAdmin(session.user.role) && novaMargem !== undefined) {
+  // ── Editar valor da venda e custo equipamentos ──
+  if (novoValorVenda !== undefined) updateData.valorVenda = novoValorVenda;
+  if (novoCustoEquipamentos !== undefined) updateData.custoEquipamentos = novoCustoEquipamentos;
+
+  // ── Ajuste direto de margem ──
+  if (novaMargem !== undefined) {
     if (novaMargem <= 0) {
       return NextResponse.json({ error: "Margem invalida" }, { status: 400 });
     }
-    const over = Math.max(vendaAtual.valorVenda - vendaAtual.custoEquipamentos * novaMargem, 0);
+    const overBruto = Math.max(vendaAtual.valorVenda - vendaAtual.custoEquipamentos * novaMargem, 0);
+    // Se margem < 1.8 e não é exceção → over = 0
+    const over = (novaMargem < 1.8 && !excecao) ? 0 : overBruto;
     const comissaoOver = over * 0.35;
     const comissaoVenda = vendaAtual.valorVenda * (vendaAtual.percentualComissaoOverride ?? 0.025);
     const novaComissaoTotal = comissaoOver + comissaoVenda;
@@ -101,6 +108,7 @@ export async function PUT(
     const novaMargemLucro = vendaAtual.valorVenda > 0 ? novoLucro / vendaAtual.valorVenda : 0;
 
     updateData.margem = novaMargem;
+    updateData.over = over;
     updateData.comissaoOver = comissaoOver;
     updateData.comissaoVenda = comissaoVenda;
     updateData.comissaoTotal = novaComissaoTotal;
@@ -109,8 +117,8 @@ export async function PUT(
     updateData.margemLucroLiquido = novaMargemLucro;
   }
 
-  // ── Diretor ou Supervisor: editar custos operacionais ──
-  if (isAdmin(session.user.role)) {
+  // ── Editar custos operacionais ──
+  if (canEditVenda(session.user.role)) {
     if (quantidadePlacas !== undefined) updateData.quantidadePlacas = quantidadePlacas;
     if (quantidadeInversores !== undefined) updateData.quantidadeInversores = quantidadeInversores;
     if (custoCosern !== undefined) updateData.custoCosern = custoCosern;
@@ -175,6 +183,44 @@ export async function PUT(
       updateData.lucroLiquido = custos.lucroLiquido;
       updateData.margemLucroLiquido = custos.margemLucroLiquido;
     }
+  }
+
+  // ── Histórico de alterações ──
+  if (motivo && Object.keys(updateData).length > 0) {
+    const camposEditaveis = [
+      "valorVenda", "custoEquipamentos", "margem", "over", "comissaoOver", "comissaoVenda", "comissaoTotal",
+      "quantidadePlacas", "quantidadeInversores", "custoInstalacao", "custoVisitaTecnica",
+      "custoCosern", "custoTrtCrea", "custoEngenheiro", "custoMaterialCA", "custoImposto",
+      "percentualComissaoOverride", "lucroLiquido", "margemLucroLiquido", "dataConversao", "status", "excecao",
+    ];
+    const alteracoes: { campo: string; de: unknown; para: unknown }[] = [];
+    for (const campo of camposEditaveis) {
+      if (updateData[campo] !== undefined) {
+        const valorAnterior = (vendaAtual as any)[campo];
+        const valorNovo = updateData[campo];
+        if (valorAnterior !== valorNovo) {
+          alteracoes.push({ campo, de: valorAnterior, para: valorNovo });
+        }
+      }
+    }
+    if (alteracoes.length > 0) {
+      const historico = vendaAtual.historicoAlteracoes
+        ? JSON.parse(vendaAtual.historicoAlteracoes)
+        : [];
+      historico.push({
+        usuario: session.user.name || "Desconhecido",
+        role: session.user.role,
+        data: new Date().toISOString(),
+        alteracoes,
+        motivo,
+      });
+      updateData.historicoAlteracoes = JSON.stringify(historico);
+    }
+  }
+
+  // ── Exceção ──
+  if (excecao !== undefined) {
+    updateData.excecao = excecao;
   }
 
   const venda = await prisma.venda.update({

@@ -50,6 +50,10 @@ interface Venda {
   custoImposto?: number;
   lucroLiquido?: number;
   margemLucroLiquido?: number;
+  vendedorId?: string;
+  mesReferencia?: string;
+  excecao?: boolean;
+  historicoAlteracoes?: string;
 }
 
 export default function VendasPage() {
@@ -254,6 +258,8 @@ export default function VendasPage() {
   };
 
   const totalVendido = vendas.reduce((sum, v) => sum + v.valorVenda, 0);
+  const totalComissaoVenda = vendas.reduce((sum, v) => sum + v.comissaoVenda, 0);
+  const totalComissaoOver = vendas.reduce((sum, v) => sum + v.comissaoOver, 0);
   const totalComissao = vendas.reduce((sum, v) => sum + v.comissaoTotal, 0);
 
   const getNomeMes = (mes: string) => {
@@ -727,7 +733,9 @@ export default function VendasPage() {
                   <th className="text-right px-4 py-3 font-medium">kWp</th>
                   <th className="text-right px-4 py-3 font-medium">Margem</th>
                   <th className="text-right px-4 py-3 font-medium">Over</th>
-                  <th className="text-right px-4 py-3 font-medium">Comissao</th>
+                  <th className="text-right px-4 py-3 font-medium">Com. Venda</th>
+                  <th className="text-right px-4 py-3 font-medium">Com. Over</th>
+                  <th className="text-right px-4 py-3 font-medium">Total</th>
                   <th className="text-center px-4 py-3 font-medium">Fonte</th>
                   <th className="text-center px-4 py-3 font-medium">Data</th>
                   <th className="px-4 py-3"></th>
@@ -748,6 +756,12 @@ export default function VendasPage() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">{formatCurrency(v.over)}</td>
+                    <td className="px-4 py-3 text-right text-gray-400">
+                      {formatCurrency(v.comissaoVenda)}
+                    </td>
+                    <td className="px-4 py-3 text-right text-yellow-400">
+                      {formatCurrency(v.comissaoOver)}
+                    </td>
                     <td className="px-4 py-3 text-right font-medium text-lime-400">
                       {formatCurrency(v.comissaoTotal)}
                     </td>
@@ -782,6 +796,14 @@ export default function VendasPage() {
                               lucroLiquido: v.lucroLiquido || 0,
                               margemLucroLiquido: v.margemLucroLiquido || 0,
                               dataConversao: v.dataConversao,
+                              comissaoVenda: v.comissaoVenda,
+                              comissaoOver: v.comissaoOver,
+                              comissaoTotal: v.comissaoTotal,
+                              over: v.over,
+                              vendedorId: v.vendedorId,
+                              mesReferencia: v.mesReferencia,
+                              excecao: v.excecao,
+                              historicoAlteracoes: v.historicoAlteracoes,
                             });
                             setEditPanelOpen(true);
                           }}
@@ -806,7 +828,9 @@ export default function VendasPage() {
                 <tr>
                   <td className="px-4 py-3" colSpan={admin ? 3 : 2}>TOTAIS</td>
                   <td className="px-4 py-3 text-right">{formatCurrency(totalVendido)}</td>
-                  <td className="px-4 py-3" colSpan={4}></td>
+                  <td className="px-4 py-3" colSpan={2}></td>
+                  <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(totalComissaoVenda)}</td>
+                  <td className="px-4 py-3 text-right text-yellow-400">{formatCurrency(totalComissaoOver)}</td>
                   <td className="px-4 py-3 text-right">{formatCurrency(totalComissao)}</td>
                   <td colSpan={3}></td>
                 </tr>

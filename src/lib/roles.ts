@@ -83,6 +83,13 @@ export function canManageTeam(role: string | undefined | null): boolean {
 }
 
 /**
+ * Verifica se o usuario pode editar vendas (ADMIN, DIRETOR ou FINANCEIRO)
+ */
+export function canEditVenda(role: string | undefined | null): boolean {
+  return role === "ADMIN" || role === "DIRETOR" || role === "FINANCEIRO";
+}
+
+/**
  * Verifica se o usuario pode acessar area financeira (FINANCEIRO, ADMIN ou DIRETOR)
  */
 export function canAccessFinanceiro(role: string | undefined | null): boolean {

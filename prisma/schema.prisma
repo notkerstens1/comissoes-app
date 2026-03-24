@@ -69,6 +69,14 @@ model Venda {
   lucroLiquido           Float?
   margemLucroLiquido     Float? // lucroLiquido / valorVenda
 
+  // Exceção de margem (max 2/mes por vendedor)
+  excecao                Boolean  @default(false)
+  // Controle de pagamento separado
+  comissaoVendaPaga      Boolean  @default(false)
+  comissaoOverPaga       Boolean  @default(false)
+  // Histórico de alterações (JSON array)
+  historicoAlteracoes    String?
+
   // Orcamento PDF (base64, uploaded pelo vendedor ao fechar venda)
   orcamentoUrl      String?
 

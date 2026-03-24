@@ -64,6 +64,23 @@ export async function GET(request: NextRequest) {
       kwp: v.kwp,
       quantidadePlacas: v.quantidadePlacas,
       quantidadeInversores: v.quantidadeInversores,
+      margem: v.margem,
+      over: v.over,
+      custoInstalacao: v.custoInstalacao ?? 0,
+      custoVisitaTecnica: v.custoVisitaTecnica ?? 120,
+      custoCosern: v.custoCosern ?? 70,
+      custoTrtCrea: v.custoTrtCrea ?? 65,
+      custoEngenheiro: v.custoEngenheiro ?? 400,
+      custoMaterialCA: v.custoMaterialCA ?? 500,
+      custoImposto: v.custoImposto ?? 0,
+      lucroLiquido: v.lucroLiquido ?? 0,
+      margemLucroLiquido: v.margemLucroLiquido ?? 0,
+      percentualComissaoOverride: v.percentualComissaoOverride,
+      mesReferencia: v.mesReferencia,
+      excecao: v.excecao,
+      historicoAlteracoes: v.historicoAlteracoes,
+      comissaoVendaPaga: v.comissaoVendaPaga,
+      comissaoOverPaga: v.comissaoOverPaga,
       registrosSDR: v.registrosSDR.map((sdr) => ({
         id: sdr.id,
         nomeCliente: sdr.nomeCliente,
@@ -86,8 +103,9 @@ export async function GET(request: NextRequest) {
 
 /**
  * PUT /api/financeiro/vendas
- * Marcar venda como PAGO e notificar vendedor.
- * Body: { vendaId: string }
+ * Marcar comissao como paga (separado: VENDA ou OVER).
+ * Body: { vendaId: string, tipo?: "VENDA" | "OVER" }
+ * Se tipo não for informado, marca ambas como pagas (compatibilidade).
  */
 export async function PUT(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -96,7 +114,7 @@ export async function PUT(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { vendaId } = body;
+  const { vendaId, tipo } = body;
 
   if (!vendaId) {
     return NextResponse.json({ error: "vendaId obrigatorio" }, { status: 400 });
@@ -111,14 +129,33 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ error: "Venda nao encontrada" }, { status: 404 });
   }
 
-  if (venda.status === "PAGO") {
-    return NextResponse.json({ error: "Venda ja esta paga" }, { status: 400 });
+  // Determinar o que marcar como pago
+  const updateData: Record<string, unknown> = {};
+  let notifMsg = "";
+
+  if (tipo === "VENDA") {
+    updateData.comissaoVendaPaga = true;
+    notifMsg = `Comissao de venda paga: ${venda.cliente} - R$ ${venda.comissaoVenda.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+  } else if (tipo === "OVER") {
+    updateData.comissaoOverPaga = true;
+    notifMsg = `Comissao de over paga: ${venda.cliente} - R$ ${venda.comissaoOver.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+  } else {
+    // Compatibilidade: marca ambas
+    updateData.comissaoVendaPaga = true;
+    updateData.comissaoOverPaga = true;
+    notifMsg = `Comissao paga: ${venda.cliente} - R$ ${venda.comissaoTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
   }
 
-  // Atualizar status para PAGO
+  // Verificar se ambas ficaram pagas → status PAGO
+  const vendaPaga = tipo === "VENDA" ? true : venda.comissaoVendaPaga;
+  const overPaga = tipo === "OVER" ? true : venda.comissaoOverPaga;
+  if (vendaPaga && overPaga) {
+    updateData.status = "PAGO";
+  }
+
   const updated = await prisma.venda.update({
     where: { id: vendaId },
-    data: { status: "PAGO" },
+    data: updateData,
   });
 
   // Notificar vendedor
@@ -127,7 +164,7 @@ export async function PUT(request: NextRequest) {
       data: {
         userId: venda.vendedorId,
         tipo: "COMISSAO_PAGA",
-        mensagem: `Comissao paga: ${venda.cliente} - R$ ${venda.comissaoTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+        mensagem: notifMsg,
         vendaId: venda.id,
       },
     });
