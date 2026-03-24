@@ -84,6 +84,35 @@ export async function PUT(
   if (novoValorVenda !== undefined) updateData.valorVenda = novoValorVenda;
   if (novoCustoEquipamentos !== undefined) updateData.custoEquipamentos = novoCustoEquipamentos;
 
+  // Se valor ou equipamento mudou, recalcular margem, over e comissões
+  if ((novoValorVenda !== undefined || novoCustoEquipamentos !== undefined) && novaMargem === undefined) {
+    const vv = novoValorVenda ?? vendaAtual.valorVenda;
+    const ce = novoCustoEquipamentos ?? vendaAtual.custoEquipamentos;
+    const newMargem = ce > 0 ? vv / ce : 0;
+    const fator = vendaAtual.percentualComissaoOverride ?? 0.025;
+    const newOver = Math.max(vv - ce * 1.8, 0);
+    const newComissaoVenda = vv * fator;
+    const newComissaoOver = newOver * 0.35;
+    const newComissaoTotal = newComissaoVenda + newComissaoOver;
+    const outrosCustos =
+      (vendaAtual.custoInstalacao ?? 0) + (vendaAtual.custoVisitaTecnica ?? 0) +
+      (vendaAtual.custoCosern ?? 0) + (vendaAtual.custoTrtCrea ?? 0) +
+      (vendaAtual.custoEngenheiro ?? 0) + (vendaAtual.custoMaterialCA ?? 0) +
+      (vendaAtual.custoImposto ?? 0);
+    const newLucro = vv - ce - outrosCustos - newComissaoTotal;
+    const newMargemLucro = vv > 0 ? newLucro / vv : 0;
+
+    updateData.margem = Math.round(newMargem * 100) / 100;
+    updateData.over = newOver;
+    updateData.comissaoVenda = newComissaoVenda;
+    updateData.comissaoOver = newComissaoOver;
+    updateData.comissaoTotal = newComissaoTotal;
+    updateData.comissaoVendedorCusto = newComissaoTotal;
+    updateData.geracaoKwh = vendaAtual.geracaoKwh;
+    updateData.lucroLiquido = newLucro;
+    updateData.margemLucroLiquido = newMargemLucro;
+  }
+
   // ── Ajuste direto de margem ──
   if (novaMargem !== undefined) {
     if (novaMargem <= 0) {

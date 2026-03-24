@@ -76,6 +76,10 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
   const [novaMargem, setNovaMargem] = useState<number>(1.8);
   const [margemAlterada, setMargemAlterada] = useState(false);
   const [editDataConversao, setEditDataConversao] = useState("");
+  const [editValorVenda, setEditValorVenda] = useState("");
+  const [editValorVendaNum, setEditValorVendaNum] = useState(0);
+  const [editCustoEquip, setEditCustoEquip] = useState("");
+  const [editCustoEquipNum, setEditCustoEquipNum] = useState(0);
   const [showMotivoModal, setShowMotivoModal] = useState(false);
   const [motivoText, setMotivoText] = useState("");
   const [pendingAction, setPendingAction] = useState<"custos" | "margem" | null>(null);
@@ -109,6 +113,10 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
     setNovaMargem(Math.round(venda.margem * 100) / 100);
     setMargemAlterada(false);
     setEditDataConversao(venda.dataConversao ? venda.dataConversao.split("T")[0] : "");
+    setEditValorVenda(formatCurrencyInput(venda.valorVenda));
+    setEditValorVendaNum(venda.valorVenda);
+    setEditCustoEquip(formatCurrencyInput(venda.custoEquipamentos));
+    setEditCustoEquipNum(venda.custoEquipamentos);
     setErro("");
     setSucessoMsg("");
   }
@@ -197,6 +205,13 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
         percentualComissaoOverride: isNaN(percentualDecimal) ? undefined : percentualDecimal,
         motivo,
       };
+      // Incluir valor da venda e custo equipamentos se foram alterados
+      if (editValorVendaNum !== venda.valorVenda) {
+        payload.valorVenda = editValorVendaNum;
+      }
+      if (editCustoEquipNum !== venda.custoEquipamentos) {
+        payload.custoEquipamentos = editCustoEquipNum;
+      }
       if (editDataConversao) {
         payload.dataConversao = editDataConversao;
       }
@@ -260,13 +275,41 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
               <span className="text-gray-300">{venda.vendedor}</span>
             </div>
           )}
-          <div className="flex justify-between">
-            <span className="text-sm text-gray-400">Valor da Venda</span>
-            <span className="font-medium text-gray-100">{formatCurrency(venda.valorVenda)}</span>
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-1">Valor da Venda (R$)</label>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={editValorVenda}
+              onChange={(e) => {
+                const raw = e.target.value;
+                if (raw === "") { setEditValorVenda(""); setEditValorVendaNum(0); return; }
+                const { display, numericValue } = handleCurrencyKeyInput(raw);
+                setEditValorVenda(display);
+                setEditValorVendaNum(numericValue);
+              }}
+              className="w-full px-3 py-2 rounded-lg border border-amber-400/30 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-[#0d1117] text-gray-100"
+              placeholder="0,00"
+              autoComplete="off"
+            />
           </div>
-          <div className="flex justify-between">
-            <span className="text-sm text-gray-400">Custo Equipamentos</span>
-            <span className="text-gray-300">{formatCurrency(venda.custoEquipamentos)}</span>
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-1">Custo Equipamentos (R$)</label>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={editCustoEquip}
+              onChange={(e) => {
+                const raw = e.target.value;
+                if (raw === "") { setEditCustoEquip(""); setEditCustoEquipNum(0); return; }
+                const { display, numericValue } = handleCurrencyKeyInput(raw);
+                setEditCustoEquip(display);
+                setEditCustoEquipNum(numericValue);
+              }}
+              className="w-full px-3 py-2 rounded-lg border border-amber-400/30 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-[#0d1117] text-gray-100"
+              placeholder="0,00"
+              autoComplete="off"
+            />
           </div>
           <div className="flex justify-between">
             <span className="text-sm text-gray-400">Markup / Lucro</span>
