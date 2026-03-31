@@ -10,12 +10,33 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const senha = await hash("diretor123", 12);
-  const user = await prisma.user.update({
-    where: { email: "diretor@solar.com" },
-    data: { senha },
-    select: { email: true, nome: true },
-  });
+  try {
+    const senha = await hash("diretor123", 12);
 
-  return NextResponse.json({ ok: true, usuario: user.email, mensagem: "Senha resetada para: diretor123" });
+    // Busca todos os diretores para diagnóstico
+    const diretores = await prisma.user.findMany({
+      where: { role: "DIRETOR" },
+      select: { email: true, nome: true, id: true },
+    });
+
+    if (diretores.length === 0) {
+      // Cria o diretor se não existir
+      const novo = await prisma.user.create({
+        data: { nome: "Erick Santos", email: "diretor@solar.com", senha, role: "DIRETOR" },
+        select: { email: true, nome: true },
+      });
+      return NextResponse.json({ ok: true, acao: "criado", usuario: novo.email, mensagem: "Diretor criado. Use: diretor@solar.com / diretor123" });
+    }
+
+    // Reseta a senha de todos os diretores
+    const atualizados = [];
+    for (const d of diretores) {
+      await prisma.user.update({ where: { id: d.id }, data: { senha } });
+      atualizados.push(d.email);
+    }
+
+    return NextResponse.json({ ok: true, acao: "resetado", diretores: atualizados, mensagem: "Senha resetada para: diretor123" });
+  } catch (err: unknown) {
+    return NextResponse.json({ error: String(err) }, { status: 500 });
+  }
 }
