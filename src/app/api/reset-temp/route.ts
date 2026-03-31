@@ -28,14 +28,14 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok: true, acao: "criado", usuario: novo.email, mensagem: "Diretor criado. Use: diretor@solar.com / diretor123" });
     }
 
-    // Reseta a senha e promove para ADMIN
+    // Reseta apenas a senha, mantém role DIRETOR
     const atualizados = [];
     for (const d of diretores) {
-      await prisma.user.update({ where: { id: d.id }, data: { senha, role: "ADMIN" } });
+      await prisma.user.update({ where: { id: d.id }, data: { senha } });
       atualizados.push(d.email);
     }
 
-    return NextResponse.json({ ok: true, acao: "resetado", diretores: atualizados, mensagem: "Senha resetada para diretor123 e role atualizado para ADMIN" });
+    return NextResponse.json({ ok: true, acao: "resetado", diretores: atualizados, mensagem: "Senha resetada para: diretor123" });
   } catch (err: unknown) {
     return NextResponse.json({ error: String(err) }, { status: 500 });
   }
