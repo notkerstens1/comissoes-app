@@ -37,6 +37,8 @@ export async function PUT(
     previsaoInstalacao,
     conferido,
     dataConferido,
+    checklistSupervisao,
+    prazoFinalizacao,
   } = body;
 
   const data: any = {};
@@ -54,6 +56,8 @@ export async function PUT(
   if (previsaoInstalacao !== undefined) data.previsaoInstalacao = previsaoInstalacao || null;
   if (conferido !== undefined) data.conferido = conferido;
   if (dataConferido !== undefined) data.dataConferido = dataConferido || null;
+  if (checklistSupervisao !== undefined) data.checklistSupervisao = checklistSupervisao;
+  if (prazoFinalizacao !== undefined) data.prazoFinalizacao = prazoFinalizacao || null;
 
   // Historico de acoes: ao atualizar proximaAcao, salvar a anterior no historico
   if (proximaAcao !== undefined) {

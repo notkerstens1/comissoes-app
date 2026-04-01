@@ -296,6 +296,10 @@ model PosVenda {
   // Controle de conferencia pelo supervisor
   conferido        Boolean  @default(false)
   dataConferido    String?  // "YYYY-MM-DD"
+  // Checklist de etapas da supervisao (JSON: [{key, label, concluido}])
+  checklistSupervisao String?
+  // Prazo de finalizacao definido pelo sistema (2 dias apos criacao)
+  prazoFinalizacao String?  // "YYYY-MM-DD"
   // Controle
   ativo            Boolean  @default(true)
   createdAt        DateTime @default(now())

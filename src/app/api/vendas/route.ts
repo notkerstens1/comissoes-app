@@ -178,12 +178,27 @@ export async function POST(request: NextRequest) {
         where: { role: "POS_VENDA", ativo: true },
         select: { id: true },
       });
+      // Prazo de 2 dias para finalizacao
+      const prazo = new Date();
+      prazo.setDate(prazo.getDate() + 2);
+      const prazoStr = prazo.toISOString().split("T")[0];
+
+      const checklistPadrao = JSON.stringify([
+        { key: "visita_tecnica",     label: "Visita Técnica",       concluido: false },
+        { key: "solicitacao_cosern", label: "Solicitação Cosern",   concluido: false },
+        { key: "card_fechado",       label: "Card Fechado",         concluido: false },
+        { key: "contrato_assinado",  label: "Contrato Assinado",    concluido: false },
+      ]);
+
       await prisma.posVenda.create({
         data: {
           operadorId: operadorPV?.id ?? session.user.id,
           nomeCliente: cliente,
           vendaId: venda.id,
           etapa: "TRAMITES",
+          proximoContato: prazoStr,
+          prazoFinalizacao: prazoStr,
+          checklistSupervisao: checklistPadrao,
         },
       });
     } catch (pvErr) {

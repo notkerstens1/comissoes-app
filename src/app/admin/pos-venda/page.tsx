@@ -10,10 +10,12 @@ import {
   Check,
   X,
   ChevronRight,
+  ChevronDown,
   Pencil,
   Filter,
   User,
   Trash2,
+  Clock,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import {
@@ -38,6 +40,8 @@ type PosVendaRegistro = {
   operador: { id: string; nome: string };
   conferido: boolean;
   dataConferido: string | null;
+  checklistSupervisao: string | null;
+  prazoFinalizacao: string | null;
 };
 
 type FormData = {
@@ -74,6 +78,7 @@ export default function AdminPosVendaPage() {
   const [saving, setSaving] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState<"operacional" | "supervisao">("supervisao");
   const [conferindoId, setConferindoId] = useState<string | null>(null);
+  const [expandidoId, setExpandidoId] = useState<string | null>(null);
   const [filtroEtapa, setFiltroEtapa] = useState<string | null>(null);
   const [filtroPeriodo, setFiltroPeriodo] = useState<"todos" | "semana" | "mes">("todos");
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -304,6 +309,20 @@ export default function AdminPosVendaPage() {
             const pendentes = total - conferidos;
             const atrasados = registros.filter(r => !r.conferido && r.proximoContato && r.proximoContato < hoje).length;
 
+            type ChecklistItem = { key: string; label: string; concluido: boolean };
+
+            function parseChecklist(r: PosVendaRegistro): ChecklistItem[] {
+              try {
+                if (r.checklistSupervisao) return JSON.parse(r.checklistSupervisao);
+              } catch { /* ignore */ }
+              return [
+                { key: "visita_tecnica",     label: "Visita Técnica",     concluido: false },
+                { key: "solicitacao_cosern", label: "Solicitação Cosern", concluido: false },
+                { key: "card_fechado",       label: "Card Fechado",       concluido: false },
+                { key: "contrato_assinado",  label: "Contrato Assinado",  concluido: false },
+              ];
+            }
+
             async function toggleConferido(r: PosVendaRegistro) {
               setConferindoId(r.id);
               const novoConferido = !r.conferido;
@@ -317,6 +336,21 @@ export default function AdminPosVendaPage() {
               });
               await fetchRegistros();
               setConferindoId(null);
+            }
+
+            async function toggleChecklistItem(r: PosVendaRegistro, key: string) {
+              const items = parseChecklist(r);
+              const updated = items.map(i => i.key === key ? { ...i, concluido: !i.concluido } : i);
+              const allDone = updated.every(i => i.concluido);
+              await fetch(`/api/pos-venda/${r.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  checklistSupervisao: JSON.stringify(updated),
+                  ...(allDone && !r.conferido ? { conferido: true, dataConferido: hoje } : {}),
+                }),
+              });
+              await fetchRegistros();
             }
 
             return (
@@ -341,15 +375,15 @@ export default function AdminPosVendaPage() {
                   <div className="bg-[#1a1f2e] rounded-xl p-4 border border-[#232a3b]">
                     <p className="text-xs text-gray-400 uppercase tracking-wider">Atrasados</p>
                     <p className="text-2xl font-bold text-red-400 mt-1">{atrasados}</p>
-                    <p className="text-xs text-gray-500 mt-1">contato vencido</p>
+                    <p className="text-xs text-gray-500 mt-1">prazo vencido</p>
                   </div>
                 </div>
 
                 {/* Lista de acompanhamento */}
                 <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] overflow-hidden">
                   <div className="px-4 py-3 border-b border-[#232a3b] flex items-center justify-between">
-                    <p className="font-medium text-gray-100 text-sm">Lista de Acompanhamento</p>
-                    <p className="text-xs text-gray-500">{conferidos}/{total} conferidos</p>
+                    <p className="font-medium text-gray-100 text-sm">Acompanhamento por Cliente</p>
+                    <p className="text-xs text-gray-500">{conferidos}/{total} concluídos</p>
                   </div>
                   {loading ? (
                     <div className="px-4 py-8 text-center text-gray-500 text-sm">Carregando...</div>
@@ -357,37 +391,100 @@ export default function AdminPosVendaPage() {
                     <div className="px-4 py-8 text-center text-gray-500 text-sm">Nenhum cliente cadastrado</div>
                   ) : (
                     <div className="divide-y divide-[#232a3b]">
-                      {registros.map((r) => (
-                        <div key={r.id} className={`flex items-center gap-4 px-4 py-3 ${r.conferido ? "opacity-60" : ""}`}>
-                          <button
-                            onClick={() => toggleConferido(r)}
-                            disabled={conferindoId === r.id}
-                            className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition ${
-                              r.conferido
-                                ? "bg-emerald-400 border-emerald-400"
-                                : "border-gray-600 hover:border-orange-400"
-                            }`}
-                          >
-                            {r.conferido && <Check className="w-3 h-3 text-gray-900" />}
-                          </button>
-                          <div className="flex-1 min-w-0">
-                            <p className={`font-medium text-sm truncate ${r.conferido ? "line-through text-gray-500" : "text-gray-100"}`}>
-                              {r.nomeCliente}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">{r.operador.nome} · {getEtapaLabel(r.etapa as EtapaPosVenda)}</p>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            {r.proximoContato && (
-                              <p className={`text-xs font-medium ${r.proximoContato < hoje && !r.conferido ? "text-red-400" : "text-gray-500"}`}>
-                                {formatDate(r.proximoContato)}
-                              </p>
+                      {registros.map((r) => {
+                        const items = parseChecklist(r);
+                        const done = items.filter(i => i.concluido).length;
+                        const total4 = items.length;
+                        const isExpanded = expandidoId === r.id;
+                        const prazoVencido = r.prazoFinalizacao && r.prazoFinalizacao < hoje && !r.conferido;
+
+                        return (
+                          <div key={r.id} className={r.conferido ? "opacity-60" : ""}>
+                            {/* Linha do cliente */}
+                            <div className="flex items-center gap-3 px-4 py-3">
+                              {/* Checkbox conferido */}
+                              <button
+                                onClick={() => toggleConferido(r)}
+                                disabled={conferindoId === r.id}
+                                title="Marcar como conferido"
+                                className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition ${
+                                  r.conferido
+                                    ? "bg-emerald-400 border-emerald-400"
+                                    : "border-gray-600 hover:border-orange-400"
+                                }`}
+                              >
+                                {r.conferido && <Check className="w-3 h-3 text-gray-900" />}
+                              </button>
+
+                              {/* Info do cliente */}
+                              <div className="flex-1 min-w-0">
+                                <p className={`font-medium text-sm truncate ${r.conferido ? "line-through text-gray-500" : "text-gray-100"}`}>
+                                  {r.nomeCliente}
+                                </p>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                  <p className="text-xs text-gray-500 truncate">{r.operador.nome}</p>
+                                  {/* Progress pills */}
+                                  <div className="flex items-center gap-1">
+                                    {items.map(i => (
+                                      <span key={i.key} className={`w-2 h-2 rounded-full ${i.concluido ? "bg-emerald-400" : "bg-[#232a3b]"}`} />
+                                    ))}
+                                  </div>
+                                  <span className="text-xs text-gray-500">{done}/{total4}</span>
+                                </div>
+                              </div>
+
+                              {/* Prazo */}
+                              <div className="text-right flex-shrink-0 mr-1">
+                                {r.prazoFinalizacao && !r.conferido && (
+                                  <div className={`flex items-center gap-1 text-xs font-medium ${prazoVencido ? "text-red-400" : "text-orange-300"}`}>
+                                    <Clock className="w-3 h-3" />
+                                    {prazoVencido ? "Atrasado" : formatDate(r.prazoFinalizacao)}
+                                  </div>
+                                )}
+                                {r.conferido && r.dataConferido && (
+                                  <p className="text-xs text-emerald-400">✓ {formatDate(r.dataConferido)}</p>
+                                )}
+                              </div>
+
+                              {/* Expand */}
+                              <button
+                                onClick={() => setExpandidoId(isExpanded ? null : r.id)}
+                                className="text-gray-400 hover:text-gray-200 flex-shrink-0"
+                              >
+                                {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                              </button>
+                            </div>
+
+                            {/* Checklist expandido */}
+                            {isExpanded && (
+                              <div className="px-12 pb-3 space-y-2 bg-[#141820] border-t border-[#232a3b]">
+                                <p className="text-xs text-gray-500 pt-3 pb-1 uppercase tracking-wider">Etapas</p>
+                                {items.map((item) => (
+                                  <button
+                                    key={item.key}
+                                    onClick={() => toggleChecklistItem(r, item.key)}
+                                    className="w-full flex items-center gap-3 py-1.5 group"
+                                  >
+                                    <span className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition ${
+                                      item.concluido
+                                        ? "bg-emerald-400 border-emerald-400"
+                                        : "border-gray-600 group-hover:border-orange-400"
+                                    }`}>
+                                      {item.concluido && <Check className="w-3 h-3 text-gray-900" />}
+                                    </span>
+                                    <span className={`text-sm ${item.concluido ? "line-through text-gray-500" : "text-gray-200"}`}>
+                                      {item.label}
+                                    </span>
+                                    {item.concluido && (
+                                      <span className="ml-auto text-xs text-emerald-400">✅</span>
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
                             )}
-                            {r.conferido && r.dataConferido && (
-                              <p className="text-xs text-emerald-400">✓ {formatDate(r.dataConferido)}</p>
-                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>
