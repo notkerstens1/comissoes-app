@@ -436,8 +436,10 @@ export default function VendasPage() {
 
       {/* ── ABA: EXTRATO DE COMISSÕES ── */}
       {!admin && abaAtiva === "extrato" && (() => {
-        const recebido = vendas.filter(v => v.status === "PAGO").reduce((s, v) => s + v.comissaoTotal, 0);
-        const pendente = vendas.filter(v => v.status !== "PAGO").reduce((s, v) => s + v.comissaoTotal, 0);
+        const recebido = vendas.reduce((s, v) =>
+          s + (v.comissaoVendaPaga ? v.comissaoVenda : 0) + (v.comissaoOverPaga ? v.comissaoOver : 0), 0);
+        const pendente = vendas.reduce((s, v) =>
+          s + (!v.comissaoVendaPaga ? v.comissaoVenda : 0) + (!v.comissaoOverPaga ? v.comissaoOver : 0), 0);
         return (
           <div className="space-y-4">
             {/* Cards resumo */}
@@ -450,12 +452,12 @@ export default function VendasPage() {
               <div className="bg-[#1a1f2e] rounded-xl p-5 border border-[#232a3b]">
                 <p className="text-sm text-gray-400">Recebido</p>
                 <p className="text-xl font-bold text-emerald-400 mt-1">{formatCurrency(recebido)}</p>
-                <p className="text-xs text-gray-500 mt-1">{vendas.filter(v => v.status === "PAGO").length} vendas pagas</p>
+                <p className="text-xs text-gray-500 mt-1">pago pelo financeiro</p>
               </div>
               <div className="bg-[#1a1f2e] rounded-xl p-5 border border-[#232a3b]">
                 <p className="text-sm text-gray-400">Pendente</p>
                 <p className="text-xl font-bold text-yellow-400 mt-1">{formatCurrency(pendente)}</p>
-                <p className="text-xs text-gray-500 mt-1">{vendas.filter(v => v.status !== "PAGO").length} vendas aguardando</p>
+                <p className="text-xs text-gray-500 mt-1">aguardando pagamento</p>
               </div>
             </div>
 
