@@ -28,6 +28,8 @@ import {
   Package,
   Hammer,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { isAdmin as checkAdmin, isDiretor } from "@/lib/roles";
 import { Sidebar } from "@/components/Sidebar";
 import {
   ETAPAS_POS_VENDA,
@@ -41,6 +43,8 @@ type PosVendaRegistro = {
   id: string;
   nomeCliente: string;
   telefone: string | null;
+  conferido: boolean;
+  dataConferido: string | null;
   etapa: string;
   ultimaAcao: string | null;
   proximaAcao: string | null;
@@ -86,6 +90,10 @@ function formatDate(d: string | null) {
 }
 
 export default function PosVendaPage() {
+  const { data: session } = useSession();
+  const isSupervisor = checkAdmin(session?.user?.role) || isDiretor(session?.user?.role);
+  const [abaAtiva, setAbaAtiva] = useState<"operacional" | "supervisao">("operacional");
+  const [conferindoId, setConferindoId] = useState<string | null>(null);
   const [registros, setRegistros] = useState<PosVendaRegistro[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -420,6 +428,32 @@ export default function PosVendaPage() {
             </button>
           </div>
 
+          {/* Tabs (supervisor vê as duas abas) */}
+          {isSupervisor && (
+            <div className="flex gap-1 bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-1 w-fit mb-6">
+              <button
+                onClick={() => setAbaAtiva("operacional")}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  abaAtiva === "operacional"
+                    ? "bg-orange-400 text-gray-900"
+                    : "text-gray-400 hover:text-gray-200"
+                }`}
+              >
+                Operacional
+              </button>
+              <button
+                onClick={() => setAbaAtiva("supervisao")}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  abaAtiva === "supervisao"
+                    ? "bg-orange-400 text-gray-900"
+                    : "text-gray-400 hover:text-gray-200"
+                }`}
+              >
+                Visão Supervisão
+              </button>
+            </div>
+          )}
+
           {/* Erro global */}
           {erroMsg && (
             <div className="mb-4 flex items-center gap-3 bg-red-400/10 border border-red-400/30 rounded-xl px-4 py-3">
@@ -430,6 +464,109 @@ export default function PosVendaPage() {
               </button>
             </div>
           )}
+
+          {/* ── ABA VISÃO SUPERVISÃO ── */}
+          {isSupervisor && abaAtiva === "supervisao" && (() => {
+            const total = registros.length;
+            const conferidos = registros.filter(r => r.conferido).length;
+            const pendentes = total - conferidos;
+            const hoje = new Date().toISOString().split("T")[0];
+            const atrasados = registros.filter(r => !r.conferido && r.proximoContato && r.proximoContato < hoje).length;
+
+            async function toggleConferido(r: PosVendaRegistro) {
+              setConferindoId(r.id);
+              const novoConferido = !r.conferido;
+              await fetch(`/api/pos-venda/${r.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  conferido: novoConferido,
+                  dataConferido: novoConferido ? hoje : null,
+                }),
+              });
+              await fetchRegistros();
+              setConferindoId(null);
+            }
+
+            return (
+              <div className="space-y-6">
+                {/* 4 cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="bg-[#1a1f2e] rounded-xl p-4 border border-[#232a3b]">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">Total</p>
+                    <p className="text-2xl font-bold text-gray-100 mt-1">{total}</p>
+                    <p className="text-xs text-gray-500 mt-1">clientes ativos</p>
+                  </div>
+                  <div className="bg-[#1a1f2e] rounded-xl p-4 border border-[#232a3b]">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">Conferidos</p>
+                    <p className="text-2xl font-bold text-emerald-400 mt-1">{conferidos}</p>
+                    <p className="text-xs text-gray-500 mt-1">{total > 0 ? Math.round(conferidos / total * 100) : 0}% do total</p>
+                  </div>
+                  <div className="bg-[#1a1f2e] rounded-xl p-4 border border-[#232a3b]">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">Pendentes</p>
+                    <p className="text-2xl font-bold text-yellow-400 mt-1">{pendentes}</p>
+                    <p className="text-xs text-gray-500 mt-1">a conferir</p>
+                  </div>
+                  <div className="bg-[#1a1f2e] rounded-xl p-4 border border-[#232a3b]">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">Atrasados</p>
+                    <p className="text-2xl font-bold text-red-400 mt-1">{atrasados}</p>
+                    <p className="text-xs text-gray-500 mt-1">contato vencido</p>
+                  </div>
+                </div>
+
+                {/* Lista de clientes */}
+                <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] overflow-hidden">
+                  <div className="px-4 py-3 border-b border-[#232a3b] flex items-center justify-between">
+                    <p className="font-medium text-gray-100 text-sm">Lista de Acompanhamento</p>
+                    <p className="text-xs text-gray-500">{conferidos}/{total} conferidos</p>
+                  </div>
+                  {registros.length === 0 ? (
+                    <div className="p-8 text-center text-gray-500 text-sm">Nenhum cliente em pós-venda.</div>
+                  ) : (
+                    <div className="divide-y divide-[#232a3b]">
+                      {registros.map((r) => (
+                        <div key={r.id} className={`flex items-center gap-4 px-4 py-3 ${r.conferido ? "opacity-60" : ""}`}>
+                          <button
+                            onClick={() => toggleConferido(r)}
+                            disabled={conferindoId === r.id}
+                            className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition ${
+                              r.conferido
+                                ? "bg-emerald-400 border-emerald-400"
+                                : "border-gray-600 hover:border-orange-400"
+                            }`}
+                          >
+                            {r.conferido && <Check className="w-3 h-3 text-gray-900" />}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-medium text-sm truncate ${r.conferido ? "line-through text-gray-500" : "text-gray-100"}`}>
+                              {r.nomeCliente}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              {getEtapaLabel(r.etapa as EtapaPosVenda)}
+                              {r.proximaAcao && ` · ${r.proximaAcao}`}
+                            </p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            {r.proximoContato && (
+                              <p className={`text-xs font-medium ${r.proximoContato < hoje && !r.conferido ? "text-red-400" : "text-gray-500"}`}>
+                                {formatDate(r.proximoContato)}
+                              </p>
+                            )}
+                            {r.conferido && r.dataConferido && (
+                              <p className="text-xs text-emerald-400">✓ {formatDate(r.dataConferido)}</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* ── ABA OPERACIONAL (conteúdo existente) ── */}
+          {(!isSupervisor || abaAtiva === "operacional") && <>
 
           {/* Formulário novo cliente */}
           {showForm && (
@@ -1231,6 +1368,7 @@ export default function PosVendaPage() {
               })}
             </div>
           )}
+          </>}
         </div>
       </main>
     </div>

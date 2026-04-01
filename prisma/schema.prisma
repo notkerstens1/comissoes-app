@@ -148,6 +148,7 @@ model DailyTraffic {
   valorInvestidoVendas   Float    @default(0)
   valorInvestidoBranding Float    @default(0)
   valorGasto             Float    @default(0)
+  syncSource             String   @default("manual") // "manual" | "meta_ads" | "mixed"
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
 }
@@ -292,6 +293,9 @@ model PosVenda {
   // Previsoes de datas (operador preenche)
   previsaoMaterial    String?  // "YYYY-MM-DD"
   previsaoInstalacao  String?  // "YYYY-MM-DD"
+  // Controle de conferencia pelo supervisor
+  conferido        Boolean  @default(false)
+  dataConferido    String?  // "YYYY-MM-DD"
   // Controle
   ativo            Boolean  @default(true)
   createdAt        DateTime @default(now())
@@ -361,6 +365,130 @@ model Notificacao {
   vendaId   String?
   venda     Venda?   @relation(fields: [vendaId], references: [id])
   createdAt DateTime @default(now())
+}
+
+// ============================================================
+// REVENUE ANALYTICS — Sync de dados externos
+// ============================================================
+
+// Meta Ads: snapshot diario por campanha/adset
+model MetaAdsCampaign {
+  id             String   @id @default(cuid())
+  data           String   // "YYYY-MM-DD"
+  campaignId     String
+  campaignName   String
+  adsetId        String   @default("account_level")
+  adsetName      String   @default("Total da Conta")
+  spend          Float    @default(0)
+  impressions    Int      @default(0)
+  reach          Int      @default(0)
+  clicks         Int      @default(0)
+  ctr            Float    @default(0)
+  cpc            Float    @default(0)
+  cpm            Float    @default(0)
+  leads          Int      @default(0)
+  messages       Int      @default(0)
+  costPerResult  Float    @default(0)
+  synced_at      DateTime @default(now())
+
+  @@unique([data, campaignId, adsetId])
+}
+
+// Gronner CRM: leads sincronizados com scoring ICP
+model GronnerLead {
+  id              String   @id @default(cuid())
+  gronnerId       String   @unique
+  nome            String
+  telefone        String?
+  origem          String?
+  icpScore        Int      @default(0)
+  icpClasse       String?  // "quente_a" | "quente_b" | "morno" | "frio"
+  status          String?
+  etapa           String?
+  preVendedor     String?
+  vendedor        String?
+  valorProposta   Float?
+  gronnerCreatedAt String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  synced_at       DateTime @default(now())
+}
+
+// Nibo: registros financeiros (contas a receber e pagar)
+model NiboRecord {
+  id             String   @id @default(cuid())
+  niboId         String   @unique
+  tipo           String   // "receber" | "pagar"
+  descricao      String
+  categoria      String?
+  valor          Float
+  dataVencimento String
+  dataPagamento  String?
+  status         String   // "aberto" | "pago" | "vencido"
+  contato        String?
+  synced_at      DateTime @default(now())
+}
+
+// Instagram: metricas diarias da conta
+model InstagramDaily {
+  id              String   @id @default(cuid())
+  data            String   @unique
+  seguidores      Int      @default(0)
+  novosSeguidores Int      @default(0)
+  reach           Int      @default(0)
+  impressions     Int      @default(0)
+  profileViews    Int      @default(0)
+  websiteClicks   Int      @default(0)
+  postsPublicados Int      @default(0)
+  stories         Int      @default(0)
+  reels           Int      @default(0)
+  synced_at       DateTime @default(now())
+}
+
+// Instagram: metricas por post
+model InstagramPost {
+  id            String   @id @default(cuid())
+  igPostId      String   @unique
+  tipo          String   // "IMAGE" | "VIDEO" | "CAROUSEL" | "REEL" | "STORY"
+  caption       String?
+  publishedAt   DateTime
+  likes         Int      @default(0)
+  comments      Int      @default(0)
+  shares        Int      @default(0)
+  saves         Int      @default(0)
+  reach         Int      @default(0)
+  impressions   Int      @default(0)
+  engagement    Float    @default(0)
+  synced_at     DateTime @default(now())
+}
+
+// YouTube: metricas diarias do canal
+model YouTubeDaily {
+  id              String   @id @default(cuid())
+  data            String   @unique
+  inscritos       Int      @default(0)
+  novosInscritos  Int      @default(0)
+  views           Int      @default(0)
+  watchTimeMin    Float    @default(0)
+  likes           Int      @default(0)
+  comments        Int      @default(0)
+  videosPublicados Int     @default(0)
+  synced_at       DateTime @default(now())
+}
+
+// YouTube: metricas por video
+model YouTubeVideo {
+  id              String   @id @default(cuid())
+  ytVideoId       String   @unique
+  titulo          String
+  publishedAt     DateTime
+  views           Int      @default(0)
+  likes           Int      @default(0)
+  comments        Int      @default(0)
+  watchTimeMin    Float    @default(0)
+  avgViewDuration Float    @default(0)
+  ctr             Float    @default(0)
+  synced_at       DateTime @default(now())
 }
 
 // Campanhas: metas de vendas criadas por Diretor/Supervisor

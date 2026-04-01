@@ -37,6 +37,8 @@ interface Venda {
   dataConversao: string;
   fonte: string;
   status: string;
+  comissaoVendaPaga: boolean;
+  comissaoOverPaga: boolean;
   vendedor?: { nome: string };
   // Campos extras para edição (admin)
   quantidadePlacas?: number;
@@ -63,6 +65,7 @@ export default function VendasPage() {
   const [loading, setLoading] = useState(true);
   const [vendaEditando, setVendaEditando] = useState<VendaEditavel | null>(null);
   const [editPanelOpen, setEditPanelOpen] = useState(false);
+  const [abaAtiva, setAbaAtiva] = useState<"vendas" | "extrato">("vendas");
   const [mesAtual, setMesAtual] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -404,6 +407,132 @@ export default function VendasPage() {
           )}
         </div>
       </div>
+
+      {/* Tabs */}
+      {!admin && (
+        <div className="flex gap-1 bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-1 w-fit">
+          <button
+            onClick={() => setAbaAtiva("vendas")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              abaAtiva === "vendas"
+                ? "bg-lime-400 text-gray-900"
+                : "text-gray-400 hover:text-gray-200"
+            }`}
+          >
+            Minhas Vendas
+          </button>
+          <button
+            onClick={() => setAbaAtiva("extrato")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              abaAtiva === "extrato"
+                ? "bg-lime-400 text-gray-900"
+                : "text-gray-400 hover:text-gray-200"
+            }`}
+          >
+            Extrato de Comissões
+          </button>
+        </div>
+      )}
+
+      {/* ── ABA: EXTRATO DE COMISSÕES ── */}
+      {!admin && abaAtiva === "extrato" && (() => {
+        const recebido = vendas.filter(v => v.status === "PAGO").reduce((s, v) => s + v.comissaoTotal, 0);
+        const pendente = vendas.filter(v => v.status !== "PAGO").reduce((s, v) => s + v.comissaoTotal, 0);
+        return (
+          <div className="space-y-4">
+            {/* Cards resumo */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="bg-[#1a1f2e] rounded-xl p-5 border border-[#232a3b]">
+                <p className="text-sm text-gray-400">Total do mês</p>
+                <p className="text-xl font-bold text-lime-400 mt-1">{formatCurrency(totalComissao)}</p>
+                <p className="text-xs text-gray-500 mt-1">{vendas.length} vendas</p>
+              </div>
+              <div className="bg-[#1a1f2e] rounded-xl p-5 border border-[#232a3b]">
+                <p className="text-sm text-gray-400">Recebido</p>
+                <p className="text-xl font-bold text-emerald-400 mt-1">{formatCurrency(recebido)}</p>
+                <p className="text-xs text-gray-500 mt-1">{vendas.filter(v => v.status === "PAGO").length} vendas pagas</p>
+              </div>
+              <div className="bg-[#1a1f2e] rounded-xl p-5 border border-[#232a3b]">
+                <p className="text-sm text-gray-400">Pendente</p>
+                <p className="text-xl font-bold text-yellow-400 mt-1">{formatCurrency(pendente)}</p>
+                <p className="text-xs text-gray-500 mt-1">{vendas.filter(v => v.status !== "PAGO").length} vendas aguardando</p>
+              </div>
+            </div>
+
+            {/* Tabela extrato */}
+            {vendas.length === 0 ? (
+              <div className="bg-[#1a1f2e] rounded-xl p-12 border border-[#232a3b] text-center">
+                <p className="text-gray-400">Nenhuma venda neste mês.</p>
+              </div>
+            ) : (
+              <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-[#141820] text-gray-400">
+                      <tr>
+                        <th className="text-left px-4 py-3 font-medium">Cliente</th>
+                        <th className="text-center px-4 py-3 font-medium">Data</th>
+                        <th className="text-right px-4 py-3 font-medium">Valor Venda</th>
+                        <th className="text-right px-4 py-3 font-medium">Com. Venda (2,5%)</th>
+                        <th className="text-right px-4 py-3 font-medium">Com. Over (35%)</th>
+                        <th className="text-right px-4 py-3 font-medium">Total</th>
+                        <th className="text-center px-4 py-3 font-medium">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#232a3b]">
+                      {vendas.map((v) => (
+                        <tr key={v.id} className="hover:bg-[#232a3b]">
+                          <td className="px-4 py-3 font-medium text-gray-100">{v.cliente}</td>
+                          <td className="px-4 py-3 text-center text-gray-400">
+                            {new Date(v.dataConversao).toLocaleDateString("pt-BR")}
+                          </td>
+                          <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(v.valorVenda)}</td>
+                          <td className="px-4 py-3 text-right text-gray-400">
+                            {formatCurrency(v.comissaoVenda)}
+                            {v.comissaoVendaPaga && (
+                              <span className="ml-1 text-xs text-emerald-400">✓</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right text-yellow-400">
+                            {formatCurrency(v.comissaoOver)}
+                            {v.comissaoOverPaga && (
+                              <span className="ml-1 text-xs text-emerald-400">✓</span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right font-semibold text-lime-400">
+                            {formatCurrency(v.comissaoTotal)}
+                          </td>
+                          <td className="px-4 py-3 text-center">
+                            {v.status === "PAGO" ? (
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-emerald-400/10 text-emerald-400">Recebido</span>
+                            ) : v.comissaoVendaPaga || v.comissaoOverPaga ? (
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-400/10 text-blue-400">Parcial</span>
+                            ) : (
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-400/10 text-yellow-400">Pendente</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot className="bg-lime-400/10 font-semibold">
+                      <tr>
+                        <td className="px-4 py-3 text-lime-400" colSpan={3}>TOTAIS DO MÊS</td>
+                        <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(totalComissaoVenda)}</td>
+                        <td className="px-4 py-3 text-right text-yellow-400">{formatCurrency(totalComissaoOver)}</td>
+                        <td className="px-4 py-3 text-right text-lime-400">{formatCurrency(totalComissao)}</td>
+                        <td></td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* ── ABA: MINHAS VENDAS ── */}
+      {(admin || abaAtiva === "vendas") && <>
 
       {/* Accordion - Nova Venda Form (apenas vendedores) */}
       {!admin && <div
@@ -839,6 +968,8 @@ export default function VendasPage() {
           </div>
         </div>
       )}
+
+      </>}
 
       {/* Panel de Edicao de Venda (admin) */}
       {admin && (

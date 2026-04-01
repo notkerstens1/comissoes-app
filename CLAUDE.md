@@ -32,6 +32,40 @@ Sistema de gestao completo para a empresa de energia solar **LIV Energia**, foca
 - **Calculadora**: simulador de comissao para vendedores
 - **Campanhas**: metas de equipe e individuais
 - **Performance**: metricas diarias de trafego e comercial
+- **Revenue Analytics (CRO)**: dashboard 360 com 4 abas (rota /revenue)
+
+## Revenue Analytics — Dashboard CRO (/revenue)
+Dashboard estilo Chief Revenue Officer que integra 5 fontes de dados externas.
+
+### Fontes de Dados (sync automatico)
+| Fonte | API Route | Lib | Modelo Prisma |
+|-------|-----------|-----|---------------|
+| Meta Ads | `/api/sync/meta-ads` | `src/lib/meta-api.ts` | MetaAdsCampaign |
+| Gronner CRM | `/api/sync/gronner` | `src/lib/gronner-client.ts` + `src/lib/lead-scoring.ts` | GronnerLead |
+| Nibo (financeiro) | `/api/sync/nibo` | `src/lib/nibo-client.ts` | NiboRecord |
+| Instagram | `/api/sync/instagram` | `src/lib/instagram-api.ts` | InstagramDaily, InstagramPost |
+| YouTube | `/api/sync/youtube` | `src/lib/youtube-api.ts` | YouTubeDaily, YouTubeVideo |
+
+### 4 Abas do Dashboard
+1. **Visao Geral**: KPIs (CPL, CAC, ROI), funil, trend spend x leads x sales, performance time, campanhas
+2. **Marketing**: metricas Instagram + YouTube, correlacao conteudo x leads, top posts/videos
+3. **Pos-Venda**: pipeline, clientes atrasados, taxa conclusao (usa modelo PosVenda existente)
+4. **Financeiro**: receita x despesas, lucro, CAC vs ticket (somente DIRETOR)
+
+### Controle de Acesso Revenue
+| Role | Aba 1 | Aba 2 | Aba 3 | Aba 4 |
+|------|-------|-------|-------|-------|
+| DIRETOR | Tudo | Tudo | Tudo | Tudo |
+| ADMIN | Sem custos | Tudo | Tudo | Bloqueado |
+| VENDEDOR | Suas metricas | Leitura | Seus clientes | Bloqueado |
+| SDR | Suas metricas | Leitura | Bloqueado | Bloqueado |
+
+### Envs Necessarias (Revenue Analytics)
+- META_ACCESS_TOKEN, LIV_META_AD_ACCOUNT_ID
+- GRONNER_URL, GRONNER_EMAIL, GRONNER_PASS
+- NIBO_API_KEY
+- INSTAGRAM_ACCESS_TOKEN, INSTAGRAM_BUSINESS_ID
+- YOUTUBE_API_KEY, YOUTUBE_CHANNEL_ID
 
 ## Logica de Comissao
 - Margem minima: 1.8x (valorVenda / custoEquipamentos)
@@ -48,8 +82,8 @@ Sistema de gestao completo para a empresa de energia solar **LIV Energia**, foca
 5. **Diretor** ve P&L + PDF do orcamento + info SDR na tabela expandivel
 6. **Admin/Supervisor** ve tudo nas oportunidades (filtro por vendedor)
 
-## Banco de Dados (15 modelos)
-User, Venda, SolicitacaoMargem, Configuracao, DailyTraffic, DailyCommercial, FaixaComissao, RegistroSDR, LigacoesSDR, MetricasSDROverride, PendenciaVinculo, PosVenda, SimulacaoVenda, Notificacao, Campanha
+## Banco de Dados (23 modelos)
+User, Venda, SolicitacaoMargem, Configuracao, DailyTraffic, DailyCommercial, FaixaComissao, RegistroSDR, LigacoesSDR, MetricasSDROverride, PendenciaVinculo, PosVenda, SetorTecnico, SimulacaoVenda, Notificacao, Campanha, MetaAdsCampaign, GronnerLead, NiboRecord, InstagramDaily, InstagramPost, YouTubeDaily, YouTubeVideo
 
 ## Campos Importantes (Venda)
 - orcamentoUrl: String? (base64 PDF, uploaded pelo vendedor ao fechar venda)
@@ -91,8 +125,18 @@ User, Venda, SolicitacaoMargem, Configuracao, DailyTraffic, DailyCommercial, Fai
   - API GET filtra `notaAdmin` para vendedores (nao veem o campo)
   - API PUT aceita `notaAdmin` somente de admin/diretor
 
+## Ultima Atualizacao (29/03/2026)
+- Revenue Analytics (CRO): dashboard 360 com 4 abas
+- 5 syncs automatizados: Meta Ads, Gronner CRM, Nibo, Instagram, YouTube
+- 8 novos modelos Prisma para dados externos
+- Lead scoring ICP portado de liv-automation (regex, sem Ollama)
+- Campo syncSource adicionado ao DailyTraffic
+- Menu "Revenue Analytics" adicionado a Sidebar (ADMIN/DIRETOR)
+- Componentes: RevenueSummaryCards, FunnelVertical, SpendLeadsTrend, TeamPerformance, CampaignROI, SocialSummaryCards, SocialGrowthTrend, TopPostsGrid, PosVendaKPIs, PosVendaPipeline, FinancialKPIs, FinancialTrend, AlertBanner, SyncButton, RevenueDateFilter
+
 ## Notas para o Proximo Chat
-- O campo orcamentoUrl ja existe no schema Prisma, mas o `db push` precisa ser rodado no ambiente com DATABASE_URL valida (Railway)
-- O campo notaAdmin foi adicionado ao schema - `db push` rodara automaticamente no deploy (script start)
-- Se houver erro de Prisma validation na URL, a .env local nao tem a URL do banco - rodar em producao
-- O arquivo comissoes-app esta em /Users/ERICK/comissoes-app/
+- `prisma db push` precisa ser rodado no ambiente com DATABASE_URL valida (Railway) para criar as novas tabelas
+- Envs de APIs externas (Meta, Gronner, Nibo, Instagram, YouTube) precisam ser configuradas no Railway
+- O sync do Nibo requer plano Premium com API habilitada
+- Instagram usa mesmo token do Meta Business (mesmo app)
+- O arquivo comissoes-app esta em /Users/ERICK/PROJETOS/comissoes-app/

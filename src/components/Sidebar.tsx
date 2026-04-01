@@ -264,6 +264,21 @@ export function Sidebar() {
             </>
           )}
 
+          {/* Revenue Analytics */}
+          {admin && (
+            <>
+              <div className="my-3 border-t border-[#232a3b]" />
+              <p className="px-3 text-xs font-semibold text-lime-400 uppercase tracking-wider mb-2">
+                Revenue Analytics
+              </p>
+              {renderMenuSection(
+                [{ href: "/revenue", label: "Dashboard CRO", icon: TrendingUp }],
+                "text-lime-400",
+                "bg-lime-400/10"
+              )}
+            </>
+          )}
+
           {/* Menu Performance */}
           {admin && (
             <>
