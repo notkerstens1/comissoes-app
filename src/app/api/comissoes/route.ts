@@ -73,6 +73,8 @@ export async function GET(request: NextRequest) {
       comissaoTotal: v.comissaoTotal,
       dataConversao: v.dataConversao,
       status: v.status,
+      comissaoVendaPaga: v.comissaoVendaPaga,
+      comissaoOverPaga: v.comissaoOverPaga,
     })),
   });
 }

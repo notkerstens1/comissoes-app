@@ -2,7 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@/lib/utils";
-import { DollarSign, TrendingUp, Zap, AlertTriangle } from "lucide-react";
+import { DollarSign, TrendingUp, Zap, AlertTriangle, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
+
+interface VendaComissao {
+  id: string;
+  cliente: string;
+  valorVenda: number;
+  comissaoVenda: number;
+  comissaoOver: number;
+  comissaoTotal: number;
+  dataConversao: string;
+  comissaoVendaPaga: boolean;
+  comissaoOverPaga: boolean;
+}
 
 interface ComissaoData {
   mes: string;
@@ -19,11 +31,13 @@ interface ComissaoData {
     comissaoOverFaixa: number;
   }[];
   alertas: string[];
+  vendas: VendaComissao[];
 }
 
 export default function ComissoesPage() {
   const [dados, setDados] = useState<ComissaoData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pagamentosAberto, setPagamentosAberto] = useState(false);
   const [mesAtual, setMesAtual] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -175,6 +189,106 @@ export default function ComissoesPage() {
           </div>
         </div>
       </div>
+
+      {/* Pagamentos Recebidos */}
+      {(() => {
+        const vendas = dados?.vendas || [];
+        const pagas = vendas.filter(v => v.comissaoVendaPaga || v.comissaoOverPaga);
+        const totalPago = vendas.reduce((s, v) =>
+          s + (v.comissaoVendaPaga ? v.comissaoVenda : 0) + (v.comissaoOverPaga ? v.comissaoOver : 0), 0);
+        const totalPendente = vendas.reduce((s, v) =>
+          s + (!v.comissaoVendaPaga ? v.comissaoVenda : 0) + (!v.comissaoOverPaga ? v.comissaoOver : 0), 0);
+
+        if (vendas.length === 0) return null;
+
+        return (
+          <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] overflow-hidden">
+            {/* Header clicável */}
+            <button
+              onClick={() => setPagamentosAberto(!pagamentosAberto)}
+              className="w-full flex items-center justify-between px-6 py-4 hover:bg-[#232a3b] transition"
+            >
+              <div className="flex items-center gap-3">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                <div className="text-left">
+                  <p className="font-semibold text-gray-100 text-sm">Pagamentos Recebidos</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {pagas.length} de {vendas.length} vendas com pagamento · sinalizado pelo financeiro
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-emerald-400 font-bold">{formatCurrency(totalPago)}</p>
+                  {totalPendente > 0 && (
+                    <p className="text-xs text-yellow-400">{formatCurrency(totalPendente)} pendente</p>
+                  )}
+                </div>
+                {pagamentosAberto
+                  ? <ChevronUp className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                  : <ChevronDown className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                }
+              </div>
+            </button>
+
+            {/* Conteúdo expandido */}
+            {pagamentosAberto && (
+              <div className="border-t border-[#232a3b]">
+                {pagas.length === 0 ? (
+                  <div className="px-6 py-5 text-sm text-gray-400 text-center">
+                    Nenhum pagamento registrado ainda neste mês.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-[#232a3b]">
+                    {pagas.map((v) => {
+                      const valorPago = (v.comissaoVendaPaga ? v.comissaoVenda : 0) + (v.comissaoOverPaga ? v.comissaoOver : 0);
+                      const [ano, mes, dia] = v.dataConversao.split("T")[0].split("-");
+                      return (
+                        <div key={v.id} className="flex items-center justify-between px-6 py-3">
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-gray-100 truncate">{v.cliente}</p>
+                            <div className="flex items-center gap-3 mt-0.5">
+                              <p className="text-xs text-gray-500">{dia}/{mes}/{ano}</p>
+                              <div className="flex items-center gap-2">
+                                {v.comissaoVendaPaga && (
+                                  <span className="flex items-center gap-1 text-xs text-emerald-400">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                    Venda {formatCurrency(v.comissaoVenda)}
+                                  </span>
+                                )}
+                                {v.comissaoOverPaga && v.comissaoOver > 0 && (
+                                  <span className="flex items-center gap-1 text-xs text-emerald-400">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                    Over {formatCurrency(v.comissaoOver)}
+                                  </span>
+                                )}
+                                {!v.comissaoVendaPaga && (
+                                  <span className="text-xs text-yellow-400/70">Venda pendente</span>
+                                )}
+                                {!v.comissaoOverPaga && v.comissaoOver > 0 && (
+                                  <span className="text-xs text-yellow-400/70">Over pendente</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <p className="text-sm font-semibold text-emerald-400 ml-4 flex-shrink-0">
+                            {formatCurrency(valorPago)}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {/* Rodapé com totais */}
+                <div className="px-6 py-3 bg-[#141820] flex items-center justify-between border-t border-[#232a3b]">
+                  <p className="text-xs text-gray-400">Total pago neste mês</p>
+                  <p className="text-sm font-bold text-emerald-400">{formatCurrency(totalPago)}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Alertas */}
       {dados?.alertas && dados.alertas.length > 0 && (
