@@ -6,16 +6,19 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Iniciando seed...");
 
-  // Verificar se já existem usuários reais (@gmail.com) no sistema
-  // Se sim, não recriar os usuários seed @solar.com (ambiente de produção)
+  // Detectar producao: NODE_ENV=production OU emails @gmail.com OU emails @agenciarapport.com
+  const isNodeProducao = process.env.NODE_ENV === "production";
   const gmailUsersCount = await prisma.user.count({
-    where: { email: { endsWith: "@gmail.com" } },
+    where: { email: { contains: "@gmail.com" } },
   });
-  const isProducao = gmailUsersCount > 0;
+  const agenciaUsersCount = await prisma.user.count({
+    where: { email: { contains: "@agenciarapport.com" } },
+  });
+  const isProducao = isNodeProducao || gmailUsersCount > 0 || agenciaUsersCount > 0;
 
   if (isProducao) {
-    console.log(`[SEED] ${gmailUsersCount} usuarios @gmail.com encontrados — ambiente de producao detectado.`);
-    console.log("[SEED] Pulando criacao de usuarios @solar.com (exceto daniel@solar.com).");
+    console.log(`[SEED] Ambiente de producao detectado (NODE_ENV=${process.env.NODE_ENV}, gmail=${gmailUsersCount}, agencia=${agenciaUsersCount}).`);
+    console.log("[SEED] Pulando criacao/delecao de dados seed.");
   }
 
   // ── Supervisor ────────────────────────────────────────────────────────────────
