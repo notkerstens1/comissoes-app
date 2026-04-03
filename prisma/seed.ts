@@ -19,6 +19,19 @@ async function main() {
   if (isProducao) {
     console.log(`[SEED] Ambiente de producao detectado (NODE_ENV=${process.env.NODE_ENV}, gmail=${gmailUsersCount}, agencia=${agenciaUsersCount}).`);
     console.log("[SEED] Pulando criacao/delecao de dados seed.");
+
+    // Garantir que o email do diretor tem o role correto (correcao idempotente)
+    const ericDiretor = await prisma.user.findUnique({ where: { email: "erick@agenciarapport.com" } });
+    if (ericDiretor) {
+      if (ericDiretor.role !== "DIRETOR") {
+        await prisma.user.update({ where: { email: "erick@agenciarapport.com" }, data: { role: "DIRETOR" } });
+        console.log("[SEED] Role de erick@agenciarapport.com corrigido para DIRETOR.");
+      } else {
+        console.log("[SEED] erick@agenciarapport.com ja e DIRETOR, sem alteracao.");
+      }
+    } else {
+      console.log("[SEED] AVISO: erick@agenciarapport.com nao encontrado no banco.");
+    }
   }
 
   // ── Supervisor ────────────────────────────────────────────────────────────────
