@@ -8,26 +8,26 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  nome      String
-  email     String   @unique
-  senha     String
-  role      String   @default("VENDEDOR") // VENDEDOR | VENDEDOR_EXTERNO | ADMIN | DIRETOR | SDR | POS_VENDA | FINANCEIRO | TECNICO
-  ativo     Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  vendas           Venda[]
-  dailyCommercials DailyCommercial[]
-  campanhasCriadas Campanha[] @relation("campanhasCriadas")
+  id                   String              @id @default(cuid())
+  nome                 String
+  email                String              @unique
+  senha                String
+  role                 String              @default("VENDEDOR") // VENDEDOR | VENDEDOR_EXTERNO | ADMIN | DIRETOR | SDR | POS_VENDA | FINANCEIRO | TECNICO
+  ativo                Boolean             @default(true)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  vendas               Venda[]
+  dailyCommercials     DailyCommercial[]
+  campanhasCriadas     Campanha[]          @relation("campanhasCriadas")
   // SDR relations
-  registrosSDR         RegistroSDR[]      @relation("sdrRegistros")
-  registrosVendedora   RegistroSDR[]      @relation("vendedoraRegistros")
-  pagamentosSDR        RegistroSDR[]      @relation("pagoPor")
-  pendenciasResolvidas PendenciaVinculo[] @relation("resolvidoPor")
+  registrosSDR         RegistroSDR[]       @relation("sdrRegistros")
+  registrosVendedora   RegistroSDR[]       @relation("vendedoraRegistros")
+  pagamentosSDR        RegistroSDR[]       @relation("pagoPor")
+  pendenciasResolvidas PendenciaVinculo[]  @relation("resolvidoPor")
   // Pos Venda
-  posVendaRegistros    PosVenda[]         @relation("posVendaOperador")
+  posVendaRegistros    PosVenda[]          @relation("posVendaOperador")
   // Ligacoes diarias SDR
-  ligacoesSDR          LigacoesSDR[]      @relation("sdrLigacoes")
+  ligacoesSDR          LigacoesSDR[]       @relation("sdrLigacoes")
   // Calculadora
   simulacoes           SimulacaoVenda[]
   // Solicitações de exceção de margem (como supervisor)
@@ -37,9 +37,9 @@ model User {
 }
 
 model Venda {
-  id                String   @id @default(cuid())
+  id                String @id @default(cuid())
   vendedorId        String
-  vendedor          User     @relation(fields: [vendedorId], references: [id])
+  vendedor          User   @relation(fields: [vendedorId], references: [id])
   cliente           String
   formaPagamento    String
   distribuidora     String
@@ -54,38 +54,38 @@ model Venda {
   comissaoTotal     Float
 
   // Campos de custo (visao diretor)
-  quantidadePlacas       Int    @default(0)
-  quantidadeInversores   Int    @default(1)
-  custoInstalacao        Float? // auto: (placas * custoPlaca) + (inversores * custoInversor)
-  custoVisitaTecnica     Float? // padrao config, diretor pode editar
-  custoCosern            Float? // padrao config, diretor pode editar
-  custoTrtCrea           Float? // padrao config (R$65)
-  custoEngenheiro        Float? // R$400 fixo por instalacao (engenheiro)
-  custoMaterialCA        Float? // R$500 fixo (material CA)
-  aliquotaImposto        Float? // padrao config (0.06 = 6%)
-  custoImposto           Float? // auto: aliquota * (valorVenda - custoEquipamentos)
+  quantidadePlacas           Int    @default(0)
+  quantidadeInversores       Int    @default(1)
+  custoInstalacao            Float? // auto: (placas * custoPlaca) + (inversores * custoInversor)
+  custoVisitaTecnica         Float? // padrao config, diretor pode editar
+  custoCosern                Float? // padrao config, diretor pode editar
+  custoTrtCrea               Float? // padrao config (R$65)
+  custoEngenheiro            Float? // R$400 fixo por instalacao (engenheiro)
+  custoMaterialCA            Float? // R$500 fixo (material CA)
+  aliquotaImposto            Float? // padrao config (0.06 = 6%)
+  custoImposto               Float? // auto: aliquota * (valorVenda - custoEquipamentos)
   percentualComissaoOverride Float? // null = usa padrao da config (2.5%). Diretor pode alterar por venda
-  comissaoVendedorCusto  Float? // copia do comissaoTotal para P&L
-  lucroLiquido           Float?
-  margemLucroLiquido     Float? // lucroLiquido / valorVenda
+  comissaoVendedorCusto      Float? // copia do comissaoTotal para P&L
+  lucroLiquido               Float?
+  margemLucroLiquido         Float? // lucroLiquido / valorVenda
 
   // Exceção de margem (max 2/mes por vendedor)
-  excecao                Boolean  @default(false)
+  excecao             Boolean @default(false)
   // Controle de pagamento separado
-  comissaoVendaPaga      Boolean  @default(false)
-  comissaoOverPaga       Boolean  @default(false)
+  comissaoVendaPaga   Boolean @default(false)
+  comissaoOverPaga    Boolean @default(false)
   // Histórico de alterações (JSON array)
-  historicoAlteracoes    String?
+  historicoAlteracoes String?
 
   // Orcamento PDF (base64, uploaded pelo vendedor ao fechar venda)
-  orcamentoUrl      String?
+  orcamentoUrl String?
 
-  dataConversao     DateTime
-  fonte             String
-  status            String   @default("AGUARDANDO") // AGUARDANDO | APROVADO | PAGO
-  mesReferencia     String   // formato: "2026-01" para agrupar por mês
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  dataConversao      DateTime
+  fonte              String
+  status             String              @default("AGUARDANDO") // AGUARDANDO | APROVADO | PAGO
+  mesReferencia      String // formato: "2026-01" para agrupar por mês
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
   // SDR relations
   registrosSDR       RegistroSDR[]
   pendenciaVinculo   PendenciaVinculo?
@@ -125,18 +125,18 @@ model Configuracao {
   volumeMinimoComissao    Float  @default(60000)
 
   // Metas (ranking)
-  metaVendasMes           Float  @default(120000)  // Meta mensal de vendas por vendedor (R$)
-  metaMargemMedia         Float  @default(1.8)     // Meta de margem media por vendedor
+  metaVendasMes   Float @default(120000) // Meta mensal de vendas por vendedor (R$)
+  metaMargemMedia Float @default(1.8) // Meta de margem media por vendedor
 
   // Custos padrao (visao diretor)
-  custoPlacaInstalacao     Float @default(70)    // R$70 por placa
-  custoInversorInstalacao  Float @default(250)   // R$250 por inversor
-  custoVisitaTecnicaPadrao Float @default(120)   // R$120 por venda
-  custoCosernPadrao        Float @default(70)    // 2 x R$35
-  custoTrtCreaPadrao       Float @default(65)    // R$65 fixo
-  custoEngenheiroPadrao    Float @default(400)   // R$400 por instalacao (engenheiro)
-  custoMaterialCAPadrao    Float @default(500)   // R$500 material CA
-  aliquotaImpostoPadrao    Float @default(0.06)  // 6%
+  custoPlacaInstalacao     Float @default(70) // R$70 por placa
+  custoInversorInstalacao  Float @default(250) // R$250 por inversor
+  custoVisitaTecnicaPadrao Float @default(120) // R$120 por venda
+  custoCosernPadrao        Float @default(70) // 2 x R$35
+  custoTrtCreaPadrao       Float @default(65) // R$65 fixo
+  custoEngenheiroPadrao    Float @default(400) // R$400 por instalacao (engenheiro)
+  custoMaterialCAPadrao    Float @default(500) // R$500 material CA
+  aliquotaImpostoPadrao    Float @default(0.06) // 6%
 }
 
 // Performance: Diario de Trafego (um registro por dia, empresa toda)
@@ -156,7 +156,7 @@ model DailyTraffic {
 // Performance: Diario Comercial (um registro por dia por vendedor)
 model DailyCommercial {
   id               String   @id @default(cuid())
-  data             String   // formato "YYYY-MM-DD"
+  data             String // formato "YYYY-MM-DD"
   vendedorId       String
   vendedor         User     @relation(fields: [vendedorId], references: [id])
   atendidos        Int      @default(0)
@@ -173,79 +173,79 @@ model DailyCommercial {
 }
 
 model FaixaComissao {
-  id              String  @id @default(cuid())
-  ordem           Int
-  volumeMinimo    Float
-  volumeMaximo    Float?  // null = sem limite
-  percentualOver  Float
-  ativa           Boolean @default(true)
+  id             String  @id @default(cuid())
+  ordem          Int
+  volumeMinimo   Float
+  volumeMaximo   Float? // null = sem limite
+  percentualOver Float
+  ativa          Boolean @default(true)
 }
 
 // SDR: Registro de acompanhamento de leads até reunião/venda
 model RegistroSDR {
-  id                  String   @id @default(cuid())
-  sdrId               String
-  sdr                 User     @relation("sdrRegistros", fields: [sdrId], references: [id])
-  dataRegistro        String   // "YYYY-MM-DD" dia do lancamento
-  nomeCliente         String
-  vendedoraId         String
-  vendedora           User     @relation("vendedoraRegistros", fields: [vendedoraId], references: [id])
-  dataReuniao         String   // "YYYY-MM-DD"
-  compareceu          Boolean  @default(false)
-  motivoNaoCompareceu String?  // dropdown padronizado (apenas se nao compareceu)
-  motivoFinalizacao   String?  // motivo de finalizacao (CPF negada, sumiu, etc)
-  consideracoes       String?  // texto livre
-  statusLead          String   @default("AGENDADO") // "AGENDADO" | "COMPARECEU" | "VENDIDO" | "FINALIZADO"
+  id                     String   @id @default(cuid())
+  sdrId                  String
+  sdr                    User     @relation("sdrRegistros", fields: [sdrId], references: [id])
+  dataRegistro           String // "YYYY-MM-DD" dia do lancamento
+  nomeCliente            String
+  vendedoraId            String
+  vendedora              User     @relation("vendedoraRegistros", fields: [vendedoraId], references: [id])
+  dataReuniao            String // "YYYY-MM-DD"
+  compareceu             Boolean  @default(false)
+  motivoNaoCompareceu    String? // dropdown padronizado (apenas se nao compareceu)
+  motivoFinalizacao      String? // motivo de finalizacao (CPF negada, sumiu, etc)
+  consideracoes          String? // texto livre
+  statusLead             String   @default("AGENDADO") // "AGENDADO" | "COMPARECEU" | "VENDIDO" | "FINALIZADO"
   // Forecast (editavel pelo vendedor)
-  valorForecast          Float?   // valor estimado que o vendedor acredita fechar
+  valorForecast          Float? // valor estimado que o vendedor acredita fechar
   estagioOportunidade    String   @default("REUNIAO") // "REUNIAO"|"PROPOSTA"|"NEGOCIACAO"|"FECHADA"
-  probabilidade          Int      @default(50)         // 0-100%
-  dataFechamentoEsperado String?  // "YYYY-MM-DD"
+  probabilidade          Int      @default(50) // 0-100%
+  dataFechamentoEsperado String? // "YYYY-MM-DD"
   // Vinculo automatico com venda
-  vendaVinculadaId    String?
-  vendaVinculada      Venda?   @relation(fields: [vendaVinculadaId], references: [id])
-  dataVendaVinculada  String?  // "YYYY-MM-DD" auto-set quando vinculado
+  vendaVinculadaId       String?
+  vendaVinculada         Venda?   @relation(fields: [vendaVinculadaId], references: [id])
+  dataVendaVinculada     String? // "YYYY-MM-DD" auto-set quando vinculado
   // Comissao (100% automatica)
-  comissaoReuniao     Float    @default(0) // R$20 se compareceu
-  comissaoVenda       Float    @default(0) // R$20 se venda vinculada
-  comissaoTotal       Float    @default(0) // reuniao + venda (0/20/40)
+  comissaoReuniao        Float    @default(0) // R$20 se compareceu
+  comissaoVenda          Float    @default(0) // R$20 se venda vinculada
+  comissaoTotal          Float    @default(0) // reuniao + venda (0/20/40)
   // Pagamento
-  statusPagamento     String   @default("PENDENTE") // "PENDENTE" | "PAGO"
-  dataPagamento       String?
-  pagoPorId           String?
-  pagoPor             User?    @relation("pagoPor", fields: [pagoPorId], references: [id])
+  statusPagamento        String   @default("PENDENTE") // "PENDENTE" | "PAGO"
+  dataPagamento          String?
+  pagoPorId              String?
+  pagoPor                User?    @relation("pagoPor", fields: [pagoPorId], references: [id])
   // Imagem anexada (conta de luz ou documento do cliente, base64)
-  imagemUrl           String?
+  imagemUrl              String?
   // Nota privada do supervisor (visivel apenas para ADMIN e DIRETOR)
-  notaAdmin           String?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  notaAdmin              String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }
 
 // SDR: Ligacoes diarias (input manual da SDR)
 model LigacoesSDR {
-  id        String   @id @default(cuid())
-  sdrId     String
-  sdr       User     @relation("sdrLigacoes", fields: [sdrId], references: [id])
-  data      String   // "YYYY-MM-DD"
-  quantidade Int     @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  sdrId      String
+  sdr        User     @relation("sdrLigacoes", fields: [sdrId], references: [id])
+  data       String // "YYYY-MM-DD"
+  quantidade Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@unique([sdrId, data])
 }
 
 // Metricas SDR manuais (override do supervisor para agilizar analises)
 model MetricasSDROverride {
-  id                 String   @id @default(cuid())
-  periodo            String   @unique // "dia:2026-03-02" | "semana:2026-02-23" | "mes:2026-03"
-  ligacoes           Int?
-  reunioesAgendadas  Int?
-  cpfNegado          Int?
-  desqualificados    Int?
-  noShow             Int?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                String   @id @default(cuid())
+  periodo           String   @unique // "dia:2026-03-02" | "semana:2026-02-23" | "mes:2026-03"
+  ligacoes          Int?
+  reunioesAgendadas Int?
+  cpfNegado         Int?
+  desqualificados   Int?
+  noShow            Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 // SDR: Pendencias de vinculo (vendas com match ambiguo ou sem match)
@@ -264,75 +264,81 @@ model PendenciaVinculo {
 
 // Pos Venda: acompanhamento pos-instalacao do cliente solar
 model PosVenda {
-  id               String   @id @default(cuid())
-  operadorId       String
-  operador         User     @relation("posVendaOperador", fields: [operadorId], references: [id])
+  id                  String   @id @default(cuid())
+  operadorId          String
+  operador            User     @relation("posVendaOperador", fields: [operadorId], references: [id])
   // Dados do cliente
-  nomeCliente      String
-  telefone         String?
+  nomeCliente         String
+  telefone            String?
   // Vinculo opcional com venda do sistema
-  vendaId          String?  @unique
-  venda            Venda?   @relation(fields: [vendaId], references: [id])
+  vendaId             String?  @unique
+  venda               Venda?   @relation(fields: [vendaId], references: [id])
   // Etapa atual do funil pos-venda
-  etapa            String   @default("TRAMITES")
+  etapa               String   @default("TRAMITES")
   // "TRAMITES" | "AGUARDANDO_MATERIAL" | "VISITA_TECNICA" | "AGUARDANDO_VISTORIA" | "CADASTRAR_APP" | "ACOMPANHAMENTO_30" | "CLIENTE_FINALIZADO" | "MANUTENCOES"
   // Acompanhamento
-  ultimaAcao       String?
-  proximaAcao      String?
-  observacoes      String?
-  ultimoContato    String?  // "YYYY-MM-DD"
-  proximoContato   String?  // "YYYY-MM-DD"
+  ultimaAcao          String?
+  proximaAcao         String?
+  observacoes         String?
+  ultimoContato       String? // "YYYY-MM-DD"
+  proximoContato      String? // "YYYY-MM-DD"
   // Anexos (JSON array: [{nome, url, data}])
-  anexos           String?
+  anexos              String?
   // Historico de acoes anteriores (JSON array: [{data, acao}]) — legado
-  historicoAcoes   String?
+  historicoAcoes      String?
   // Tarefas (JSON array: [{id, descricao, status, criadoEm}]) status: PENDENTE|FAZENDO|FINALIZADO
-  tarefas          String?
+  tarefas             String?
   // Anotacoes livres do operador pos-venda
-  anotacoes        String?
+  anotacoes           String?
   // Previsoes de datas (operador preenche)
-  previsaoMaterial    String?  // "YYYY-MM-DD"
-  previsaoInstalacao  String?  // "YYYY-MM-DD"
+  previsaoMaterial    String? // "YYYY-MM-DD"
+  previsaoInstalacao  String? // "YYYY-MM-DD"
   // Controle de conferencia pelo supervisor
-  conferido        Boolean  @default(false)
-  dataConferido    String?  // "YYYY-MM-DD"
+  conferido           Boolean  @default(false)
+  dataConferido       String? // "YYYY-MM-DD"
   // Checklist de etapas da supervisao (JSON: [{key, label, concluido}])
   checklistSupervisao String?
   // Prazo de finalizacao definido pelo sistema (2 dias apos criacao)
-  prazoFinalizacao String?  // "YYYY-MM-DD"
+  prazoFinalizacao    String? // "YYYY-MM-DD"
   // Controle
-  ativo            Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  ativo               Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([ativo, etapa])
+  @@index([proximoContato])
 }
 
 // Setor Tecnico: acompanhamento do projeto tecnico apos venda
 model SetorTecnico {
-  id               String   @id @default(cuid())
-  nomeCliente      String
-  telefone         String?
-  email            String?
+  id             String   @id @default(cuid())
+  nomeCliente    String
+  telefone       String?
+  email          String?
   // Vinculo com venda do sistema
-  vendaId          String?  @unique
-  venda            Venda?   @relation(fields: [vendaId], references: [id])
-  vendedorNome     String?
+  vendaId        String?  @unique
+  venda          Venda?   @relation(fields: [vendaId], references: [id])
+  vendedorNome   String?
   // Etapa atual do funil tecnico
-  etapa            String   @default("NOVO_PROJETO")
+  etapa          String   @default("NOVO_PROJETO")
   // "NOVO_PROJETO" | "CONSULTAR_CARGA" | "AUMENTO_CARGA" | "EMITIR_TRT" | "PROJETO_ENVIADO" | "PROJETO_APROVADO"
   // Acompanhamento
-  observacoes      String?
-  ultimaAcao       String?
-  proximaAcao      String?
+  observacoes    String?
+  ultimaAcao     String?
+  proximaAcao    String?
   // Historico de acoes anteriores (JSON array: [{data, acao}])
-  historicoAcoes   String?
+  historicoAcoes String?
   // Anexos (JSON array: [{nome, url, data}])
-  anexos           String?
+  anexos         String?
   // Comentarios do engenheiro (JSON array: [{id, autor, texto, criadoEm}])
-  comentarios      String?
+  comentarios    String?
   // Controle
-  ativo            Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  ativo          Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([ativo, etapa])
+  @@index([createdAt])
 }
 
 // Calculadora: Histórico de simulações de venda por vendedor
@@ -354,7 +360,7 @@ model SimulacaoVenda {
   margemEmpresa        Float
   custoTotal           Float
   vendaSaudavel        Boolean
-  mesReferencia        String   // "2026-01" para filtrar por mês
+  mesReferencia        String // "2026-01" para filtrar por mês
   createdAt            DateTime @default(now())
 }
 
@@ -363,7 +369,7 @@ model Notificacao {
   id        String   @id @default(cuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  tipo      String   // "NOVA_VENDA" | "COMISSAO_PAGA"
+  tipo      String // "NOVA_VENDA" | "COMISSAO_PAGA"
   mensagem  String
   lida      Boolean  @default(false)
   vendaId   String?
@@ -377,58 +383,58 @@ model Notificacao {
 
 // Meta Ads: snapshot diario por campanha/adset
 model MetaAdsCampaign {
-  id             String   @id @default(cuid())
-  data           String   // "YYYY-MM-DD"
-  campaignId     String
-  campaignName   String
-  adsetId        String   @default("account_level")
-  adsetName      String   @default("Total da Conta")
-  spend          Float    @default(0)
-  impressions    Int      @default(0)
-  reach          Int      @default(0)
-  clicks         Int      @default(0)
-  ctr            Float    @default(0)
-  cpc            Float    @default(0)
-  cpm            Float    @default(0)
-  leads          Int      @default(0)
-  messages       Int      @default(0)
-  costPerResult  Float    @default(0)
-  synced_at      DateTime @default(now())
+  id            String   @id @default(cuid())
+  data          String // "YYYY-MM-DD"
+  campaignId    String
+  campaignName  String
+  adsetId       String   @default("account_level")
+  adsetName     String   @default("Total da Conta")
+  spend         Float    @default(0)
+  impressions   Int      @default(0)
+  reach         Int      @default(0)
+  clicks        Int      @default(0)
+  ctr           Float    @default(0)
+  cpc           Float    @default(0)
+  cpm           Float    @default(0)
+  leads         Int      @default(0)
+  messages      Int      @default(0)
+  costPerResult Float    @default(0)
+  synced_at     DateTime @default(now())
 
   @@unique([data, campaignId, adsetId])
 }
 
 // Gronner CRM: leads sincronizados com scoring ICP
 model GronnerLead {
-  id              String   @id @default(cuid())
-  gronnerId       String   @unique
-  nome            String
-  telefone        String?
-  origem          String?
-  icpScore        Int      @default(0)
-  icpClasse       String?  // "quente_a" | "quente_b" | "morno" | "frio"
-  status          String?
-  etapa           String?
-  preVendedor     String?
-  vendedor        String?
-  valorProposta   Float?
+  id               String   @id @default(cuid())
+  gronnerId        String   @unique
+  nome             String
+  telefone         String?
+  origem           String?
+  icpScore         Int      @default(0)
+  icpClasse        String? // "quente_a" | "quente_b" | "morno" | "frio"
+  status           String?
+  etapa            String?
+  preVendedor      String?
+  vendedor         String?
+  valorProposta    Float?
   gronnerCreatedAt String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  synced_at       DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  synced_at        DateTime @default(now())
 }
 
 // Nibo: registros financeiros (contas a receber e pagar)
 model NiboRecord {
   id             String   @id @default(cuid())
   niboId         String   @unique
-  tipo           String   // "receber" | "pagar"
+  tipo           String // "receber" | "pagar"
   descricao      String
   categoria      String?
   valor          Float
   dataVencimento String
   dataPagamento  String?
-  status         String   // "aberto" | "pago" | "vencido"
+  status         String // "aberto" | "pago" | "vencido"
   contato        String?
   synced_at      DateTime @default(now())
 }
@@ -451,33 +457,33 @@ model InstagramDaily {
 
 // Instagram: metricas por post
 model InstagramPost {
-  id            String   @id @default(cuid())
-  igPostId      String   @unique
-  tipo          String   // "IMAGE" | "VIDEO" | "CAROUSEL" | "REEL" | "STORY"
-  caption       String?
-  publishedAt   DateTime
-  likes         Int      @default(0)
-  comments      Int      @default(0)
-  shares        Int      @default(0)
-  saves         Int      @default(0)
-  reach         Int      @default(0)
-  impressions   Int      @default(0)
-  engagement    Float    @default(0)
-  synced_at     DateTime @default(now())
+  id          String   @id @default(cuid())
+  igPostId    String   @unique
+  tipo        String // "IMAGE" | "VIDEO" | "CAROUSEL" | "REEL" | "STORY"
+  caption     String?
+  publishedAt DateTime
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  shares      Int      @default(0)
+  saves       Int      @default(0)
+  reach       Int      @default(0)
+  impressions Int      @default(0)
+  engagement  Float    @default(0)
+  synced_at   DateTime @default(now())
 }
 
 // YouTube: metricas diarias do canal
 model YouTubeDaily {
-  id              String   @id @default(cuid())
-  data            String   @unique
-  inscritos       Int      @default(0)
-  novosInscritos  Int      @default(0)
-  views           Int      @default(0)
-  watchTimeMin    Float    @default(0)
-  likes           Int      @default(0)
-  comments        Int      @default(0)
-  videosPublicados Int     @default(0)
-  synced_at       DateTime @default(now())
+  id               String   @id @default(cuid())
+  data             String   @unique
+  inscritos        Int      @default(0)
+  novosInscritos   Int      @default(0)
+  views            Int      @default(0)
+  watchTimeMin     Float    @default(0)
+  likes            Int      @default(0)
+  comments         Int      @default(0)
+  videosPublicados Int      @default(0)
+  synced_at        DateTime @default(now())
 }
 
 // YouTube: metricas por video
@@ -500,11 +506,11 @@ model Campanha {
   id          String   @id @default(cuid())
   titulo      String
   descricao   String?
-  tipo        String   // "VALOR" (meta em R$) | "QUANTIDADE" (meta em qtd vendas)
-  escopo      String   // "TIME" (meta coletiva) | "INDIVIDUAL" (meta por vendedor)
-  meta        Float    // valor da meta (R$ ou quantidade)
-  dataInicio  String   // "YYYY-MM-DD"
-  dataFim     String   // "YYYY-MM-DD"
+  tipo        String // "VALOR" (meta em R$) | "QUANTIDADE" (meta em qtd vendas)
+  escopo      String // "TIME" (meta coletiva) | "INDIVIDUAL" (meta por vendedor)
+  meta        Float // valor da meta (R$ ou quantidade)
+  dataInicio  String // "YYYY-MM-DD"
+  dataFim     String // "YYYY-MM-DD"
   ativa       Boolean  @default(true)
   criadoPorId String
   criadoPor   User     @relation("campanhasCriadas", fields: [criadoPorId], references: [id])

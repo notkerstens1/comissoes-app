@@ -4,6 +4,30 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canAccessTecnico } from "@/lib/roles";
 
+// GET — buscar registro completo (com campos pesados) sob demanda
+export async function GET(
+  _request: Request,
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+
+  if (!canAccessTecnico(session.user.role)) {
+    return NextResponse.json({ error: "Nao autorizado" }, { status: 403 });
+  }
+
+  const registro = await prisma.setorTecnico.findUnique({
+    where: { id: params.id },
+    include: {
+      venda: { select: { id: true, cliente: true, valorVenda: true, kwp: true, quantidadePlacas: true } },
+    },
+  });
+
+  if (!registro) return NextResponse.json({ error: "Registro nao encontrado" }, { status: 404 });
+
+  return NextResponse.json(registro);
+}
+
 // PUT — atualizar registro do setor tecnico
 export async function PUT(
   request: Request,

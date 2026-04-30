@@ -4,6 +4,32 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdmin, isPosVenda } from "@/lib/roles";
 
+// GET — buscar registro completo (com campos pesados) sob demanda
+export async function GET(
+  _request: Request,
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+
+  const role = session.user.role;
+  if (!isPosVenda(role) && !isAdmin(role)) {
+    return NextResponse.json({ error: "Nao autorizado" }, { status: 403 });
+  }
+
+  const registro = await prisma.posVenda.findUnique({
+    where: { id: params.id },
+    include: {
+      operador: { select: { id: true, nome: true } },
+      venda: { select: { id: true, cliente: true, valorVenda: true } },
+    },
+  });
+
+  if (!registro) return NextResponse.json({ error: "Registro nao encontrado" }, { status: 404 });
+
+  return NextResponse.json(registro);
+}
+
 // PUT — atualizar registro de pos venda
 export async function PUT(
   request: Request,

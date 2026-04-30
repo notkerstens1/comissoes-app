@@ -4,7 +4,9 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdmin, isPosVenda } from "@/lib/roles";
 
-// GET — listar registros de pos venda
+// GET — listar registros de pos venda (payload enxuto: sem campos JSON pesados)
+// Campos pesados (anexos, tarefas, historicoAcoes, anotacoes) sao buscados sob demanda
+// via GET /api/pos-venda/[id] quando o card e expandido.
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
@@ -16,14 +18,51 @@ export async function GET() {
 
   const registros = await prisma.posVenda.findMany({
     where: { ativo: true },
-    include: {
+    select: {
+      id: true,
+      nomeCliente: true,
+      telefone: true,
+      conferido: true,
+      dataConferido: true,
+      etapa: true,
+      ultimaAcao: true,
+      proximaAcao: true,
+      observacoes: true,
+      ultimoContato: true,
+      proximoContato: true,
+      createdAt: true,
+      previsaoMaterial: true,
+      previsaoInstalacao: true,
+      checklistSupervisao: true,
+      prazoFinalizacao: true,
+      // anexos e tarefas selecionados apenas para calcular count (sao removidos do payload abaixo)
+      anexos: true,
+      tarefas: true,
       operador: { select: { id: true, nome: true } },
       venda: { select: { id: true, cliente: true, valorVenda: true } },
     },
     orderBy: { proximoContato: "asc" },
+    take: 500,
   });
 
-  return NextResponse.json(registros);
+  const slim = registros.map((r) => {
+    const anexosCount = safeArrayLen(r.anexos);
+    const tarefasCount = safeArrayLen(r.tarefas);
+    const { anexos: _a, tarefas: _t, ...rest } = r;
+    return { ...rest, anexosCount, tarefasCount };
+  });
+
+  return NextResponse.json(slim);
+}
+
+function safeArrayLen(json: string | null): number {
+  if (!json) return 0;
+  try {
+    const arr = JSON.parse(json);
+    return Array.isArray(arr) ? arr.length : 0;
+  } catch {
+    return 0;
+  }
 }
 
 // POST — criar novo registro de pos venda

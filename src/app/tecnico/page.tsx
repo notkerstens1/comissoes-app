@@ -66,9 +66,10 @@ type RegistroTecnico = {
   observacoes: string | null;
   ultimaAcao: string | null;
   proximaAcao: string | null;
-  historicoAcoes: string | null;
-  anexos: string | null;
-  comentarios: string | null;
+  // Campos pesados — preenchidos sob demanda quando o card expande
+  historicoAcoes?: string | null;
+  anexos?: string | null;
+  comentarios?: string | null;
   venda: {
     id: string;
     cliente: string;
@@ -77,6 +78,11 @@ type RegistroTecnico = {
     quantidadePlacas: number;
   } | null;
   createdAt: string;
+  // Counts vindos da listagem enxuta
+  anexosCount?: number;
+  comentariosCount?: number;
+  // Marca se o registro ja teve detalhes carregados
+  _detalhesCarregados?: boolean;
 };
 
 type FormData = {
@@ -125,7 +131,7 @@ function formatDate(d: string | null) {
   return `${day}/${m}/${y}`;
 }
 
-function parseAnexos(raw: string | null): Anexo[] {
+function parseAnexos(raw: string | null | undefined): Anexo[] {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
@@ -135,7 +141,7 @@ function parseAnexos(raw: string | null): Anexo[] {
   }
 }
 
-function parseHistorico(raw: string | null): HistoricoAcao[] {
+function parseHistorico(raw: string | null | undefined): HistoricoAcao[] {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
@@ -145,7 +151,7 @@ function parseHistorico(raw: string | null): HistoricoAcao[] {
   }
 }
 
-function parseComentarios(raw: string | null): Comentario[] {
+function parseComentarios(raw: string | null | undefined): Comentario[] {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw);
@@ -188,6 +194,35 @@ export default function SetorTecnicoPage() {
   useEffect(() => {
     fetchRegistros();
   }, [fetchRegistros]);
+
+  // Carrega campos pesados (anexos, comentarios, historicoAcoes) sob demanda
+  // ao expandir um card. Evita refetch se ja carregou.
+  const loadDetalhes = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`/api/setor-tecnico/${id}`);
+      if (!res.ok) return;
+      const full = await res.json();
+      setRegistros((prev) =>
+        prev.map((r) =>
+          r.id === id ? { ...r, ...full, _detalhesCarregados: true } : r,
+        ),
+      );
+    } catch {
+      // silencioso
+    }
+  }, []);
+
+  function toggleExpand(id: string) {
+    if (expandedId === id) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(id);
+    const target = registros.find((r) => r.id === id);
+    if (!target?._detalhesCarregados) {
+      loadDetalhes(id);
+    }
+  }
 
   // Access control
   if (status === "loading") {
@@ -609,6 +644,9 @@ export default function SetorTecnicoPage() {
                 const comentarios = parseComentarios(r.comentarios);
                 const proximaEtapa = getProximaEtapaTecnico(r.etapa);
                 const isExpanded = expandedId === r.id;
+                // Counts pra exibicao no header colapsado: prefere o que vem da listagem enxuta
+                const anexosCount = r.anexosCount ?? anexos.length;
+                const comentariosCount = r.comentariosCount ?? comentarios.length;
 
                 return (
                   <div key={r.id}>
@@ -617,7 +655,7 @@ export default function SetorTecnicoPage() {
                       <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl transition hover:border-[#2a3050]">
                         {/* === CABEÇALHO CLICÁVEL (sempre visível) === */}
                         <button
-                          onClick={() => setExpandedId(isExpanded ? null : r.id)}
+                          onClick={() => toggleExpand(r.id)}
                           className="w-full text-left p-5 flex items-center gap-4"
                         >
                           {/* Seta de expansão */}
@@ -654,16 +692,16 @@ export default function SetorTecnicoPage() {
                                   <span className="text-teal-300/80">{r.proximaAcao}</span>
                                 </span>
                               )}
-                              {anexos.length > 0 && (
+                              {anexosCount > 0 && (
                                 <span className="flex items-center gap-1 text-gray-500 shrink-0">
                                   <Paperclip className="w-3 h-3" />
-                                  {anexos.length}
+                                  {anexosCount}
                                 </span>
                               )}
-                              {comentarios.length > 0 && (
+                              {comentariosCount > 0 && (
                                 <span className="flex items-center gap-1 text-gray-500 shrink-0">
                                   <MessageSquare className="w-3 h-3" />
-                                  {comentarios.length}
+                                  {comentariosCount}
                                 </span>
                               )}
                             </div>

@@ -53,12 +53,18 @@ type PosVendaRegistro = {
   proximoContato: string | null;
   createdAt: string;
   operador: { id: string; nome: string };
-  anexos: string | null;
-  historicoAcoes: string | null;
-  tarefas: string | null;
-  anotacoes: string | null;
+  // Campos pesados — preenchidos sob demanda quando o card expande
+  anexos?: string | null;
+  historicoAcoes?: string | null;
+  tarefas?: string | null;
+  anotacoes?: string | null;
   previsaoMaterial: string | null;
   previsaoInstalacao: string | null;
+  // Counts vindos da listagem enxuta (sem precisar parsear JSON)
+  anexosCount?: number;
+  tarefasCount?: number;
+  // Marca se o registro ja teve detalhes carregados (evita refetch)
+  _detalhesCarregados?: boolean;
 };
 
 type FormData = {
@@ -87,6 +93,16 @@ function formatDate(d: string | null) {
   if (!d) return "—";
   const [y, m, day] = d.split("-");
   return `${day}/${m}/${y}`;
+}
+
+function safeJsonArrayLen(json: string | null | undefined): number {
+  if (!json) return 0;
+  try {
+    const arr = JSON.parse(json);
+    return Array.isArray(arr) ? arr.length : 0;
+  } catch {
+    return 0;
+  }
 }
 
 export default function PosVendaPage() {
@@ -133,6 +149,35 @@ export default function PosVendaPage() {
   useEffect(() => {
     fetchRegistros();
   }, [fetchRegistros]);
+
+  // Carrega campos pesados (anexos, tarefas, historicoAcoes, anotacoes) sob demanda
+  // ao expandir um card. Evita refetch se ja carregou.
+  const loadDetalhes = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`/api/pos-venda/${id}`);
+      if (!res.ok) return;
+      const full = await res.json();
+      setRegistros((prev) =>
+        prev.map((r) =>
+          r.id === id ? { ...r, ...full, _detalhesCarregados: true } : r,
+        ),
+      );
+    } catch {
+      // silencioso — card ja mostra dados leves; usuario pode tentar de novo
+    }
+  }, []);
+
+  function toggleExpand(id: string) {
+    if (expandedId === id) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(id);
+    const target = registros.find((r) => r.id === id);
+    if (!target?._detalhesCarregados) {
+      loadDetalhes(id);
+    }
+  }
 
   async function handleCreate() {
     if (!form.nomeCliente.trim()) return;
@@ -719,8 +764,9 @@ export default function PosVendaPage() {
                 const vencido = r.proximoContato && r.proximoContato < hoje;
                 const cores = ETAPA_CORES[r.etapa];
                 const isExpanded = expandedId === r.id;
-                const anexosCount = r.anexos ? (JSON.parse(r.anexos) as unknown[]).length : 0;
-                const tarefasCount = r.tarefas ? (JSON.parse(r.tarefas) as unknown[]).length : 0;
+                // Prefere count do servidor (lista enxuta); fallback para parse local quando detalhes ja carregados
+                const anexosCount = r.anexosCount ?? (r.anexos ? safeJsonArrayLen(r.anexos) : 0);
+                const tarefasCount = r.tarefasCount ?? (r.tarefas ? safeJsonArrayLen(r.tarefas) : 0);
 
                 return (
                   <div key={r.id}>
@@ -735,7 +781,7 @@ export default function PosVendaPage() {
                       >
                         {/* === CABEÇALHO CLICÁVEL (sempre visível) === */}
                         <button
-                          onClick={() => setExpandedId(isExpanded ? null : r.id)}
+                          onClick={() => toggleExpand(r.id)}
                           className="w-full text-left p-5 flex items-center gap-4"
                         >
                           {/* Seta de expansão */}
