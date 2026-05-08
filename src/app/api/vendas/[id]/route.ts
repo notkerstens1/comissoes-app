@@ -252,6 +252,17 @@ export async function PUT(
     updateData.excecao = excecao;
   }
 
+  // Safety net: se qualquer ramo tocou comissaoVenda ou comissaoOver,
+  // forçar comissaoTotal = comissaoVenda + comissaoOver. Evita dessincronia
+  // silenciosa entre as 3 colunas que alimenta o modal de Editar Venda.
+  if (updateData.comissaoVenda !== undefined || updateData.comissaoOver !== undefined) {
+    const cv = updateData.comissaoVenda ?? vendaAtual.comissaoVenda;
+    const co = updateData.comissaoOver ?? vendaAtual.comissaoOver;
+    const total = cv + co;
+    updateData.comissaoTotal = total;
+    updateData.comissaoVendedorCusto = total;
+  }
+
   const venda = await prisma.venda.update({
     where: { id: params.id },
     data: updateData,
