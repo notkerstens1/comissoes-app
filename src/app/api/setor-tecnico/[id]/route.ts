@@ -46,6 +46,18 @@ export async function PUT(
   const body = await request.json();
   const { nomeCliente, telefone, email, etapa, observacoes, ultimaAcao, proximaAcao, anexos, comentarios } = body;
 
+  // Defesa em profundidade: arrays JSON nao sao mais aceitos no PUT generico
+  // pra eliminar a classe de bug "cliente envia array completo e clobera o que
+  // outro usuario adicionou no meio". Use os endpoints dedicados:
+  //   POST/DELETE /api/setor-tecnico/[id]/comentarios[/[comentarioId]]
+  //   POST/DELETE /api/setor-tecnico/[id]/anexos
+  if (anexos !== undefined || comentarios !== undefined) {
+    return NextResponse.json(
+      { error: "Use os endpoints dedicados /comentarios e /anexos para mutar arrays" },
+      { status: 400 },
+    );
+  }
+
   const data: any = {};
 
   if (nomeCliente !== undefined) data.nomeCliente = nomeCliente.trim();
@@ -54,8 +66,6 @@ export async function PUT(
   if (etapa !== undefined) data.etapa = etapa;
   if (observacoes !== undefined) data.observacoes = observacoes?.trim() || null;
   if (ultimaAcao !== undefined) data.ultimaAcao = ultimaAcao?.trim() || null;
-  if (anexos !== undefined) data.anexos = anexos;
-  if (comentarios !== undefined) data.comentarios = comentarios;
 
   // Historico de acoes: ao atualizar proximaAcao, salvar a anterior no historico
   if (proximaAcao !== undefined) {

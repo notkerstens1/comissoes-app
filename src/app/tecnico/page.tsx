@@ -384,18 +384,11 @@ export default function SetorTecnicoPage() {
         reader.readAsDataURL(file);
       });
 
-      const anexosAtuais = parseAnexos(r.anexos);
-      const novoAnexo: Anexo = {
-        nome: file.name,
-        url: base64,
-        data: new Date().toISOString(),
-      };
-      const anexosAtualizados = [...anexosAtuais, novoAnexo];
-
-      const res = await fetch(`/api/setor-tecnico/${r.id}`, {
-        method: "PUT",
+      // Server-side append: mesmo motivo dos comentarios.
+      const res = await fetch(`/api/setor-tecnico/${r.id}/anexos`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ anexos: JSON.stringify(anexosAtualizados) }),
+        body: JSON.stringify({ nome: file.name, url: base64 }),
       });
 
       if (!res.ok) {
@@ -405,6 +398,7 @@ export default function SetorTecnicoPage() {
       }
 
       await fetchRegistros();
+      await loadDetalhes(r.id);
     } catch {
       setErroMsg("Erro ao processar arquivo");
     } finally {
@@ -420,18 +414,13 @@ export default function SetorTecnicoPage() {
     if (!texto) return;
     setSalvandoComentario(r.id);
     try {
-      const comentariosAtuais = parseComentarios(r.comentarios);
-      const novo: Comentario = {
-        id: crypto.randomUUID(),
-        autor: session?.user?.name || "Engenheiro",
-        texto,
-        criadoEm: new Date().toISOString(),
-      };
-      const comentariosAtualizados = [...comentariosAtuais, novo];
-      const res = await fetch(`/api/setor-tecnico/${r.id}`, {
-        method: "PUT",
+      // Server-side append: o servidor le o estado atual do banco e da push.
+      // Elimina o bug de wipeout quando dois usuarios editam ao mesmo tempo
+      // ou quando o cliente ainda nao carregou os comentarios via loadDetalhes.
+      const res = await fetch(`/api/setor-tecnico/${r.id}/comentarios`, {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ comentarios: JSON.stringify(comentariosAtualizados) }),
+        body: JSON.stringify({ texto }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -440,6 +429,7 @@ export default function SetorTecnicoPage() {
       }
       setNovoComentario((p) => ({ ...p, [r.id]: "" }));
       await fetchRegistros();
+      await loadDetalhes(r.id);
     } catch {
       setErroMsg("Erro ao salvar comentario");
     } finally {
@@ -450,12 +440,16 @@ export default function SetorTecnicoPage() {
   async function handleRemoveAnexo(r: RegistroTecnico, idx: number) {
     if (!confirm("Excluir este anexo?")) return;
     try {
-      const anexosAtuais = parseAnexos(r.anexos);
-      anexosAtuais.splice(idx, 1);
-      const res = await fetch(`/api/setor-tecnico/${r.id}`, {
-        method: "PUT",
+      // Identifica o anexo por nome+data (server-side delete sem race)
+      const atual = parseAnexos(r.anexos)[idx];
+      if (!atual) {
+        setErroMsg("Anexo nao encontrado no estado local");
+        return;
+      }
+      const res = await fetch(`/api/setor-tecnico/${r.id}/anexos`, {
+        method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ anexos: JSON.stringify(anexosAtuais) }),
+        body: JSON.stringify({ nome: atual.nome, data: atual.data }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -463,6 +457,7 @@ export default function SetorTecnicoPage() {
         return;
       }
       await fetchRegistros();
+      await loadDetalhes(r.id);
     } catch {
       setErroMsg("Erro ao excluir anexo");
     }
