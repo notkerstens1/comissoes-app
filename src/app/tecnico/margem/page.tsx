@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Sidebar } from "@/components/Sidebar";
+import { OperacaoNav } from "@/components/OperacaoNav";
 import { Activity, Save, Filter, AlertCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { canAccessTecnico } from "@/lib/roles";
@@ -125,6 +126,7 @@ export default function MargemPage() {
       <Sidebar />
       <main className="flex-1 lg:ml-64 p-6">
         <div className="max-w-6xl mx-auto space-y-6">
+          <OperacaoNav />
           {/* Header */}
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>

@@ -201,49 +201,31 @@ export function Sidebar() {
             </>
           )}
 
-          {/* Menu Pos Venda — operador POS_VENDA ve seus clientes */}
-          {posVenda && (
-            <>
-              <p className="px-3 text-xs font-semibold text-orange-400 uppercase tracking-wider mb-2">
-                Pós Venda
-              </p>
-              {renderMenuSection(
-                [{ href: "/pos-venda", label: "Meus Clientes", icon: ClipboardCheck }],
-                "text-orange-400",
-                "bg-orange-400/10"
-              )}
-            </>
-          )}
-
-          {/* Menu Pos Venda Admin — Admin/Diretor ve visao geral */}
-          {admin && (
-            <>
-              <div className="my-3 border-t border-[#232a3b]" />
-              <p className="px-3 text-xs font-semibold text-orange-400 uppercase tracking-wider mb-2">
-                Pós Venda
-              </p>
-              {renderMenuSection(
-                [{ href: "/admin/pos-venda", label: "Visao Pos Venda", icon: ClipboardCheck }],
-                "text-orange-400",
-                "bg-orange-400/10"
-              )}
-            </>
-          )}
-
-          {/* Menu Setor Tecnico — TECNICO, POS_VENDA, ADMIN, DIRETOR */}
+          {/* Setor Tecnico (Pos-Venda + Engenharia) — TECNICO, POS_VENDA, ADMIN, DIRETOR
+              Ambos veem todas as abas; cada um trabalha na sua. */}
           {canTecnico && (
             <>
-              {!tecnico && <div className="my-3 border-t border-[#232a3b]" />}
+              {!tecnico && !posVenda && <div className="my-3 border-t border-[#232a3b]" />}
               <p className="px-3 text-xs font-semibold text-teal-400 uppercase tracking-wider mb-2">
                 Setor Técnico
               </p>
               {renderMenuSection(
                 [
-                  { href: "/tecnico", label: "Setor Técnico", icon: Wrench },
+                  { href: "/pos-venda", label: "Pós-Venda (Yuri)", icon: ClipboardCheck },
+                  { href: "/tecnico", label: "Engenharia (Pedro)", icon: Wrench },
                   { href: "/tecnico/margem", label: "Margem Instalação", icon: Activity },
                 ],
                 "text-teal-400",
                 "bg-teal-400/10"
+              )}
+              {admin && (
+                <div className="ml-3 mt-1">
+                  {renderMenuSection(
+                    [{ href: "/admin/pos-venda", label: "Visão Admin Pós-Venda", icon: ClipboardCheck }],
+                    "text-orange-400",
+                    "bg-orange-400/10"
+                  )}
+                </div>
               )}
             </>
           )}

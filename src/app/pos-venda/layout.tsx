@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { isPosVenda, isAdmin } from "@/lib/roles";
+import { canAccessOperacao } from "@/lib/roles";
 
 export default function PosVendaLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
@@ -15,8 +15,9 @@ export default function PosVendaLayout({ children }: { children: React.ReactNode
       router.push("/");
       return;
     }
-    const role = session.user.role;
-    if (!isPosVenda(role) && !isAdmin(role)) {
+    // Pos-Venda agora e parte do Setor Tecnico — Yuri (POS_VENDA), Pedro
+    // (TECNICO), ADMIN e DIRETOR todos veem.
+    if (!canAccessOperacao(session.user.role)) {
       router.push("/dashboard");
     }
   }, [session, status, router]);

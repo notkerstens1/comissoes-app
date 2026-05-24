@@ -28,6 +28,7 @@ import {
   Upload,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
+import { OperacaoNav } from "@/components/OperacaoNav";
 import { canAccessTecnico } from "@/lib/roles";
 import {
   ETAPAS_SETOR_TECNICO,
@@ -487,6 +488,7 @@ export default function SetorTecnicoPage() {
       <Sidebar />
       <main className="flex-1 lg:ml-64 p-6">
         <div className="max-w-5xl mx-auto">
+          <OperacaoNav />
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>

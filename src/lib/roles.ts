@@ -98,10 +98,22 @@ export function isTecnico(role: string | undefined | null): boolean {
 }
 
 /**
- * Verifica se o usuario pode acessar o setor tecnico (TECNICO, POS_VENDA, ADMIN ou DIRETOR)
+ * Verifica se o usuario pode acessar o setor tecnico (TECNICO, POS_VENDA, ADMIN ou DIRETOR).
+ *
+ * Agora "Setor Tecnico" e o guarda-chuva pra Pos-Venda (Yuri) e Engenharia
+ * (Pedro). Ambos enxergam as duas abas, mas cada um trabalha primariamente
+ * na sua. Permissao identica entre /pos-venda e /tecnico.
  */
 export function canAccessTecnico(role: string | undefined | null): boolean {
   return role === "TECNICO" || role === "POS_VENDA" || role === "ADMIN" || role === "DIRETOR";
+}
+
+/**
+ * Alias semantico — acesso ao modulo "Setor Tecnico" (Pos-Venda + Engenharia).
+ * Mesma logica de canAccessTecnico; nome separado deixa intencao explicita.
+ */
+export function canAccessOperacao(role: string | undefined | null): boolean {
+  return canAccessTecnico(role);
 }
 
 /**
