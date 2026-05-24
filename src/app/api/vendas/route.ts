@@ -16,6 +16,8 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const mes = searchParams.get("mes");
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
   const vendedorFiltro = searchParams.get("vendedor");
 
   const where: any = {};
@@ -28,7 +30,13 @@ export async function GET(request: NextRequest) {
     where.vendedorId = vendedorFiltro;
   }
 
-  if (mes) {
+  // Filtro por range customizado tem precedencia sobre mes (UI nova)
+  if (startDate && endDate) {
+    where.dataConversao = {
+      gte: new Date(`${startDate}T00:00:00`),
+      lte: new Date(`${endDate}T23:59:59.999`),
+    };
+  } else if (mes) {
     where.mesReferencia = mes;
   }
 

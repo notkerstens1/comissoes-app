@@ -6,6 +6,8 @@ import { formatCurrency, formatNumber } from "@/lib/utils";
 import { isAdmin as checkAdmin } from "@/lib/roles";
 import CurrencyInput from "@/components/CurrencyInput";
 import { EditVendaPanel, VendaEditavel } from "@/components/EditVendaPanel";
+import { DateRangeFilter, DatePreset } from "@/components/performance/DateRangeFilter";
+import { getRangeFromPreset, formatCustomRangeLabel } from "@/lib/dates";
 import {
   ShoppingCart,
   Plus,
@@ -19,6 +21,11 @@ import {
   Edit2,
 } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
+
+function buildPeriodoLabel(preset: DatePreset, start: string, end: string): string {
+  if (preset === "custom") return formatCustomRangeLabel(start, end);
+  return getRangeFromPreset(preset).label;
+}
 
 interface Venda {
   id: string;
@@ -66,10 +73,14 @@ export default function VendasPage() {
   const [vendaEditando, setVendaEditando] = useState<VendaEditavel | null>(null);
   const [editPanelOpen, setEditPanelOpen] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState<"vendas" | "extrato">("vendas");
-  const [mesAtual, setMesAtual] = useState(() => {
-    const now = new Date();
-    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-  });
+  // Filtro de periodo (preset + range customizado)
+  const [periodPreset, setPeriodPreset] = useState<DatePreset>("current_month");
+  const initialRange = getRangeFromPreset("current_month");
+  const [periodStart, setPeriodStart] = useState(initialRange.start);
+  const [periodEnd, setPeriodEnd] = useState(initialRange.end);
+  const periodoLabel = buildPeriodoLabel(periodPreset, periodStart, periodEnd);
+  // Mantido para compat: deriva mes-referencia do inicio do range (usado em alguns lugares ainda)
+  const mesAtual = periodStart.slice(0, 7);
 
   // Filtro por vendedor (admin/diretor)
   const [vendedorFiltro, setVendedorFiltro] = useState("");
@@ -234,12 +245,12 @@ export default function VendasPage() {
   // --- Lista de Vendas ---
   useEffect(() => {
     fetchVendas();
-  }, [mesAtual, vendedorFiltro]);
+  }, [periodStart, periodEnd, vendedorFiltro]);
 
   const fetchVendas = async () => {
     setLoading(true);
     try {
-      let url = `/api/vendas?mes=${mesAtual}`;
+      let url = `/api/vendas?startDate=${periodStart}&endDate=${periodEnd}`;
       if (vendedorFiltro) url += `&vendedor=${vendedorFiltro}`;
       const res = await fetch(url);
       const data = await res.json();
@@ -265,14 +276,6 @@ export default function VendasPage() {
   const totalComissaoOver = vendas.reduce((sum, v) => sum + v.comissaoOver, 0);
   const totalComissao = vendas.reduce((sum, v) => sum + v.comissaoTotal, 0);
 
-  const getNomeMes = (mes: string) => {
-    const [ano, m] = mes.split("-");
-    const meses = [
-      "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho",
-      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
-    ];
-    return `${meses[parseInt(m) - 1]} ${ano}`;
-  };
 
   return (
     <div className="space-y-6">
@@ -360,7 +363,7 @@ export default function VendasPage() {
             <h1 className="text-2xl font-bold text-gray-100">
               {admin ? "Todas as Vendas" : "Minhas Vendas"}
             </h1>
-            <p className="text-gray-400">{getNomeMes(mesAtual)}</p>
+            <p className="text-gray-400">{periodoLabel}</p>
           </div>
           {!admin && <NotificationBell />}
         </div>
@@ -377,12 +380,6 @@ export default function VendasPage() {
               ))}
             </select>
           )}
-          <input
-            type="month"
-            value={mesAtual}
-            onChange={(e) => setMesAtual(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
-          />
           {!admin && (
             <button
               onClick={() => {
@@ -407,6 +404,27 @@ export default function VendasPage() {
           )}
         </div>
       </div>
+
+      {/* Filtro de periodo (presets + range customizado) */}
+      <DateRangeFilter
+        preset={periodPreset}
+        startDate={periodStart}
+        endDate={periodEnd}
+        label={`Mostrando: ${periodoLabel} · ${vendas.length} venda${vendas.length === 1 ? "" : "s"}`}
+        presets={["current_month", "last_month", "30d", "7d", "current_week", "custom"]}
+        onPresetChange={(p) => {
+          setPeriodPreset(p);
+          if (p !== "custom") {
+            const r = getRangeFromPreset(p);
+            setPeriodStart(r.start);
+            setPeriodEnd(r.end);
+          }
+        }}
+        onCustomRangeChange={(s, e) => {
+          setPeriodStart(s);
+          setPeriodEnd(e);
+        }}
+      />
 
       {/* Tabs */}
       {!admin && (
@@ -445,7 +463,7 @@ export default function VendasPage() {
             {/* Cards resumo */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-[#1a1f2e] rounded-xl p-5 border border-[#232a3b]">
-                <p className="text-sm text-gray-400">Total do mês</p>
+                <p className="text-sm text-gray-400">Total do periodo</p>
                 <p className="text-xl font-bold text-lime-400 mt-1">{formatCurrency(totalComissao)}</p>
                 <p className="text-xs text-gray-500 mt-1">{vendas.length} vendas</p>
               </div>
@@ -464,7 +482,7 @@ export default function VendasPage() {
             {/* Tabela extrato */}
             {vendas.length === 0 ? (
               <div className="bg-[#1a1f2e] rounded-xl p-12 border border-[#232a3b] text-center">
-                <p className="text-gray-400">Nenhuma venda neste mês.</p>
+                <p className="text-gray-400">Nenhuma venda neste periodo.</p>
               </div>
             ) : (
               <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] overflow-hidden">
@@ -518,7 +536,7 @@ export default function VendasPage() {
                     </tbody>
                     <tfoot className="bg-lime-400/10 font-semibold">
                       <tr>
-                        <td className="px-4 py-3 text-lime-400" colSpan={3}>TOTAIS DO MÊS</td>
+                        <td className="px-4 py-3 text-lime-400" colSpan={3}>TOTAIS DO PERIODO</td>
                         <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(totalComissaoVenda)}</td>
                         <td className="px-4 py-3 text-right text-yellow-400">{formatCurrency(totalComissaoOver)}</td>
                         <td className="px-4 py-3 text-right text-lime-400">{formatCurrency(totalComissao)}</td>
