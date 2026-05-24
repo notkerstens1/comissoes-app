@@ -76,7 +76,7 @@ export async function GET(
   } else {
     // INDIVIDUAL — progresso por vendedor
     const vendedores = await prisma.user.findMany({
-      where: { role: "VENDEDOR", ativo: true },
+      where: { role: { in: ["VENDEDOR", "VENDEDOR_HIBRIDO"] }, ativo: true },
       select: { id: true, nome: true },
       orderBy: { nome: "asc" },
     });

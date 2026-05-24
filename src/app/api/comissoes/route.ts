@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
     over: v.over,
     margem: v.margem,
     custoEquipamentos: v.custoEquipamentos,
+    tipoVenda: v.tipoVenda,
   }));
 
   const resultado = calcularComissaoMensal(vendasParaCalculo, faixas, config);
@@ -71,6 +72,7 @@ export async function GET(request: NextRequest) {
       comissaoVenda: v.comissaoVenda,
       comissaoOver: v.comissaoOver,
       comissaoTotal: v.comissaoTotal,
+      tipoVenda: v.tipoVenda,
       dataConversao: v.dataConversao,
       status: v.status,
       comissaoVendaPaga: v.comissaoVendaPaga,

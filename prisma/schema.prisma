@@ -12,7 +12,7 @@ model User {
   nome                 String
   email                String              @unique
   senha                String
-  role                 String              @default("VENDEDOR") // VENDEDOR | VENDEDOR_EXTERNO | ADMIN | DIRETOR | SDR | POS_VENDA | FINANCEIRO | TECNICO
+  role                 String              @default("VENDEDOR") // VENDEDOR | VENDEDOR_EXTERNO | VENDEDOR_HIBRIDO | ADMIN | DIRETOR | SDR | POS_VENDA | FINANCEIRO | TECNICO
   ativo                Boolean             @default(true)
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
@@ -82,6 +82,10 @@ model Venda {
 
   dataConversao      DateTime
   fonte              String
+  // Origem da venda (relevante para VENDEDOR_HIBRIDO):
+  // INBOUND = lead da empresa (Meta Ads/SDR), aplica faixa progressiva normal
+  // EXTERNA = captacao propria do vendedor (porta a porta), comissao over flat 50%
+  tipoVenda          String              @default("INBOUND") // INBOUND | EXTERNA
   status             String              @default("AGUARDANDO") // AGUARDANDO | APROVADO | PAGO
   mesReferencia      String // formato: "2026-01" para agrupar por mês
   createdAt          DateTime            @default(now())

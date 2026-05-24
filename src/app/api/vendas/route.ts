@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { calcularOver, calcularMargem, calcularGeracaoKwh } from "@/lib/comissao";
+import { calcularOver, calcularMargem, calcularGeracaoKwh, PERCENTUAL_OVER_EXTERNA } from "@/lib/comissao";
 import { calcularCustosVenda, ConfiguracaoCustos } from "@/lib/custos";
 import { isAdmin } from "@/lib/roles";
 import { tentarVincularVendaSDR } from "@/lib/sdr-linking";
@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
       dataConversao,
       fonte,
       orcamentoUrl,
+      tipoVenda,
     } = body;
 
     // Validacoes
@@ -69,6 +70,26 @@ export async function POST(request: NextRequest) {
         { error: "Campos obrigatorios faltando" },
         { status: 400 }
       );
+    }
+
+    // Para vendedor hibrido, tipoVenda eh obrigatorio (INBOUND ou EXTERNA)
+    const vendedorAtual = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+    const isHibrido = vendedorAtual?.role === "VENDEDOR_HIBRIDO";
+    let tipoVendaFinal: "INBOUND" | "EXTERNA" = "INBOUND";
+    if (isHibrido) {
+      if (tipoVenda !== "INBOUND" && tipoVenda !== "EXTERNA") {
+        return NextResponse.json(
+          { error: "tipoVenda obrigatorio (INBOUND ou EXTERNA) para vendedor hibrido" },
+          { status: 400 }
+        );
+      }
+      tipoVendaFinal = tipoVenda;
+    } else if (tipoVenda === "EXTERNA" || tipoVenda === "INBOUND") {
+      // Permite override explicito (ex: admin migrando dado)
+      tipoVendaFinal = tipoVenda;
     }
 
     // Buscar configuracao
@@ -146,6 +167,7 @@ export async function POST(request: NextRequest) {
         margemLucroLiquido: custos.margemLucroLiquido,
         dataConversao: data,
         fonte: fonte || "",
+        tipoVenda: tipoVendaFinal,
         orcamentoUrl: orcamentoUrl || null,
         mesReferencia,
       },
@@ -261,36 +283,41 @@ async function recalcularComissoesMes(vendedorId: string, mesReferencia: string)
     aliquotaImpostoPadrao: config?.aliquotaImpostoPadrao ?? 0.06,
   };
 
-  const totalVendido = vendas.reduce((sum, v) => sum + v.valorVenda, 0);
+  // Split inbound vs externa. EXTERNA (so vendedor hibrido) usa over flat 50%
+  // e NAO entra na faixa progressiva. INBOUND segue progressivo sobre volume
+  // inbound isolado.
+  const vendasInbound = vendas.filter((v) => v.tipoVenda !== "EXTERNA");
+  const volumeInbound = vendasInbound.reduce((sum, v) => sum + v.valorVenda, 0);
+  const totalOverInbound = vendasInbound.reduce((sum, v) => sum + v.over, 0);
 
-  // Calcular comissao over progressiva (sem regra de volume minimo)
-  const totalOver = vendas.reduce((sum, v) => sum + v.over, 0);
-
-  let percentualOverMedio = 0;
-  if (totalOver > 0) {
-    let comissaoOverTotal = 0;
+  let percentualOverMedioInbound = 0;
+  if (totalOverInbound > 0 && volumeInbound > 0) {
+    let comissaoOverTotalInbound = 0;
 
     for (const faixa of faixas) {
-      if (totalVendido <= faixa.volumeMinimo) break;
+      if (volumeInbound <= faixa.volumeMinimo) break;
 
       const limiteSuperior = faixa.volumeMaximo ?? Infinity;
-      const volumeNaFaixa = Math.min(totalVendido, limiteSuperior) - faixa.volumeMinimo;
+      const volumeNaFaixa = Math.min(volumeInbound, limiteSuperior) - faixa.volumeMinimo;
 
       if (volumeNaFaixa <= 0) continue;
 
-      const proporcao = volumeNaFaixa / totalVendido;
-      const overNaFaixa = totalOver * proporcao;
-      comissaoOverTotal += overNaFaixa * faixa.percentualOver;
+      const proporcao = volumeNaFaixa / volumeInbound;
+      const overNaFaixa = totalOverInbound * proporcao;
+      comissaoOverTotalInbound += overNaFaixa * faixa.percentualOver;
     }
 
-    percentualOverMedio = totalOver > 0 ? comissaoOverTotal / totalOver : 0;
+    percentualOverMedioInbound = comissaoOverTotalInbound / totalOverInbound;
   }
 
   // Atualizar cada venda com sua comissao proporcional + custos
   for (const venda of vendas) {
     const percentualEfetivo = venda.percentualComissaoOverride != null ? venda.percentualComissaoOverride : percentualComissaoVenda;
     const comissaoVenda = venda.valorVenda * percentualEfetivo;
-    const comissaoOver = venda.over * percentualOverMedio;
+    const comissaoOver =
+      venda.tipoVenda === "EXTERNA"
+        ? venda.over * PERCENTUAL_OVER_EXTERNA
+        : venda.over * percentualOverMedioInbound;
     const comissaoTotal = comissaoVenda + comissaoOver;
 
     const custos = calcularCustosVenda(

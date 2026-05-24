@@ -162,7 +162,9 @@ export default function OportunidadesPage() {
     kwp: "",
     quantidadePlacas: "",
     fonte: "",
+    tipoVenda: "INBOUND" as "INBOUND" | "EXTERNA",
   });
+  const isHibrido = session?.user?.role === "VENDEDOR_HIBRIDO";
   const [salvandoVenda, setSalvandoVenda] = useState(false);
   const [erroVenda, setErroVenda] = useState("");
 
@@ -195,7 +197,7 @@ export default function OportunidadesPage() {
         .then((r) => r.json())
         .then((data) => {
           const v = data
-            .filter((u: any) => u.ativo && (u.role === "VENDEDOR" || u.role === "ADMIN" || u.role === "DIRETOR"))
+            .filter((u: any) => u.ativo && (u.role === "VENDEDOR" || u.role === "VENDEDOR_HIBRIDO" || u.role === "ADMIN" || u.role === "DIRETOR"))
             .map((u: any) => ({ id: u.id, nome: u.nome }));
           setVendedores(v);
         })
@@ -345,6 +347,7 @@ export default function OportunidadesPage() {
         fonte: vendaForm.fonte,
         dataConversao: new Date().toISOString().split("T")[0],
         orcamentoUrl: orcamentoPdf || null,
+        ...(isHibrido ? { tipoVenda: vendaForm.tipoVenda } : {}),
       };
 
       if (!payload.valorVenda || !payload.custoEquipamentos) {
@@ -373,6 +376,7 @@ export default function OportunidadesPage() {
         kwp: "",
         quantidadePlacas: "",
         fonte: "",
+        tipoVenda: "INBOUND",
       });
       setOrcamentoPdf(null);
       setOrcamentoNome("");
@@ -538,6 +542,45 @@ export default function OportunidadesPage() {
                       </select>
                     </div>
                   </div>
+
+                  {/* Origem da venda (apenas vendedor hibrido) */}
+                  {isHibrido && (
+                    <div className="rounded-lg border border-[#B7C1AC]/40 bg-[#141820] p-3">
+                      <label className="block text-xs font-medium text-gray-300 mb-2">
+                        Origem da venda <span className="text-[#B7C1AC]">*</span>
+                      </label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setVendaForm({ ...vendaForm, tipoVenda: "INBOUND" })}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition border ${
+                            vendaForm.tipoVenda === "INBOUND"
+                              ? "border-[#B7C1AC] bg-[#B7C1AC]/15 text-[#B7C1AC]"
+                              : "border-[#232a3b] bg-transparent text-gray-400 hover:text-gray-200"
+                          }`}
+                        >
+                          Inbound
+                          <span className="block text-[10px] font-normal text-gray-500 mt-0.5">
+                            Lead da empresa · over progressivo
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setVendaForm({ ...vendaForm, tipoVenda: "EXTERNA" })}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition border ${
+                            vendaForm.tipoVenda === "EXTERNA"
+                              ? "border-[#B7C1AC] bg-[#B7C1AC]/15 text-[#B7C1AC]"
+                              : "border-[#232a3b] bg-transparent text-gray-400 hover:text-gray-200"
+                          }`}
+                        >
+                          Externa
+                          <span className="block text-[10px] font-normal text-gray-500 mt-0.5">
+                            Captação própria · over 50% flat
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Upload do Orcamento PDF */}
                   <div>
@@ -852,6 +895,7 @@ export default function OportunidadesPage() {
                                         kwp: "",
                                         quantidadePlacas: "",
                                         fonte: "",
+                                        tipoVenda: "INBOUND",
                                       });
                                     }}
                                     className="p-1 rounded-lg hover:bg-lime-400/10 text-gray-500 hover:text-lime-400 transition"

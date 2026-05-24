@@ -223,7 +223,7 @@ export default function VendasPage() {
         .then((r) => r.json())
         .then((data) => {
           const vendedoresAtivos = data
-            .filter((v: any) => v.ativo && (v.role === "VENDEDOR" || v.role === "ADMIN" || v.role === "DIRETOR"))
+            .filter((v: any) => v.ativo && (v.role === "VENDEDOR" || v.role === "VENDEDOR_HIBRIDO" || v.role === "ADMIN" || v.role === "DIRETOR"))
             .map((v: any) => ({ id: v.id, nome: v.nome, role: v.role }));
           setVendedores(vendedoresAtivos);
         })

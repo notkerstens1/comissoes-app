@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
   // Buscar todos vendedores ativos
   const vendedores = await prisma.user.findMany({
-    where: { role: "VENDEDOR", ativo: true },
+    where: { role: { in: ["VENDEDOR", "VENDEDOR_HIBRIDO"] }, ativo: true },
     select: { id: true, nome: true },
     orderBy: { nome: "asc" },
   });

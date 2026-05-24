@@ -100,12 +100,20 @@ async function main() {
   }
 
   // ── Daniel (sempre mantido) ───────────────────────────────────────────────────
+  // Daniel eh hibrido: inbound (lead da empresa, faixa progressiva) + externa
+  // (porta a porta, over flat 50%). Cada venda escolhe tipoVenda no momento do cadastro.
   const daniel = await prisma.user.upsert({
     where: { email: "daniel@solar.com" },
-    update: { nome: "Daniel", ativo: true },
-    create: { nome: "Daniel", email: "daniel@solar.com", senha: senhaVendedor, role: "VENDEDOR_EXTERNO" },
+    update: { nome: "Daniel", ativo: true, role: "VENDEDOR_HIBRIDO" },
+    create: { nome: "Daniel", email: "daniel@solar.com", senha: senhaVendedor, role: "VENDEDOR_HIBRIDO" },
   });
-  console.log("Vendedor Externo criado/mantido:", daniel.email);
+  console.log("Vendedor Hibrido criado/mantido:", daniel.email);
+
+  // Backfill: vendas historicas do Daniel viraram EXTERNA (eram porta a porta antes)
+  await prisma.venda.updateMany({
+    where: { vendedorId: daniel.id, tipoVenda: { not: "EXTERNA" } },
+    data: { tipoVenda: "EXTERNA" },
+  });
 
   // ── Yuri (Pós Venda) ──────────────────────────────────────────────────────────
   let yuri: { id: string; nome: string; email: string } | null = null;
@@ -349,12 +357,13 @@ async function main() {
     console.log(`Juliana ja tem ${existingVendasJuliana} vendas, pulando criacao`);
   }
 
-  // Criar vendas do Daniel (VENDEDOR_EXTERNO, apenas se ainda nao existem — seguro para re-seed)
+  // Criar vendas do Daniel (VENDEDOR_HIBRIDO, apenas se ainda nao existem — seguro para re-seed)
+  // Vendas historicas de fev/26 sao EXTERNA (porta a porta — comissao 2.5% + 50% flat over)
   const existingVendasDaniel = await prisma.venda.count({ where: { vendedorId: daniel.id } });
   if (existingVendasDaniel === 0) {
     await prisma.venda.createMany({
       data: [
-        // FEVEREIRO 2026 — vendas do Daniel (comissao 3% + 50% do over)
+        // FEVEREIRO 2026 — vendas do Daniel (tipoVenda EXTERNA: 2.5% + 50% over flat)
         {
           vendedorId: daniel.id,
           cliente: "João Batista",
@@ -366,9 +375,9 @@ async function main() {
           geracaoKwh: 318.24,
           over: 0,
           margem: 2.61,
-          comissaoVenda: 255.00,
+          comissaoVenda: 212.50,
           comissaoOver: 0,
-          comissaoTotal: 255.00,
+          comissaoTotal: 212.50,
           quantidadePlacas: 6,
           custoVisitaTecnica: 120,
           custoCosern: 70,
@@ -378,6 +387,7 @@ async function main() {
           custoImposto: 314.40,
           dataConversao: new Date("2026-02-27"),
           fonte: "TRÁFEGO",
+          tipoVenda: "EXTERNA",
           status: "AGUARDANDO",
           mesReferencia: "2026-02",
         },
@@ -392,9 +402,9 @@ async function main() {
           geracaoKwh: 1272.96,
           over: 4396.38,
           margem: 2.20,
-          comissaoVenda: 720.00,
+          comissaoVenda: 600.00,
           comissaoOver: 2198.19,
-          comissaoTotal: 2918.19,
+          comissaoTotal: 2798.19,
           quantidadePlacas: 24,
           custoVisitaTecnica: 120,
           custoCosern: 70,
@@ -404,12 +414,13 @@ async function main() {
           custoImposto: 786.55,
           dataConversao: new Date("2026-02-20"),
           fonte: "INDICAÇÃO",
+          tipoVenda: "EXTERNA",
           status: "AGUARDANDO",
           mesReferencia: "2026-02",
         },
       ],
     });
-    console.log("Vendas do Daniel criadas: 2 Fev (total 2)");
+    console.log("Vendas do Daniel criadas: 2 Fev EXTERNA (total 2)");
   } else {
     console.log(`Daniel ja tem ${existingVendasDaniel} vendas, pulando criacao`);
   }
@@ -652,7 +663,7 @@ async function main() {
   console.log("  Diretor (Erick Santos):     diretor@solar.com / diretor123");
   console.log("  Bruna (Vendedor):           bruna@solar.com / vendedor123");
   console.log("  Juliana (Vendedor):         juliana@solar.com / vendedor123");
-  console.log("  Daniel (Vendedor Externo):  daniel@solar.com / vendedor123");
+  console.log("  Daniel (Vendedor Hibrido):  daniel@solar.com / vendedor123");
   console.log("  SDR (Emelly):               emelly@solar.com / sdr123");
   console.log("  Pos Venda (Yuri):           yuri@solar.com / posvenda123");
 }

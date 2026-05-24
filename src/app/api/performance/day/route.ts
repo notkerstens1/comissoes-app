@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       orderBy: { vendedor: { nome: "asc" } },
     }),
     prisma.user.findMany({
-      where: { role: "VENDEDOR", ativo: true },
+      where: { role: { in: ["VENDEDOR", "VENDEDOR_HIBRIDO"] }, ativo: true },
       select: { id: true, nome: true, email: true },
       orderBy: { nome: "asc" },
     }),

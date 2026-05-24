@@ -26,6 +26,9 @@ export async function tentarVincularVendaSDR(vendaId: string): Promise<void> {
     const venda = await prisma.venda.findUnique({ where: { id: vendaId } });
     if (!venda) return;
 
+    // Vendas EXTERNAS (captacao propria do vendedor hibrido) nao passam pela SDR
+    if (venda.tipoVenda === "EXTERNA") return;
+
     // 2. Normalizar nome do cliente
     const nomeNormalizado = normalizeClientName(venda.cliente);
 

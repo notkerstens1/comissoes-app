@@ -2,7 +2,7 @@
 // CONTROLE DE ROLES/PAPEIS DO SISTEMA
 // ============================================================
 
-export type UserRole = "VENDEDOR" | "VENDEDOR_EXTERNO" | "ADMIN" | "DIRETOR" | "SDR" | "POS_VENDA" | "FINANCEIRO" | "TECNICO";
+export type UserRole = "VENDEDOR" | "VENDEDOR_EXTERNO" | "VENDEDOR_HIBRIDO" | "ADMIN" | "DIRETOR" | "SDR" | "POS_VENDA" | "FINANCEIRO" | "TECNICO";
 
 /**
  * Verifica se o usuario tem permissoes de supervisor (ADMIN ou DIRETOR)
@@ -29,7 +29,7 @@ export function isDiretor(role: string | undefined | null): boolean {
  * Verifica se o usuario e vendedor (interno ou externo)
  */
 export function isVendedor(role: string | undefined | null): boolean {
-  return role === "VENDEDOR" || role === "VENDEDOR_EXTERNO";
+  return role === "VENDEDOR" || role === "VENDEDOR_EXTERNO" || role === "VENDEDOR_HIBRIDO";
 }
 
 /**
@@ -37,6 +37,14 @@ export function isVendedor(role: string | undefined | null): boolean {
  */
 export function isVendedorExterno(role: string | undefined | null): boolean {
   return role === "VENDEDOR_EXTERNO";
+}
+
+/**
+ * Verifica se o usuario e vendedor hibrido (interno + externo)
+ * Vendedor hibrido escolhe origem (INBOUND ou EXTERNA) em cada venda
+ */
+export function isVendedorHibrido(role: string | undefined | null): boolean {
+  return role === "VENDEDOR_HIBRIDO";
 }
 
 /**
@@ -109,6 +117,8 @@ export function getRoleLabel(role: string | undefined | null): string {
       return "Vendedor";
     case "VENDEDOR_EXTERNO":
       return "Vendedor Externo";
+    case "VENDEDOR_HIBRIDO":
+      return "Vendedor Híbrido";
     case "SDR":
       return "SDR";
     case "POS_VENDA":

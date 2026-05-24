@@ -11,7 +11,8 @@ export async function GET() {
   }
 
   const vendedores = await prisma.user.findMany({
-    where: { ativo: true, role: "VENDEDOR" },
+    // Inclui hibrido — SDR direciona inbound do Daniel quando aplicavel
+    where: { ativo: true, role: { in: ["VENDEDOR", "VENDEDOR_HIBRIDO"] } },
     select: { id: true, nome: true },
     orderBy: { nome: "asc" },
   });

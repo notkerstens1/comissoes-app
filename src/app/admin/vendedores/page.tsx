@@ -136,6 +136,7 @@ export default function VendedoresPage() {
     if (r === "POS_VENDA") return "Pós Venda";
     if (r === "FINANCEIRO") return "Financeiro";
     if (r === "VENDEDOR_EXTERNO") return "Vend. Externo";
+    if (r === "VENDEDOR_HIBRIDO") return "Vend. Híbrido";
     if (r === "TECNICO") return "Engenharia";
     return "Vendedor";
   };
@@ -269,6 +270,7 @@ export default function VendedoresPage() {
                 >
                   <option value="VENDEDOR">Vendedor</option>
                   <option value="VENDEDOR_EXTERNO">Vendedor Externo</option>
+                  <option value="VENDEDOR_HIBRIDO">Vendedor Híbrido</option>
                   <option value="SDR">SDR</option>
                   <option value="POS_VENDA">Pós Venda</option>
                   <option value="FINANCEIRO">Financeiro</option>

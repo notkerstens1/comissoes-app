@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdmin, canEditVenda } from "@/lib/roles";
+import { PERCENTUAL_OVER_EXTERNA } from "@/lib/comissao";
 import { calcularCustosVenda, ConfiguracaoCustos } from "@/lib/custos";
 
 // DELETE - Excluir venda
@@ -92,7 +93,8 @@ export async function PUT(
     const fator = vendaAtual.percentualComissaoOverride ?? 0.025;
     const newOver = Math.max(vv - ce * 1.8, 0);
     const newComissaoVenda = vv * fator;
-    const newComissaoOver = newOver * 0.35;
+    const percentualOver = vendaAtual.tipoVenda === "EXTERNA" ? PERCENTUAL_OVER_EXTERNA : 0.35;
+    const newComissaoOver = newOver * percentualOver;
     const newComissaoTotal = newComissaoVenda + newComissaoOver;
     const outrosCustos =
       (vendaAtual.custoInstalacao ?? 0) + (vendaAtual.custoVisitaTecnica ?? 0) +
@@ -121,7 +123,11 @@ export async function PUT(
     const overBruto = Math.max(vendaAtual.valorVenda - vendaAtual.custoEquipamentos * novaMargem, 0);
     // Se margem < 1.8 e não é exceção → over = 0
     const over = (novaMargem < 1.8 && !excecao) ? 0 : overBruto;
-    const comissaoOver = over * 0.35;
+    // Vendas EXTERNA (vendedor hibrido — porta a porta) usam over flat de 50%.
+    // INBOUND aplica 35% aqui como aproximacao da faixa base (recalculo mensal
+    // ajusta para a faixa progressiva correta).
+    const percentualOver = vendaAtual.tipoVenda === "EXTERNA" ? PERCENTUAL_OVER_EXTERNA : 0.35;
+    const comissaoOver = over * percentualOver;
     const comissaoVenda = vendaAtual.valorVenda * (vendaAtual.percentualComissaoOverride ?? 0.025);
     const novaComissaoTotal = comissaoOver + comissaoVenda;
 
