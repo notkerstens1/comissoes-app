@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { calcularOver, calcularMargem, calcularGeracaoKwh, PERCENTUAL_OVER_EXTERNA } from "@/lib/comissao";
 import { calcularCustosVenda, ConfiguracaoCustos } from "@/lib/custos";
+import { calcularCustoInstalacaoEstimado, type BitolaCabo } from "@/lib/margem-instalacao";
 import { isAdmin } from "@/lib/roles";
 import { tentarVincularVendaSDR } from "@/lib/sdr-linking";
 
@@ -70,6 +71,11 @@ export async function POST(request: NextRequest) {
       fonte,
       orcamentoUrl,
       tipoVenda,
+      // Margem de instalacao (engenharia)
+      metragemCaboPrevista,
+      bitolaCabo,
+      inversorTrifasico,
+      cidadeInstalacao,
     } = body;
 
     // Validacoes
@@ -144,6 +150,26 @@ export async function POST(request: NextRequest) {
       configCustos
     );
 
+    // Custo estimado de instalacao (se vendedor preencheu metragem/bitola)
+    let custoInstalacaoEstimado: number | null = null;
+    const metragemNum = parseInt(metragemCaboPrevista);
+    if (!isNaN(metragemNum) && metragemNum > 0 && (bitolaCabo === "6mm" || bitolaCabo === "10mm")) {
+      const [precos, deslocamentos] = await Promise.all([
+        prisma.precoMaterial.findMany({ where: { ativo: true } }),
+        prisma.custoDeslocamento.findMany(),
+      ]);
+      custoInstalacaoEstimado = calcularCustoInstalacaoEstimado(
+        {
+          metragemCaboPrevista: metragemNum,
+          bitolaCabo: bitolaCabo as BitolaCabo,
+          inversorTrifasico: !!inversorTrifasico,
+          cidadeInstalacao: cidadeInstalacao?.trim() || undefined,
+        },
+        precos,
+        deslocamentos
+      );
+    }
+
     const venda = await prisma.venda.create({
       data: {
         vendedorId: session.user.id,
@@ -178,6 +204,12 @@ export async function POST(request: NextRequest) {
         tipoVenda: tipoVendaFinal,
         orcamentoUrl: orcamentoUrl || null,
         mesReferencia,
+        // Margem de instalacao
+        metragemCaboPrevista: !isNaN(metragemNum) && metragemNum > 0 ? metragemNum : null,
+        bitolaCabo: (bitolaCabo === "6mm" || bitolaCabo === "10mm") ? bitolaCabo : null,
+        inversorTrifasico: !!inversorTrifasico,
+        cidadeInstalacao: cidadeInstalacao?.trim() || null,
+        custoInstalacaoEstimado,
       },
     });
 

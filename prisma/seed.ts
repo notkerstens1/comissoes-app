@@ -180,6 +180,41 @@ async function main() {
   });
   console.log("Configuracao criada/atualizada");
 
+  // Precos de material (engenharia/instalacao) — Pedro/diretor afinam via admin
+  const precosDefault = [
+    { chave: "CABO_6MM",         label: "Cabo 6mm",         precoUnit: 5.00,  unidade: "m"  },
+    { chave: "CABO_10MM",        label: "Cabo 10mm",        precoUnit: 9.90,  unidade: "m"  },
+    { chave: "ELETRODUTO_MEIA",  label: "Eletroduto 1/2",   precoUnit: 8.00,  unidade: "un" },
+    { chave: "ELETRODUTO_UMA",   label: "Eletroduto 1 pol", precoUnit: 12.00, unidade: "un" },
+    { chave: "DPS",              label: "DPS",              precoUnit: 80.00, unidade: "un" },
+    { chave: "DISJUNTOR",        label: "Disjuntor",        precoUnit: 35.00, unidade: "un" },
+    { chave: "QUADRO",           label: "Quadro",           precoUnit: 90.00, unidade: "un" },
+  ];
+  for (const p of precosDefault) {
+    await prisma.precoMaterial.upsert({
+      where: { chave: p.chave },
+      update: { label: p.label, unidade: p.unidade }, // nao sobrescreve precoUnit se ja editado
+      create: p,
+    });
+  }
+  console.log("Precos de material seed criados/mantidos");
+
+  // Custos de deslocamento por cidade
+  const deslocDefault = [
+    { cidade: "Natal",      valor: 0   },
+    { cidade: "Parnamirim", valor: 30  },
+    { cidade: "Macaiba",    valor: 50  },
+    { cidade: "Mossoro",    valor: 300 },
+  ];
+  for (const d of deslocDefault) {
+    await prisma.custoDeslocamento.upsert({
+      where: { cidade: d.cidade },
+      update: {}, // nao sobrescreve valor
+      create: d,
+    });
+  }
+  console.log("Custos de deslocamento seed criados/mantidos");
+
   // Criar faixas de comissao
   await prisma.faixaComissao.deleteMany();
 

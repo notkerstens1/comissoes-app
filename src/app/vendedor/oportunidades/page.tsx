@@ -163,6 +163,11 @@ export default function OportunidadesPage() {
     quantidadePlacas: "",
     fonte: "",
     tipoVenda: "INBOUND" as "INBOUND" | "EXTERNA",
+    // Margem de instalacao (engenharia/Pedro)
+    metragemCaboPrevista: "",
+    bitolaCabo: "6mm" as "6mm" | "10mm",
+    inversorTrifasico: false,
+    cidadeInstalacao: "",
   });
   const isHibrido = session?.user?.role === "VENDEDOR_HIBRIDO";
   const [salvandoVenda, setSalvandoVenda] = useState(false);
@@ -348,6 +353,13 @@ export default function OportunidadesPage() {
         dataConversao: new Date().toISOString().split("T")[0],
         orcamentoUrl: orcamentoPdf || null,
         ...(isHibrido ? { tipoVenda: vendaForm.tipoVenda } : {}),
+        // Margem de instalacao (so envia se vendedor preencheu metragem)
+        ...(vendaForm.metragemCaboPrevista ? {
+          metragemCaboPrevista: parseInt(vendaForm.metragemCaboPrevista),
+          bitolaCabo: vendaForm.bitolaCabo,
+          inversorTrifasico: vendaForm.inversorTrifasico,
+          cidadeInstalacao: vendaForm.cidadeInstalacao.trim() || undefined,
+        } : {}),
       };
 
       if (!payload.valorVenda || !payload.custoEquipamentos) {
@@ -377,6 +389,10 @@ export default function OportunidadesPage() {
         quantidadePlacas: "",
         fonte: "",
         tipoVenda: "INBOUND",
+        metragemCaboPrevista: "",
+        bitolaCabo: "6mm",
+        inversorTrifasico: false,
+        cidadeInstalacao: "",
       });
       setOrcamentoPdf(null);
       setOrcamentoNome("");
@@ -581,6 +597,87 @@ export default function OportunidadesPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Margem de instalacao — engenharia */}
+                  <div className="rounded-lg border border-teal-400/30 bg-teal-400/5 p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-medium text-teal-300">
+                        Engenharia · ajuda Pedro a precificar instalacao
+                      </label>
+                      <span className="text-[10px] text-gray-500">opcional, mas evita prejuizo</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div>
+                        <label className="block text-[10px] text-gray-400 mb-0.5">Metragem cabo (m/perna)</label>
+                        <input
+                          type="number"
+                          value={vendaForm.metragemCaboPrevista}
+                          onChange={(e) => setVendaForm({ ...vendaForm, metragemCaboPrevista: e.target.value })}
+                          placeholder="ex: 15"
+                          className="w-full px-2 py-1.5 rounded border border-[#232a3b] bg-[#141820] text-gray-100 text-sm focus:ring-1 focus:ring-teal-400 outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-gray-400 mb-0.5">Bitola do cabo</label>
+                        <select
+                          value={vendaForm.bitolaCabo}
+                          onChange={(e) => setVendaForm({ ...vendaForm, bitolaCabo: e.target.value as "6mm" | "10mm" })}
+                          className="w-full px-2 py-1.5 rounded border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                        >
+                          <option value="6mm">6mm</option>
+                          <option value="10mm">10mm</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-gray-400 mb-0.5">Cidade da instalacao</label>
+                        <input
+                          type="text"
+                          value={vendaForm.cidadeInstalacao}
+                          onChange={(e) => setVendaForm({ ...vendaForm, cidadeInstalacao: e.target.value })}
+                          placeholder="ex: Natal"
+                          className="w-full px-2 py-1.5 rounded border border-[#232a3b] bg-[#141820] text-gray-100 text-sm focus:ring-1 focus:ring-teal-400 outline-none"
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <label className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={vendaForm.inversorTrifasico}
+                            onChange={(e) => setVendaForm({ ...vendaForm, inversorTrifasico: e.target.checked })}
+                            className="rounded border-[#232a3b]"
+                          />
+                          Inversor trifasico
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Avisos contextuais (Bloco 1.4) */}
+                    {vendaForm.metragemCaboPrevista && parseInt(vendaForm.metragemCaboPrevista) > 20 && (
+                      <div className="text-xs bg-red-400/10 border border-red-400/30 rounded px-2 py-1.5 text-red-300">
+                        <AlertTriangle className="w-3 h-3 inline mr-1" />
+                        Mais de 20m por perna. Negocie material extra com o cliente OU peça aprovação do diretor pra absorver.
+                      </div>
+                    )}
+                    {vendaForm.metragemCaboPrevista &&
+                      parseInt(vendaForm.metragemCaboPrevista) > 15 &&
+                      parseInt(vendaForm.metragemCaboPrevista) <= 20 && (
+                      <div className="text-xs bg-amber-400/10 border border-amber-400/30 rounded px-2 py-1.5 text-amber-300">
+                        Acima do padrao (15m), mas dentro da tolerancia (20m).
+                      </div>
+                    )}
+                    {vendaForm.inversorTrifasico && (
+                      <div className="text-xs bg-blue-400/10 border border-blue-400/30 rounded px-2 py-1.5 text-blue-300">
+                        Trifasico = 4 cabos por perna. Avise o Pedro antes de fechar pra ele preparar material.
+                      </div>
+                    )}
+                    {vendaForm.cidadeInstalacao &&
+                      !["natal", "parnamirim", "macaiba"].includes(vendaForm.cidadeInstalacao.trim().toLowerCase()) && (
+                      <div className="text-xs bg-purple-400/10 border border-purple-400/30 rounded px-2 py-1.5 text-purple-300">
+                        Cidade fora da regiao metropolitana. Deslocamento e material podem encarecer — confirme com Pedro.
+                      </div>
+                    )}
+                  </div>
 
                   {/* Upload do Orcamento PDF */}
                   <div>
@@ -896,6 +993,10 @@ export default function OportunidadesPage() {
                                         quantidadePlacas: "",
                                         fonte: "",
                                         tipoVenda: "INBOUND",
+                                        metragemCaboPrevista: "",
+                                        bitolaCabo: "6mm",
+                                        inversorTrifasico: false,
+                                        cidadeInstalacao: "",
                                       });
                                     }}
                                     className="p-1 rounded-lg hover:bg-lime-400/10 text-gray-500 hover:text-lime-400 transition"
