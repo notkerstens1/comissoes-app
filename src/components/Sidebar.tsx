@@ -77,9 +77,10 @@ export function Sidebar() {
   ];
 
   const menuAdmin = [
-    { href: "/admin", label: "Painel Supervisor", icon: Settings },
+    { href: "/admin", label: "Painel Admin", icon: Settings },
     { href: "/admin/faixas", label: "Faixas", icon: Layers },
     { href: "/admin/configuracoes", label: "Configuracoes", icon: Settings },
+    { href: "/admin/precos-instalacao", label: "Precos Instalacao", icon: DollarSign },
   ];
 
   const menuFinanceiro = [
@@ -237,7 +238,10 @@ export function Sidebar() {
                 Setor Técnico
               </p>
               {renderMenuSection(
-                [{ href: "/tecnico", label: "Setor Técnico", icon: Wrench }],
+                [
+                  { href: "/tecnico", label: "Setor Técnico", icon: Wrench },
+                  { href: "/tecnico/margem", label: "Margem Instalação", icon: Activity },
+                ],
                 "text-teal-400",
                 "bg-teal-400/10"
               )}
