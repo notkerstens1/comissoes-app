@@ -333,9 +333,12 @@ model SetorTecnico {
   vendaId        String?  @unique
   venda          Venda?   @relation(fields: [vendaId], references: [id])
   vendedorNome   String?
-  // Etapa atual do funil tecnico
+  // Etapa atual do funil tecnico (PROJETO + INSTALACAO)
   etapa          String   @default("NOVO_PROJETO")
-  // "NOVO_PROJETO" | "CONSULTAR_CARGA" | "AUMENTO_CARGA" | "EMITIR_TRT" | "PROJETO_ENVIADO" | "PROJETO_APROVADO"
+  // PROJETO (1-7): NOVO_PROJETO, CONSULTAR_CARGA, AUMENTO_CARGA, EMITIR_TRT,
+  //   LIBERADO_ENVIO, PROJETO_ENVIADO, PROJETO_APROVADO
+  // INSTALACAO (8-14): VISITA_AGENDADA, VISITA_FEITA, AGUARDANDO_MATERIAL,
+  //   MATERIAL_COMPRADO, INSTALACAO_AGENDADA, INSTALACAO_CONCLUIDA, REDE_LIGADA
   // Acompanhamento
   observacoes    String?
   ultimaAcao     String?
@@ -346,6 +349,19 @@ model SetorTecnico {
   anexos         String?
   // Comentarios do engenheiro (JSON array: [{id, autor, texto, criadoEm}])
   comentarios    String?
+  // Validacao de visita tecnica (engenheiro marca quando visita aconteceu — Yuri
+  // usa pra liberar pagamento da visita sem ter que perguntar no grupo)
+  visitaValidada Boolean  @default(false)
+  // Bloqueio atual (impede avanco de etapa). Key de MOTIVOS_BLOQUEIO em
+  // src/lib/setor-tecnico.ts ou null.
+  bloqueioStatus String?
+  // Checklist de documentos exigidos antes de virar etapa INSTALACAO
+  // (JSON: [{key, label, concluido}])
+  checklistDocumentos String?
+  // Datas-chave da fase instalacao (preenchidas pelo engenheiro)
+  dataVisita         String? // "YYYY-MM-DD"
+  dataInstalacao     String? // "YYYY-MM-DD"
+  dataRedeLigada     String? // "YYYY-MM-DD"
   // Controle
   ativo          Boolean  @default(true)
   createdAt      DateTime @default(now())

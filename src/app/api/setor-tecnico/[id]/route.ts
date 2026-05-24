@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canAccessTecnico } from "@/lib/roles";
+import { etapaTecnicoParaPosVenda, getCategoriaEtapa } from "@/lib/setor-tecnico";
 
 // GET — buscar registro completo (com campos pesados) sob demanda
 export async function GET(
@@ -44,7 +45,13 @@ export async function PUT(
   if (!registro) return NextResponse.json({ error: "Registro nao encontrado" }, { status: 404 });
 
   const body = await request.json();
-  const { nomeCliente, telefone, email, etapa, observacoes, ultimaAcao, proximaAcao, anexos, comentarios } = body;
+  const {
+    nomeCliente, telefone, email, etapa, observacoes, ultimaAcao, proximaAcao,
+    anexos, comentarios,
+    // Novos campos da fase instalacao
+    visitaValidada, bloqueioStatus, checklistDocumentos,
+    dataVisita, dataInstalacao, dataRedeLigada,
+  } = body;
 
   // Defesa em profundidade: arrays JSON nao sao mais aceitos no PUT generico
   // pra eliminar a classe de bug "cliente envia array completo e clobera o que
@@ -66,6 +73,17 @@ export async function PUT(
   if (etapa !== undefined) data.etapa = etapa;
   if (observacoes !== undefined) data.observacoes = observacoes?.trim() || null;
   if (ultimaAcao !== undefined) data.ultimaAcao = ultimaAcao?.trim() || null;
+  if (visitaValidada !== undefined) data.visitaValidada = !!visitaValidada;
+  if (bloqueioStatus !== undefined) data.bloqueioStatus = bloqueioStatus?.trim() || null;
+  if (checklistDocumentos !== undefined) {
+    // Aceita string JSON ou array — converte sempre para string
+    data.checklistDocumentos = typeof checklistDocumentos === "string"
+      ? checklistDocumentos
+      : JSON.stringify(checklistDocumentos);
+  }
+  if (dataVisita !== undefined) data.dataVisita = dataVisita?.trim() || null;
+  if (dataInstalacao !== undefined) data.dataInstalacao = dataInstalacao?.trim() || null;
+  if (dataRedeLigada !== undefined) data.dataRedeLigada = dataRedeLigada?.trim() || null;
 
   // Historico de acoes: ao atualizar proximaAcao, salvar a anterior no historico
   if (proximaAcao !== undefined) {
@@ -85,6 +103,28 @@ export async function PUT(
     where: { id: params.id },
     data,
   });
+
+  // Sync com PosVenda: quando etapa do setor tecnico avanca para fase INSTALACAO,
+  // espelha a etapa correspondente no PosVenda associado (se houver). Yuri ve
+  // o progresso sem precisar perguntar no grupo.
+  if (etapa !== undefined && registro.vendaId) {
+    const etapaPosVenda = etapaTecnicoParaPosVenda(etapa);
+    if (etapaPosVenda) {
+      const posVenda = await prisma.posVenda.findFirst({
+        where: { vendaId: registro.vendaId, ativo: true },
+        select: { id: true, etapa: true },
+      });
+      if (posVenda && posVenda.etapa !== etapaPosVenda) {
+        await prisma.posVenda.update({
+          where: { id: posVenda.id },
+          data: {
+            etapa: etapaPosVenda,
+            ultimaAcao: `Etapa sincronizada do setor tecnico (${etapa})`,
+          },
+        });
+      }
+    }
+  }
 
   return NextResponse.json(updated);
 }
