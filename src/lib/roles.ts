@@ -2,20 +2,32 @@
 // CONTROLE DE ROLES/PAPEIS DO SISTEMA
 // ============================================================
 
-export type UserRole = "VENDEDOR" | "VENDEDOR_EXTERNO" | "VENDEDOR_HIBRIDO" | "ADMIN" | "DIRETOR" | "SDR" | "POS_VENDA" | "FINANCEIRO" | "TECNICO";
+export type UserRole = "VENDEDOR" | "VENDEDOR_EXTERNO" | "VENDEDOR_HIBRIDO" | "ADMIN" | "DIRETOR" | "SUPERVISOR" | "SDR" | "POS_VENDA" | "FINANCEIRO" | "TECNICO";
 
 /**
- * Verifica se o usuario tem permissoes de supervisor (ADMIN ou DIRETOR)
+ * Verifica se o usuario tem permissoes administrativas plenas (ADMIN ou DIRETOR).
+ * NAO inclui SUPERVISOR de operacao — supervisor de operacao tem acesso restrito.
  */
 export function isAdmin(role: string | undefined | null): boolean {
   return role === "ADMIN" || role === "DIRETOR";
 }
 
 /**
- * Verifica se o usuario e somente supervisor (ADMIN), sem acesso de diretor
+ * Verifica se o usuario e supervisor (de operacao OU papel admin).
+ * SUPERVISOR ve comissao propria; ADMIN/DIRETOR tambem podem ver (compat).
  */
 export function isSupervisor(role: string | undefined | null): boolean {
-  return role === "ADMIN";
+  return role === "SUPERVISOR" || role === "ADMIN" || role === "DIRETOR";
+}
+
+/**
+ * Verifica se o usuario pode visualizar a comissao do supervisor.
+ * A comissao e do CARGO supervisor (% sobre receita da empresa), nao por pessoa.
+ * Acesso: SUPERVISOR (cargo), ADMIN (papel atual do Eric Lima) e DIRETOR.
+ * Vendedores, SDR, Pos-Venda, Tecnico e Financeiro NAO veem.
+ */
+export function canViewSupervisorCommission(role: string | undefined | null): boolean {
+  return role === "SUPERVISOR" || role === "ADMIN" || role === "DIRETOR";
 }
 
 /**
@@ -112,6 +124,8 @@ export function getRoleLabel(role: string | undefined | null): string {
     case "DIRETOR":
       return "Diretor";
     case "ADMIN":
+      return "Admin";
+    case "SUPERVISOR":
       return "Supervisor";
     case "VENDEDOR":
       return "Vendedor";
@@ -141,6 +155,8 @@ export function getDefaultRoute(role: string | undefined | null): string {
       return "/diretor";
     case "ADMIN":
       return "/admin";
+    case "SUPERVISOR":
+      return "/supervisor";
     case "VENDEDOR":
     case "VENDEDOR_EXTERNO":
       return "/vendedor/oportunidades";

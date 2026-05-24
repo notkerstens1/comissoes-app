@@ -12,7 +12,7 @@ model User {
   nome                 String
   email                String              @unique
   senha                String
-  role                 String              @default("VENDEDOR") // VENDEDOR | VENDEDOR_EXTERNO | VENDEDOR_HIBRIDO | ADMIN | DIRETOR | SDR | POS_VENDA | FINANCEIRO | TECNICO
+  role                 String              @default("VENDEDOR") // VENDEDOR | VENDEDOR_EXTERNO | VENDEDOR_HIBRIDO | ADMIN | DIRETOR | SUPERVISOR | SDR | POS_VENDA | FINANCEIRO | TECNICO
   ativo                Boolean             @default(true)
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
@@ -131,6 +131,16 @@ model Configuracao {
   // Metas (ranking)
   metaVendasMes   Float @default(120000) // Meta mensal de vendas por vendedor (R$)
   metaMargemMedia Float @default(1.8) // Meta de margem media por vendedor
+
+  // Meta de receita mensal da empresa (soma das metas individuais) — usada
+  // como base para calcular comissao do SUPERVISOR
+  metaReceitaMensal Float @default(360000) // R$ 360k = 3 vendedores x R$ 120k
+
+  // Comissao do SUPERVISOR: percentual sobre receita mensal total da empresa,
+  // aplicado em faixas conforme % da meta atingida
+  percentualSupervisorAte80      Float @default(0.0)   // < 80% da meta: 0%
+  percentualSupervisor80a100     Float @default(0.008) // 80-99% da meta: 0,8%
+  percentualSupervisorAcima100   Float @default(0.01)  // >= 100% da meta: 1%
 
   // Custos padrao (visao diretor)
   custoPlacaInstalacao     Float @default(70) // R$70 por placa

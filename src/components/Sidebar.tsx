@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { isAdmin as checkAdmin, isDiretor as checkDiretor, isSDR as checkSDR, isPosVenda as checkPosVenda, isFinanceiro as checkFinanceiro, isTecnico as checkTecnico, canAccessTecnico as checkCanAccessTecnico, canManageTeam as checkCanManageTeam } from "@/lib/roles";
+import { isAdmin as checkAdmin, isDiretor as checkDiretor, isSDR as checkSDR, isPosVenda as checkPosVenda, isFinanceiro as checkFinanceiro, isTecnico as checkTecnico, canAccessTecnico as checkCanAccessTecnico, canManageTeam as checkCanManageTeam, canViewSupervisorCommission as checkCanViewSupervisor } from "@/lib/roles";
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -48,6 +48,8 @@ export function Sidebar() {
   const tecnico = checkTecnico(userRole);
   const canTecnico = checkCanAccessTecnico(userRole);
   const canTeam = checkCanManageTeam(userRole);
+  const canSupervisorCommission = checkCanViewSupervisor(userRole);
+  const isSupervisorRole = userRole === "SUPERVISOR";
 
   const menuVendedor = [
     { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -94,7 +96,8 @@ export function Sidebar() {
 
   const getRoleBadge = () => {
     if (diretor) return { bg: "bg-amber-400/10 text-amber-400", label: "Diretor" };
-    if (admin) return { bg: "bg-purple-400/10 text-purple-400", label: "Supervisor" };
+    if (admin) return { bg: "bg-purple-400/10 text-purple-400", label: "Admin" };
+    if (isSupervisorRole) return { bg: "bg-fuchsia-400/10 text-fuchsia-400", label: "Supervisor" };
     if (sdr) return { bg: "bg-sky-400/10 text-sky-400", label: "SDR" };
     if (posVenda) return { bg: "bg-orange-400/10 text-orange-400", label: "Pós Venda" };
     if (tecnico) return { bg: "bg-teal-400/10 text-teal-400", label: "Técnico" };
@@ -321,9 +324,24 @@ export function Sidebar() {
             <>
               {!canTeam && <div className="my-3 border-t border-[#232a3b]" />}
               <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                Supervisor
+                Admin
               </p>
               {renderMenuSection(menuAdmin, "text-purple-400", "bg-purple-400/10")}
+            </>
+          )}
+
+          {/* Menu Supervisor — comissao propria (SUPERVISOR e DIRETOR enxergam) */}
+          {canSupervisorCommission && (
+            <>
+              <div className="my-3 border-t border-[#232a3b]" />
+              <p className="px-3 text-xs font-semibold text-fuchsia-400 uppercase tracking-wider mb-2">
+                Supervisor
+              </p>
+              {renderMenuSection(
+                [{ href: "/supervisor", label: "Minha Comissao", icon: DollarSign }],
+                "text-fuchsia-400",
+                "bg-fuchsia-400/10"
+              )}
             </>
           )}
         </nav>
