@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isAdmin, isDiretor } from "@/lib/roles";
+import { isAdmin, isDiretor, ROLES_VENDEDOR_TIME } from "@/lib/roles";
 
 // GET - Buscar dados de um dia especifico (trafego + comercial + vendedores)
 export async function GET(request: NextRequest) {
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       orderBy: { vendedor: { nome: "asc" } },
     }),
     prisma.user.findMany({
-      where: { role: { in: ["VENDEDOR", "VENDEDOR_HIBRIDO"] }, ativo: true },
+      where: { role: { in: [...ROLES_VENDEDOR_TIME] }, ativo: true },
       select: { id: true, nome: true, email: true },
       orderBy: { nome: "asc" },
     }),

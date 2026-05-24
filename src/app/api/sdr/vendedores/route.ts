@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ROLES_VENDEDOR_TIME } from "@/lib/roles";
 
 // GET - Lista vendedores ativos para dropdown do SDR
 export async function GET() {
@@ -11,8 +12,8 @@ export async function GET() {
   }
 
   const vendedores = await prisma.user.findMany({
-    // Inclui hibrido — SDR direciona inbound do Daniel quando aplicavel
-    where: { ativo: true, role: { in: ["VENDEDOR", "VENDEDOR_HIBRIDO"] } },
+    // Inclui hibrido e externo — SDR direciona inbound do Daniel quando aplicavel
+    where: { ativo: true, role: { in: [...ROLES_VENDEDOR_TIME] } },
     select: { id: true, nome: true },
     orderBy: { nome: "asc" },
   });

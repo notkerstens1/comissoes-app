@@ -202,7 +202,7 @@ export default function OportunidadesPage() {
         .then((r) => r.json())
         .then((data) => {
           const v = data
-            .filter((u: any) => u.ativo && (u.role === "VENDEDOR" || u.role === "VENDEDOR_HIBRIDO" || u.role === "ADMIN" || u.role === "DIRETOR"))
+            .filter((u: any) => u.ativo && (u.role === "VENDEDOR" || u.role === "VENDEDOR_EXTERNO" || u.role === "VENDEDOR_HIBRIDO"))
             .map((u: any) => ({ id: u.id, nome: u.nome }));
           setVendedores(v);
         })

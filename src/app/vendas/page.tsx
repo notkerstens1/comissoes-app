@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { formatCurrency, formatNumber } from "@/lib/utils";
-import { isAdmin as checkAdmin } from "@/lib/roles";
+import { isAdmin as checkAdmin, isVendedor as checkIsVendedor } from "@/lib/roles";
 import CurrencyInput from "@/components/CurrencyInput";
 import { EditVendaPanel, VendaEditavel } from "@/components/EditVendaPanel";
 import { DateRangeFilter, DatePreset } from "@/components/performance/DateRangeFilter";
@@ -234,7 +234,10 @@ export default function VendasPage() {
         .then((r) => r.json())
         .then((data) => {
           const vendedoresAtivos = data
-            .filter((v: any) => v.ativo && (v.role === "VENDEDOR" || v.role === "VENDEDOR_HIBRIDO" || v.role === "ADMIN" || v.role === "DIRETOR"))
+            // So inclui o "time de vendas" real (VENDEDOR / VENDEDOR_EXTERNO /
+            // VENDEDOR_HIBRIDO). Erick (DIRETOR) e Erick Lima (ADMIN) nao
+            // aparecem aqui mesmo que eventualmente tenham vendas atribuidas.
+            .filter((v: any) => v.ativo && checkIsVendedor(v.role))
             .map((v: any) => ({ id: v.id, nome: v.nome, role: v.role }));
           setVendedores(vendedoresAtivos);
         })

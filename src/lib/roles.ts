@@ -5,6 +5,16 @@
 export type UserRole = "VENDEDOR" | "VENDEDOR_EXTERNO" | "VENDEDOR_HIBRIDO" | "ADMIN" | "DIRETOR" | "SUPERVISOR" | "SDR" | "POS_VENDA" | "FINANCEIRO" | "TECNICO";
 
 /**
+ * Conjunto canonico de roles que compoem o "time de vendas" (aparece em
+ * dropdowns de filtro por vendedor, ranking, performance, etc).
+ *
+ * NAO inclui ADMIN/DIRETOR/SUPERVISOR — esses sao papeis administrativos que
+ * podem ate visualizar dados de vendedores, mas nao SAO vendedores nem devem
+ * aparecer em listagens de selecao.
+ */
+export const ROLES_VENDEDOR_TIME = ["VENDEDOR", "VENDEDOR_EXTERNO", "VENDEDOR_HIBRIDO"] as const;
+
+/**
  * Verifica se o usuario tem permissoes administrativas plenas (ADMIN ou DIRETOR).
  * NAO inclui SUPERVISOR de operacao — supervisor de operacao tem acesso restrito.
  */

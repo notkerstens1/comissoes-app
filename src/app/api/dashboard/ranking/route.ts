@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCurrentWeekRange } from "@/lib/dates";
+import { ROLES_VENDEDOR_TIME } from "@/lib/roles";
 
 // GET - Ranking de vendedores por date range (todos os roles)
 export async function GET(request: NextRequest) {
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
   // Buscar todos vendedores ativos (VENDEDOR e VENDEDOR_EXTERNO)
   const vendedores = await prisma.user.findMany({
     where: {
-      role: { in: ["VENDEDOR", "VENDEDOR_EXTERNO", "VENDEDOR_HIBRIDO"] },
+      role: { in: [...ROLES_VENDEDOR_TIME] },
       ativo: true
     },
     select: { id: true, nome: true },
