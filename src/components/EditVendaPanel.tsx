@@ -35,6 +35,12 @@ export interface VendaEditavel {
   mesReferencia?: string;
   excecao?: boolean;
   historicoAlteracoes?: string | null;
+  // Campos basicos editaveis (diretor/admin/financeiro)
+  fonte?: string;             // "TRAFEGO" | "INDICACAO"
+  tipoVenda?: string;         // "INBOUND" | "EXTERNA" (relevante p/ vendedor hibrido)
+  distribuidora?: string;
+  formaPagamento?: string;
+  kwp?: number;
 }
 
 interface EditVendaPanelProps {
@@ -64,6 +70,13 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
     custoMaterialCA: 500,
     percentualComissao: "2.5",
   });
+  // Campos basicos da venda (editaveis por diretor/admin/financeiro)
+  const [editCliente, setEditCliente] = useState("");
+  const [editFonte, setEditFonte] = useState<"TRAFEGO" | "INDICACAO" | "">("");
+  const [editTipoVenda, setEditTipoVenda] = useState<"INBOUND" | "EXTERNA" | "">("");
+  const [editDistribuidora, setEditDistribuidora] = useState("");
+  const [editFormaPagamento, setEditFormaPagamento] = useState("");
+  const [editKwp, setEditKwp] = useState("");
 
   const [editFormDisplay, setEditFormDisplay] = useState({
     custoCosern: "",
@@ -117,6 +130,12 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
     setEditValorVendaNum(venda.valorVenda);
     setEditCustoEquip(formatCurrencyInput(venda.custoEquipamentos));
     setEditCustoEquipNum(venda.custoEquipamentos);
+    setEditCliente(venda.cliente);
+    setEditFonte((venda.fonte === "TRAFEGO" || venda.fonte === "INDICACAO") ? venda.fonte : "");
+    setEditTipoVenda((venda.tipoVenda === "INBOUND" || venda.tipoVenda === "EXTERNA") ? venda.tipoVenda : "");
+    setEditDistribuidora(venda.distribuidora ?? "");
+    setEditFormaPagamento(venda.formaPagamento ?? "");
+    setEditKwp(venda.kwp != null ? String(venda.kwp) : "");
     setErro("");
     setSucessoMsg("");
   }
@@ -215,6 +234,26 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
       if (editDataConversao) {
         payload.dataConversao = editDataConversao;
       }
+      // Campos basicos (so envia se mudou)
+      if (editCliente.trim() && editCliente.trim() !== venda.cliente) {
+        payload.cliente = editCliente.trim();
+      }
+      if (editFonte && editFonte !== venda.fonte) {
+        payload.fonte = editFonte;
+      }
+      if (editTipoVenda && editTipoVenda !== venda.tipoVenda) {
+        payload.tipoVenda = editTipoVenda;
+      }
+      if (editDistribuidora !== (venda.distribuidora ?? "")) {
+        payload.distribuidora = editDistribuidora;
+      }
+      if (editFormaPagamento !== (venda.formaPagamento ?? "")) {
+        payload.formaPagamento = editFormaPagamento;
+      }
+      const novoKwp = parseFloat(editKwp);
+      if (!isNaN(novoKwp) && novoKwp !== venda.kwp) {
+        payload.kwp = novoKwp;
+      }
       const res = await fetch(`/api/vendas/${venda.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -263,11 +302,18 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
   return (
     <SlidePanel isOpen={isOpen} onClose={onClose} title={`Editar Venda - ${venda.cliente}`}>
       <div className="space-y-6">
-        {/* Info (read-only) */}
-        <div className="bg-[#141820] rounded-lg p-4 space-y-2">
-          <div className="flex justify-between">
-            <span className="text-sm text-gray-400">Cliente</span>
-            <span className="font-medium text-gray-100">{venda.cliente}</span>
+        {/* Dados basicos da venda */}
+        <div className="bg-[#141820] rounded-lg p-4 space-y-3">
+          <h3 className="text-sm font-semibold text-amber-400 uppercase tracking-wider">Dados Basicos</h3>
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-1">Cliente</label>
+            <input
+              type="text"
+              value={editCliente}
+              onChange={(e) => setEditCliente(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-amber-400/30 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-[#0d1117] text-gray-100"
+              placeholder="Nome do cliente"
+            />
           </div>
           {venda.vendedor && (
             <div className="flex justify-between">
@@ -275,6 +321,70 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
               <span className="text-gray-300">{venda.vendedor}</span>
             </div>
           )}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1">Fonte do Lead</label>
+              <select
+                value={editFonte}
+                onChange={(e) => setEditFonte(e.target.value as "TRAFEGO" | "INDICACAO" | "")}
+                className="w-full px-3 py-2 rounded-lg border border-amber-400/30 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-[#0d1117] text-gray-100"
+              >
+                <option value="">—</option>
+                <option value="TRAFEGO">Tráfego</option>
+                <option value="INDICACAO">Indicação</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1">Origem da Venda</label>
+              <select
+                value={editTipoVenda}
+                onChange={(e) => setEditTipoVenda(e.target.value as "INBOUND" | "EXTERNA" | "")}
+                className="w-full px-3 py-2 rounded-lg border border-amber-400/30 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-[#0d1117] text-gray-100"
+              >
+                <option value="">—</option>
+                <option value="INBOUND">Inbound (lead da empresa)</option>
+                <option value="EXTERNA">Externa (captação própria)</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1">Forma Pagamento</label>
+              <input
+                type="text"
+                value={editFormaPagamento}
+                onChange={(e) => setEditFormaPagamento(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-amber-400/30 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-[#0d1117] text-gray-100"
+                placeholder="Ex: Solfacil 84x"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1">Distribuidora</label>
+              <input
+                type="text"
+                value={editDistribuidora}
+                onChange={(e) => setEditDistribuidora(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-amber-400/30 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-[#0d1117] text-gray-100"
+                placeholder="Ex: Neoenergia"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-1">kWp do sistema</label>
+            <input
+              type="number"
+              step="0.01"
+              value={editKwp}
+              onChange={(e) => setEditKwp(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-amber-400/30 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-[#0d1117] text-gray-100"
+              placeholder="Ex: 5.50"
+            />
+          </div>
+        </div>
+
+        {/* Valor e custo (editaveis com recalculo automatico) */}
+        <div className="bg-[#141820] rounded-lg p-4 space-y-2">
+          <h3 className="text-sm font-semibold text-amber-400 uppercase tracking-wider">Valor e Custo</h3>
           <div>
             <label className="block text-xs font-medium text-gray-400 mb-1">Valor da Venda (R$)</label>
             <input

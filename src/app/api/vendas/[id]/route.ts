@@ -56,6 +56,8 @@ export async function PUT(
     excecao,
     valorVenda: novoValorVenda,
     custoEquipamentos: novoCustoEquipamentos,
+    // Campos basicos editaveis (diretor/admin/financeiro)
+    cliente, fonte, tipoVenda, distribuidora, formaPagamento, kwp,
   } = body;
 
   const vendaAtual = await prisma.venda.findUnique({
@@ -81,9 +83,44 @@ export async function PUT(
     updateData.mesReferencia = `${novaData.getFullYear()}-${String(novaData.getMonth() + 1).padStart(2, "0")}`;
   }
 
+  // ── Editar campos basicos (cliente, fonte, tipoVenda, distribuidora, formaPagamento, kwp) ──
+  if (cliente !== undefined && typeof cliente === "string" && cliente.trim().length > 0) {
+    updateData.cliente = cliente.trim();
+  }
+  if (fonte !== undefined) {
+    if (fonte !== "TRAFEGO" && fonte !== "INDICACAO") {
+      return NextResponse.json({ error: "fonte invalida (TRAFEGO ou INDICACAO)" }, { status: 400 });
+    }
+    updateData.fonte = fonte;
+  }
+  if (tipoVenda !== undefined) {
+    if (tipoVenda !== "INBOUND" && tipoVenda !== "EXTERNA") {
+      return NextResponse.json({ error: "tipoVenda invalido (INBOUND ou EXTERNA)" }, { status: 400 });
+    }
+    updateData.tipoVenda = tipoVenda;
+  }
+  if (distribuidora !== undefined) updateData.distribuidora = String(distribuidora);
+  if (formaPagamento !== undefined) updateData.formaPagamento = String(formaPagamento);
+  if (kwp !== undefined && !isNaN(parseFloat(kwp))) {
+    updateData.kwp = parseFloat(kwp);
+  }
+
   // ── Editar valor da venda e custo equipamentos ──
   if (novoValorVenda !== undefined) updateData.valorVenda = novoValorVenda;
   if (novoCustoEquipamentos !== undefined) updateData.custoEquipamentos = novoCustoEquipamentos;
+
+  // Se tipoVenda mudou sem mudar valor/equip, recalcular comissaoOver com o novo
+  // percentual (EXTERNA: 50% flat, INBOUND: 35% como aproximacao da faixa base).
+  if (tipoVenda !== undefined && tipoVenda !== vendaAtual.tipoVenda
+      && novoValorVenda === undefined && novoCustoEquipamentos === undefined
+      && novaMargem === undefined) {
+    const overAtual = vendaAtual.over;
+    const novoPercentualOver = tipoVenda === "EXTERNA" ? PERCENTUAL_OVER_EXTERNA : 0.35;
+    const novaComissaoOver = overAtual * novoPercentualOver;
+    updateData.comissaoOver = novaComissaoOver;
+    updateData.comissaoTotal = vendaAtual.comissaoVenda + novaComissaoOver;
+    updateData.comissaoVendedorCusto = updateData.comissaoTotal;
+  }
 
   // Se valor ou equipamento mudou, recalcular margem, over e comissões
   if ((novoValorVenda !== undefined || novoCustoEquipamentos !== undefined) && novaMargem === undefined) {
@@ -227,6 +264,7 @@ export async function PUT(
       "quantidadePlacas", "quantidadeInversores", "custoInstalacao", "custoVisitaTecnica",
       "custoCosern", "custoTrtCrea", "custoEngenheiro", "custoMaterialCA", "custoImposto",
       "percentualComissaoOverride", "lucroLiquido", "margemLucroLiquido", "dataConversao", "status", "excecao",
+      "cliente", "fonte", "tipoVenda", "distribuidora", "formaPagamento", "kwp",
     ];
     const alteracoes: { campo: string; de: unknown; para: unknown }[] = [];
     for (const campo of camposEditaveis) {

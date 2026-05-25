@@ -63,6 +63,7 @@ interface Venda {
   mesReferencia?: string;
   excecao?: boolean;
   historicoAlteracoes?: string;
+  tipoVenda?: string;
 }
 
 export default function VendasPage() {
@@ -275,9 +276,15 @@ export default function VendasPage() {
   };
 
   const totalVendido = vendas.reduce((sum, v) => sum + v.valorVenda, 0);
+  const totalEquipamentos = vendas.reduce((sum, v) => sum + v.custoEquipamentos, 0);
+  const totalOver = vendas.reduce((sum, v) => sum + v.over, 0);
   const totalComissaoVenda = vendas.reduce((sum, v) => sum + v.comissaoVenda, 0);
   const totalComissaoOver = vendas.reduce((sum, v) => sum + v.comissaoOver, 0);
   const totalComissao = vendas.reduce((sum, v) => sum + v.comissaoTotal, 0);
+  // Margem media ponderada pelo valor da venda (vendas maiores pesam mais)
+  const margemMedia = totalVendido > 0
+    ? vendas.reduce((sum, v) => sum + v.margem * v.valorVenda, 0) / totalVendido
+    : 0;
 
 
   return (
@@ -956,6 +963,12 @@ export default function VendasPage() {
                               mesReferencia: v.mesReferencia,
                               excecao: v.excecao,
                               historicoAlteracoes: v.historicoAlteracoes,
+                              // Campos basicos editaveis
+                              fonte: v.fonte,
+                              tipoVenda: v.tipoVenda,
+                              distribuidora: v.distribuidora,
+                              formaPagamento: v.formaPagamento,
+                              kwp: v.kwp,
                             });
                             setEditPanelOpen(true);
                           }}
@@ -978,12 +991,25 @@ export default function VendasPage() {
               </tbody>
               <tfoot className="bg-lime-400/10 font-semibold text-lime-400">
                 <tr>
+                  {/* Cliente + Vendedor (admin) + Distribuidora */}
                   <td className="px-4 py-3" colSpan={admin ? 3 : 2}>TOTAIS</td>
+                  {/* Valor */}
                   <td className="px-4 py-3 text-right">{formatCurrency(totalVendido)}</td>
-                  <td className="px-4 py-3" colSpan={2}></td>
+                  {/* Equip. */}
+                  <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(totalEquipamentos)}</td>
+                  {/* kWp */}
+                  <td className="px-4 py-3"></td>
+                  {/* Margem (media ponderada) */}
+                  <td className="px-4 py-3 text-right text-gray-300">{margemMedia.toFixed(2)}x</td>
+                  {/* Over */}
+                  <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(totalOver)}</td>
+                  {/* Com. Venda */}
                   <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(totalComissaoVenda)}</td>
+                  {/* Com. Over */}
                   <td className="px-4 py-3 text-right text-yellow-400">{formatCurrency(totalComissaoOver)}</td>
+                  {/* Total */}
                   <td className="px-4 py-3 text-right">{formatCurrency(totalComissao)}</td>
+                  {/* Fonte + Data + acoes */}
                   <td colSpan={3}></td>
                 </tr>
               </tfoot>
