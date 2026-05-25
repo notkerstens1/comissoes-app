@@ -1,0 +1,11 @@
+{
+  "name": "LIV Comissoes",
+  "short_name": "LIV Comissoes",
+  "description": "Gestao de vendas e comissoes da LIV Energia Solar",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b0f19",
+  "theme_color": "#0b0f19",
+  "icons": []
+}

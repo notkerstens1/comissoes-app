@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { calcularOver, calcularMargem, calcularGeracaoKwh } from "@/lib/comissao";
+import { calcularOver, calcularMargem, calcularGeracaoKwh, PERCENTUAL_OVER_EXTERNA } from "@/lib/comissao";
 import { calcularCustosVenda, ConfiguracaoCustos } from "@/lib/custos";
+import { calcularCustoInstalacaoEstimado, type BitolaCabo } from "@/lib/margem-instalacao";
 import { isAdmin } from "@/lib/roles";
 import { tentarVincularVendaSDR } from "@/lib/sdr-linking";
 
@@ -16,6 +17,8 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const mes = searchParams.get("mes");
+  const startDate = searchParams.get("startDate");
+  const endDate = searchParams.get("endDate");
   const vendedorFiltro = searchParams.get("vendedor");
 
   const where: any = {};
@@ -28,7 +31,13 @@ export async function GET(request: NextRequest) {
     where.vendedorId = vendedorFiltro;
   }
 
-  if (mes) {
+  // Filtro por range customizado tem precedencia sobre mes (UI nova)
+  if (startDate && endDate) {
+    where.dataConversao = {
+      gte: new Date(`${startDate}T00:00:00`),
+      lte: new Date(`${endDate}T23:59:59.999`),
+    };
+  } else if (mes) {
     where.mesReferencia = mes;
   }
 
@@ -61,6 +70,12 @@ export async function POST(request: NextRequest) {
       dataConversao,
       fonte,
       orcamentoUrl,
+      tipoVenda,
+      // Margem de instalacao (engenharia)
+      metragemCaboPrevista,
+      bitolaCabo,
+      inversorTrifasico,
+      cidadeInstalacao,
     } = body;
 
     // Validacoes
@@ -69,6 +84,33 @@ export async function POST(request: NextRequest) {
         { error: "Campos obrigatorios faltando" },
         { status: 400 }
       );
+    }
+
+    if (fonte !== "TRAFEGO" && fonte !== "INDICACAO") {
+      return NextResponse.json(
+        { error: "Fonte do lead obrigatoria (TRAFEGO ou INDICACAO)" },
+        { status: 400 }
+      );
+    }
+
+    // Para vendedor hibrido, tipoVenda eh obrigatorio (INBOUND ou EXTERNA)
+    const vendedorAtual = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { role: true },
+    });
+    const isHibrido = vendedorAtual?.role === "VENDEDOR_HIBRIDO";
+    let tipoVendaFinal: "INBOUND" | "EXTERNA" = "INBOUND";
+    if (isHibrido) {
+      if (tipoVenda !== "INBOUND" && tipoVenda !== "EXTERNA") {
+        return NextResponse.json(
+          { error: "tipoVenda obrigatorio (INBOUND ou EXTERNA) para vendedor hibrido" },
+          { status: 400 }
+        );
+      }
+      tipoVendaFinal = tipoVenda;
+    } else if (tipoVenda === "EXTERNA" || tipoVenda === "INBOUND") {
+      // Permite override explicito (ex: admin migrando dado)
+      tipoVendaFinal = tipoVenda;
     }
 
     // Buscar configuracao
@@ -115,6 +157,26 @@ export async function POST(request: NextRequest) {
       configCustos
     );
 
+    // Custo estimado de instalacao (se vendedor preencheu metragem/bitola)
+    let custoInstalacaoEstimado: number | null = null;
+    const metragemNum = parseInt(metragemCaboPrevista);
+    if (!isNaN(metragemNum) && metragemNum > 0 && (bitolaCabo === "6mm" || bitolaCabo === "10mm")) {
+      const [precos, deslocamentos] = await Promise.all([
+        prisma.precoMaterial.findMany({ where: { ativo: true } }),
+        prisma.custoDeslocamento.findMany(),
+      ]);
+      custoInstalacaoEstimado = calcularCustoInstalacaoEstimado(
+        {
+          metragemCaboPrevista: metragemNum,
+          bitolaCabo: bitolaCabo as BitolaCabo,
+          inversorTrifasico: !!inversorTrifasico,
+          cidadeInstalacao: cidadeInstalacao?.trim() || undefined,
+        },
+        precos,
+        deslocamentos
+      );
+    }
+
     const venda = await prisma.venda.create({
       data: {
         vendedorId: session.user.id,
@@ -145,9 +207,16 @@ export async function POST(request: NextRequest) {
         lucroLiquido: custos.lucroLiquido,
         margemLucroLiquido: custos.margemLucroLiquido,
         dataConversao: data,
-        fonte: fonte || "",
+        fonte,
+        tipoVenda: tipoVendaFinal,
         orcamentoUrl: orcamentoUrl || null,
         mesReferencia,
+        // Margem de instalacao
+        metragemCaboPrevista: !isNaN(metragemNum) && metragemNum > 0 ? metragemNum : null,
+        bitolaCabo: (bitolaCabo === "6mm" || bitolaCabo === "10mm") ? bitolaCabo : null,
+        inversorTrifasico: !!inversorTrifasico,
+        cidadeInstalacao: cidadeInstalacao?.trim() || null,
+        custoInstalacaoEstimado,
       },
     });
 
@@ -261,36 +330,41 @@ async function recalcularComissoesMes(vendedorId: string, mesReferencia: string)
     aliquotaImpostoPadrao: config?.aliquotaImpostoPadrao ?? 0.06,
   };
 
-  const totalVendido = vendas.reduce((sum, v) => sum + v.valorVenda, 0);
+  // Split inbound vs externa. EXTERNA (so vendedor hibrido) usa over flat 50%
+  // e NAO entra na faixa progressiva. INBOUND segue progressivo sobre volume
+  // inbound isolado.
+  const vendasInbound = vendas.filter((v) => v.tipoVenda !== "EXTERNA");
+  const volumeInbound = vendasInbound.reduce((sum, v) => sum + v.valorVenda, 0);
+  const totalOverInbound = vendasInbound.reduce((sum, v) => sum + v.over, 0);
 
-  // Calcular comissao over progressiva (sem regra de volume minimo)
-  const totalOver = vendas.reduce((sum, v) => sum + v.over, 0);
-
-  let percentualOverMedio = 0;
-  if (totalOver > 0) {
-    let comissaoOverTotal = 0;
+  let percentualOverMedioInbound = 0;
+  if (totalOverInbound > 0 && volumeInbound > 0) {
+    let comissaoOverTotalInbound = 0;
 
     for (const faixa of faixas) {
-      if (totalVendido <= faixa.volumeMinimo) break;
+      if (volumeInbound <= faixa.volumeMinimo) break;
 
       const limiteSuperior = faixa.volumeMaximo ?? Infinity;
-      const volumeNaFaixa = Math.min(totalVendido, limiteSuperior) - faixa.volumeMinimo;
+      const volumeNaFaixa = Math.min(volumeInbound, limiteSuperior) - faixa.volumeMinimo;
 
       if (volumeNaFaixa <= 0) continue;
 
-      const proporcao = volumeNaFaixa / totalVendido;
-      const overNaFaixa = totalOver * proporcao;
-      comissaoOverTotal += overNaFaixa * faixa.percentualOver;
+      const proporcao = volumeNaFaixa / volumeInbound;
+      const overNaFaixa = totalOverInbound * proporcao;
+      comissaoOverTotalInbound += overNaFaixa * faixa.percentualOver;
     }
 
-    percentualOverMedio = totalOver > 0 ? comissaoOverTotal / totalOver : 0;
+    percentualOverMedioInbound = comissaoOverTotalInbound / totalOverInbound;
   }
 
   // Atualizar cada venda com sua comissao proporcional + custos
   for (const venda of vendas) {
     const percentualEfetivo = venda.percentualComissaoOverride != null ? venda.percentualComissaoOverride : percentualComissaoVenda;
     const comissaoVenda = venda.valorVenda * percentualEfetivo;
-    const comissaoOver = venda.over * percentualOverMedio;
+    const comissaoOver =
+      venda.tipoVenda === "EXTERNA"
+        ? venda.over * PERCENTUAL_OVER_EXTERNA
+        : venda.over * percentualOverMedioInbound;
     const comissaoTotal = comissaoVenda + comissaoOver;
 
     const custos = calcularCustosVenda(

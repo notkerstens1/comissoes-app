@@ -31,6 +31,7 @@ import {
 import { useSession } from "next-auth/react";
 import { isAdmin as checkAdmin, isDiretor } from "@/lib/roles";
 import { Sidebar } from "@/components/Sidebar";
+import { OperacaoNav } from "@/components/OperacaoNav";
 import {
   ETAPAS_POS_VENDA,
   ETAPA_CORES,
@@ -452,6 +453,7 @@ export default function PosVendaPage() {
       <Sidebar />
       <main className="flex-1 lg:ml-64 p-6">
         <div className="max-w-5xl mx-auto">
+          <OperacaoNav />
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>

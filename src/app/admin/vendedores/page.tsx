@@ -130,12 +130,14 @@ export default function VendedoresPage() {
   };
 
   const getRoleLabel = (r: string) => {
-    if (r === "ADMIN") return "Supervisor";
+    if (r === "ADMIN") return "Admin";
     if (r === "DIRETOR") return "Diretor";
+    if (r === "SUPERVISOR") return "Supervisor";
     if (r === "SDR") return "SDR";
     if (r === "POS_VENDA") return "Pós Venda";
     if (r === "FINANCEIRO") return "Financeiro";
     if (r === "VENDEDOR_EXTERNO") return "Vend. Externo";
+    if (r === "VENDEDOR_HIBRIDO") return "Vend. Híbrido";
     if (r === "TECNICO") return "Engenharia";
     return "Vendedor";
   };
@@ -143,6 +145,7 @@ export default function VendedoresPage() {
   const getRoleColors = (r: string) => {
     if (r === "ADMIN") return "bg-purple-400/15 text-purple-400";
     if (r === "DIRETOR") return "bg-amber-400/15 text-amber-400";
+    if (r === "SUPERVISOR") return "bg-fuchsia-400/15 text-fuchsia-400";
     if (r === "SDR") return "bg-sky-400/15 text-sky-400";
     if (r === "POS_VENDA") return "bg-orange-400/15 text-orange-400";
     if (r === "FINANCEIRO") return "bg-emerald-400/15 text-emerald-400";
@@ -269,11 +272,13 @@ export default function VendedoresPage() {
                 >
                   <option value="VENDEDOR">Vendedor</option>
                   <option value="VENDEDOR_EXTERNO">Vendedor Externo</option>
+                  <option value="VENDEDOR_HIBRIDO">Vendedor Híbrido</option>
                   <option value="SDR">SDR</option>
                   <option value="POS_VENDA">Pós Venda</option>
                   <option value="FINANCEIRO">Financeiro</option>
                   <option value="TECNICO">Engenharia</option>
-                  <option value="ADMIN">Supervisor</option>
+                  <option value="SUPERVISOR">Supervisor (ve so comissao propria)</option>
+                  <option value="ADMIN">Admin (acesso pleno)</option>
                   {userRole === "DIRETOR" && (
                     <option value="DIRETOR">Diretor</option>
                   )}

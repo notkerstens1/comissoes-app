@@ -197,7 +197,7 @@ export async function GET(request: NextRequest) {
       receitaTotal,
     },
     trend,
-    team: role === "VENDEDOR" || role === "VENDEDOR_EXTERNO"
+    team: role === "VENDEDOR" || role === "VENDEDOR_EXTERNO" || role === "VENDEDOR_HIBRIDO"
       ? team.filter((t) => t.nome === session.user.name)
       : role === "SDR"
         ? [] // SDR nao ve performance de vendedores

@@ -1,25 +1,31 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { DatePreset } from "@/lib/dates";
 
-type Preset = "current_week" | "7d" | "30d" | "current_month" | "custom";
+// Re-export para conveniencia dos consumidores
+export type { DatePreset };
 
 interface DateRangeFilterProps {
-  preset: Preset;
+  preset: DatePreset;
   startDate: string;
   endDate: string;
   label: string;
-  onPresetChange: (preset: Preset) => void;
+  onPresetChange: (preset: DatePreset) => void;
   onCustomRangeChange: (start: string, end: string) => void;
+  presets?: DatePreset[];
 }
 
-const presets: { value: Preset; label: string }[] = [
-  { value: "current_week", label: "Semana atual" },
-  { value: "7d", label: "7 dias" },
-  { value: "30d", label: "30 dias" },
-  { value: "current_month", label: "Mes atual" },
-  { value: "custom", label: "Personalizado" },
-];
+const presetLabels: Record<DatePreset, string> = {
+  current_week: "Semana atual",
+  "7d": "7 dias",
+  "30d": "30 dias",
+  current_month: "Mes atual",
+  last_month: "Mes passado",
+  custom: "Personalizado",
+};
+
+const defaultPresets: DatePreset[] = ["current_week", "7d", "30d", "current_month", "custom"];
 
 export function DateRangeFilter({
   preset,
@@ -28,22 +34,23 @@ export function DateRangeFilter({
   label,
   onPresetChange,
   onCustomRangeChange,
+  presets: presetList = defaultPresets,
 }: DateRangeFilterProps) {
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
-        {presets.map((p) => (
+        {presetList.map((p) => (
           <button
-            key={p.value}
-            onClick={() => onPresetChange(p.value)}
+            key={p}
+            onClick={() => onPresetChange(p)}
             className={cn(
               "px-3 py-1.5 rounded-full text-sm font-medium transition",
-              preset === p.value
+              preset === p
                 ? "bg-teal-400 text-gray-900"
                 : "bg-[#1a1f2e] text-gray-400 hover:bg-[#232a3b]"
             )}
           >
-            {p.label}
+            {presetLabels[p]}
           </button>
         ))}
 

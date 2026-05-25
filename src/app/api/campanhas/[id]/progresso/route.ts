@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getNow, formatDateStr } from "@/lib/dates";
 import { differenceInDays, parseISO } from "date-fns";
+import { ROLES_VENDEDOR_TIME } from "@/lib/roles";
 
 // GET - Calcular progresso da campanha
 export async function GET(
@@ -76,7 +77,7 @@ export async function GET(
   } else {
     // INDIVIDUAL — progresso por vendedor
     const vendedores = await prisma.user.findMany({
-      where: { role: "VENDEDOR", ativo: true },
+      where: { role: { in: [...ROLES_VENDEDOR_TIME] }, ativo: true },
       select: { id: true, nome: true },
       orderBy: { nome: "asc" },
     });

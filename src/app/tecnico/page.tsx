@@ -28,13 +28,17 @@ import {
   Upload,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
+import { OperacaoNav } from "@/components/OperacaoNav";
 import { canAccessTecnico } from "@/lib/roles";
 import {
   ETAPAS_SETOR_TECNICO,
   getEtapaTecnicoLabel,
   getProximaEtapaTecnico,
+  getCategoriaEtapa,
+  getEtapasDeCategoria,
   ETAPA_TECNICO_CORES,
   type EtapaSetorTecnico,
+  type CategoriaEtapa,
 } from "@/lib/setor-tecnico";
 import { formatCurrency } from "@/lib/utils";
 
@@ -172,6 +176,7 @@ export default function SetorTecnicoPage() {
   const [saving, setSaving] = useState(false);
   const [erroMsg, setErroMsg] = useState("");
   const [filterEtapa, setFilterEtapa] = useState<string | null>(null);
+  const [categoriaAtiva, setCategoriaAtiva] = useState<CategoriaEtapa>("PROJETO");
   const [trocandoEtapaId, setTrocandoEtapaId] = useState<string | null>(null);
   const [novaEtapaSel, setNovaEtapaSel] = useState("");
   const [uploadingId, setUploadingId] = useState<string | null>(null);
@@ -463,11 +468,15 @@ export default function SetorTecnicoPage() {
     }
   }
 
-  // Filter registros by etapa
-  let clientesFiltrados = registros;
+  // Filter registros by categoria (Projetos vs Instalacoes) e por etapa
+  let clientesFiltrados = registros.filter(
+    (r) => getCategoriaEtapa(r.etapa) === categoriaAtiva
+  );
   if (filterEtapa) {
     clientesFiltrados = clientesFiltrados.filter((r) => r.etapa === filterEtapa);
   }
+  const countProjeto = registros.filter((r) => getCategoriaEtapa(r.etapa) === "PROJETO").length;
+  const countInstalacao = registros.filter((r) => getCategoriaEtapa(r.etapa) === "INSTALACAO").length;
 
   // Sort by creation date (most recent first)
   clientesFiltrados = [...clientesFiltrados].sort((a, b) => {
@@ -479,6 +488,7 @@ export default function SetorTecnicoPage() {
       <Sidebar />
       <main className="flex-1 lg:ml-64 p-6">
         <div className="max-w-5xl mx-auto">
+          <OperacaoNav />
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -487,7 +497,7 @@ export default function SetorTecnicoPage() {
                 Setor Tecnico
               </h1>
               <p className="text-gray-400 text-sm mt-1">
-                {clientesFiltrados.length} projetos
+                {clientesFiltrados.length} {categoriaAtiva === "PROJETO" ? "projetos" : "instalacoes"}
                 {filterEtapa && ` em "${getEtapaTecnicoLabel(filterEtapa)}"`}
               </p>
             </div>
@@ -588,7 +598,31 @@ export default function SetorTecnicoPage() {
             </div>
           )}
 
-          {/* Filtros por etapa */}
+          {/* Tabs Projetos vs Instalacoes */}
+          <div className="mb-4 flex gap-1 bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-1 w-fit">
+            <button
+              onClick={() => { setCategoriaAtiva("PROJETO"); setFilterEtapa(null); }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                categoriaAtiva === "PROJETO"
+                  ? "bg-emerald-400 text-gray-900"
+                  : "text-gray-400 hover:text-gray-200"
+              }`}
+            >
+              Projetos ({countProjeto})
+            </button>
+            <button
+              onClick={() => { setCategoriaAtiva("INSTALACAO"); setFilterEtapa(null); }}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                categoriaAtiva === "INSTALACAO"
+                  ? "bg-blue-400 text-gray-900"
+                  : "text-gray-400 hover:text-gray-200"
+              }`}
+            >
+              Instalacoes ({countInstalacao})
+            </button>
+          </div>
+
+          {/* Filtros por etapa (apenas da categoria ativa) */}
           <div className="mb-6 flex gap-2 flex-wrap">
             <button
               onClick={() => setFilterEtapa(null)}
@@ -599,9 +633,9 @@ export default function SetorTecnicoPage() {
               }`}
             >
               <Filter className="w-3.5 h-3.5" />
-              Todos ({registros.length})
+              Todas etapas ({categoriaAtiva === "PROJETO" ? countProjeto : countInstalacao})
             </button>
-            {ETAPAS_SETOR_TECNICO.map((et) => {
+            {getEtapasDeCategoria(categoriaAtiva).map((et) => {
               const count = registros.filter((r) => r.etapa === et.key).length;
               const cores = ETAPA_TECNICO_CORES[et.key];
               return (

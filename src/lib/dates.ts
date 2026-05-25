@@ -3,6 +3,8 @@ import {
   startOfWeek,
   subDays,
   startOfMonth,
+  endOfMonth,
+  subMonths,
   eachDayOfInterval,
   parseISO,
   getDaysInMonth,
@@ -99,8 +101,21 @@ export function getDaysInRange(startStr: string, endStr: string): string[] {
   return eachDayOfInterval({ start, end }).map(formatDateStr);
 }
 
+// Mes passado: 1o dia do mes anterior -> ultimo dia do mes anterior
+export function getLastMonthRange(): { start: string; end: string; label: string } {
+  const now = getNow();
+  const lastMonth = subMonths(now, 1);
+  const start = startOfMonth(lastMonth);
+  const end = endOfMonth(lastMonth);
+  return {
+    start: formatDateStr(start),
+    end: formatDateStr(end),
+    label: `${format(start, "dd/MM")} - ${format(end, "dd/MM/yyyy")} (Mes passado)`,
+  };
+}
+
 // Gera range a partir de preset
-export type DatePreset = "current_week" | "7d" | "30d" | "current_month" | "custom";
+export type DatePreset = "current_week" | "7d" | "30d" | "current_month" | "last_month" | "custom";
 
 export function getRangeFromPreset(preset: DatePreset): { start: string; end: string; label: string } {
   switch (preset) {
@@ -112,6 +127,8 @@ export function getRangeFromPreset(preset: DatePreset): { start: string; end: st
       return getLast30DaysRange();
     case "current_month":
       return getCurrentMonthRange();
+    case "last_month":
+      return getLastMonthRange();
     default:
       return getCurrentWeekRange();
   }

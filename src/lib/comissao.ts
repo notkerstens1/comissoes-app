@@ -17,6 +17,12 @@ export interface ConfiguracaoComissao {
   volumeMinimoComissao: number; // padrão 60000
 }
 
+/**
+ * Percentual flat de over para vendas de captação externa (VENDEDOR_HIBRIDO).
+ * Vendas EXTERNAS não passam pela faixa progressiva — over é 50% direto.
+ */
+export const PERCENTUAL_OVER_EXTERNA = 0.5;
+
 export interface DadosVenda {
   valorVenda: number;
   custoEquipamentos: number;
@@ -48,6 +54,21 @@ export interface ResultadoComissaoMensal {
     comissaoOverFaixa: number;
   }[];
   alertas: string[];
+  // Breakdown opcional para VENDEDOR_HIBRIDO (presente quando ha vendas EXTERNAS no mes)
+  breakdownHibrido?: {
+    inbound: {
+      totalVendido: number;
+      quantidadeVendas: number;
+      comissaoVenda: number;
+      comissaoOver: number;
+    };
+    externa: {
+      totalVendido: number;
+      quantidadeVendas: number;
+      comissaoVenda: number;
+      comissaoOver: number;
+    };
+  };
 }
 
 // ============================================================
@@ -229,10 +250,17 @@ export function calcularComissaoOverProgressiva(
 }
 
 /**
- * Calcula a comissão mensal completa de um vendedor
+ * Calcula a comissão mensal completa de um vendedor.
+ *
+ * Para vendedor híbrido, vendas com tipoVenda="EXTERNA" rodam fora da faixa
+ * progressiva — comissão over é flat (PERCENTUAL_OVER_EXTERNA = 50%). Vendas
+ * INBOUND (ou sem tipoVenda — default) seguem a faixa progressiva normal,
+ * calculada sobre o volume INBOUND isolado (não soma com externa).
+ *
+ * Comissão de venda (2.5%) incide sobre o total (inbound + externa).
  */
 export function calcularComissaoMensal(
-  vendas: { valorVenda: number; over: number; margem: number; custoEquipamentos: number }[],
+  vendas: { valorVenda: number; over: number; margem: number; custoEquipamentos: number; tipoVenda?: string }[],
   faixas: FaixaComissao[],
   config: ConfiguracaoComissao
 ): ResultadoComissaoMensal {
@@ -242,9 +270,21 @@ export function calcularComissaoMensal(
   // Comissão sobre venda (2.5%) SEMPRE é calculada
   const comissaoVendaTotal = totalVendido * config.percentualComissaoVenda;
 
-  // Comissão over progressiva (sempre calculada, sem regra de volume minimo)
-  const { comissaoOverTotal, detalhamentoFaixas } =
-    calcularComissaoOverProgressiva(vendas, faixas);
+  // Split por origem (default INBOUND para retrocompatibilidade)
+  const vendasInbound = vendas.filter((v) => (v.tipoVenda ?? "INBOUND") !== "EXTERNA");
+  const vendasExterna = vendas.filter((v) => v.tipoVenda === "EXTERNA");
+
+  // Over inbound: faixa progressiva sobre o volume INBOUND apenas
+  const { comissaoOverTotal: overInbound, detalhamentoFaixas } =
+    calcularComissaoOverProgressiva(vendasInbound, faixas);
+
+  // Over externa: flat PERCENTUAL_OVER_EXTERNA por venda (over ja respeita margem 1.8)
+  const overExterna = vendasExterna.reduce(
+    (sum, v) => sum + v.over * PERCENTUAL_OVER_EXTERNA,
+    0
+  );
+
+  const comissaoOverTotal = overInbound + overExterna;
 
   // Alertas de margem
   const alertas: string[] = [];
@@ -256,17 +296,36 @@ export function calcularComissaoMensal(
     }
   });
 
-  // Determinar faixa atual
+  // Determinar faixa atual (baseado no volume INBOUND — externa nao move faixa)
+  const volumeInbound = vendasInbound.reduce((s, v) => s + v.valorVenda, 0);
   const faixasOrdenadas = [...faixas].filter((f) => f.ativa).sort((a, b) => a.ordem - b.ordem);
   let faixaAtual = "Faixa 1";
   for (const f of faixasOrdenadas) {
-    if (totalVendido >= f.volumeMinimo) {
+    if (volumeInbound >= f.volumeMinimo) {
       const label = f.volumeMaximo
         ? `R$${(f.volumeMinimo / 1000).toFixed(0)}k - R$${(f.volumeMaximo / 1000).toFixed(0)}k (${(f.percentualOver * 100).toFixed(0)}% over)`
         : `Acima de R$${(f.volumeMinimo / 1000).toFixed(0)}k (${(f.percentualOver * 100).toFixed(0)}% over)`;
       faixaAtual = label;
     }
   }
+
+  // Breakdown só faz sentido quando ha vendas externas (vendedor hibrido)
+  const breakdownHibrido = vendasExterna.length > 0
+    ? {
+        inbound: {
+          totalVendido: volumeInbound,
+          quantidadeVendas: vendasInbound.length,
+          comissaoVenda: volumeInbound * config.percentualComissaoVenda,
+          comissaoOver: overInbound,
+        },
+        externa: {
+          totalVendido: vendasExterna.reduce((s, v) => s + v.valorVenda, 0),
+          quantidadeVendas: vendasExterna.length,
+          comissaoVenda: vendasExterna.reduce((s, v) => s + v.valorVenda, 0) * config.percentualComissaoVenda,
+          comissaoOver: overExterna,
+        },
+      }
+    : undefined;
 
   return {
     totalVendido,
@@ -277,5 +336,6 @@ export function calcularComissaoMensal(
     faixaAtual,
     detalhamentoFaixas,
     alertas,
+    breakdownHibrido,
   };
 }

@@ -58,6 +58,11 @@ export async function PUT(request: NextRequest) {
     custoEngenheiroPadrao,
     custoMaterialCAPadrao,
     aliquotaImpostoPadrao,
+    // Comissao do supervisor
+    metaReceitaMensal,
+    percentualSupervisorAte80,
+    percentualSupervisor80a100,
+    percentualSupervisorAcima100,
   } = body;
 
   // Validar fator multiplicador (1.6 a 1.8)
@@ -83,6 +88,10 @@ export async function PUT(request: NextRequest) {
       ...(custoEngenheiroPadrao !== undefined && { custoEngenheiroPadrao }),
       ...(custoMaterialCAPadrao !== undefined && { custoMaterialCAPadrao }),
       ...(aliquotaImpostoPadrao !== undefined && { aliquotaImpostoPadrao }),
+      ...(metaReceitaMensal !== undefined && { metaReceitaMensal }),
+      ...(percentualSupervisorAte80 !== undefined && { percentualSupervisorAte80 }),
+      ...(percentualSupervisor80a100 !== undefined && { percentualSupervisor80a100 }),
+      ...(percentualSupervisorAcima100 !== undefined && { percentualSupervisorAcima100 }),
     },
     create: {
       id: "config_principal",
@@ -98,6 +107,10 @@ export async function PUT(request: NextRequest) {
       custoEngenheiroPadrao: custoEngenheiroPadrao ?? 400,
       custoMaterialCAPadrao: custoMaterialCAPadrao ?? 500,
       aliquotaImpostoPadrao: aliquotaImpostoPadrao ?? 0.06,
+      metaReceitaMensal: metaReceitaMensal ?? 360000,
+      percentualSupervisorAte80: percentualSupervisorAte80 ?? 0,
+      percentualSupervisor80a100: percentualSupervisor80a100 ?? 0.008,
+      percentualSupervisorAcima100: percentualSupervisorAcima100 ?? 0.01,
     },
   });
 

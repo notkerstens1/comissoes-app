@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Settings, Save, Calculator } from "lucide-react";
+import { Settings, Save, Calculator, Target } from "lucide-react";
 import { handleCurrencyKeyInput, formatCurrencyInput } from "@/lib/utils";
 import { isDiretor } from "@/lib/roles";
 
@@ -21,6 +21,10 @@ export default function ConfiguracoesPage() {
     custoTrtCreaPadrao: 65,
     custoEngenheiroPadrao: 400,
     aliquotaImpostoPadrao: 0.06,
+    metaReceitaMensal: 360000,
+    percentualSupervisorAte80: 0,
+    percentualSupervisor80a100: 0.008,
+    percentualSupervisorAcima100: 0.01,
   });
 
   // Displays para campos monetarios
@@ -32,6 +36,7 @@ export default function ConfiguracoesPage() {
     custoCosernPadrao: "",
     custoTrtCreaPadrao: "",
     custoEngenheiroPadrao: "",
+    metaReceitaMensal: "",
   });
 
   const [loading, setLoading] = useState(true);
@@ -52,6 +57,7 @@ export default function ConfiguracoesPage() {
           custoCosernPadrao: formatCurrencyInput(data.custoCosernPadrao || 70),
           custoTrtCreaPadrao: formatCurrencyInput(data.custoTrtCreaPadrao || 65),
           custoEngenheiroPadrao: formatCurrencyInput(data.custoEngenheiroPadrao || 400),
+          metaReceitaMensal: formatCurrencyInput(data.metaReceitaMensal || 360000),
         });
         setLoading(false);
       });
@@ -267,6 +273,73 @@ export default function ConfiguracoesPage() {
                 </span>
               </div>
               <p className="text-xs text-gray-400 mt-1">Sobre o valor do servico (Venda - Equipamentos)</p>
+            </div>
+          </div>
+        </div>}
+
+        {/* Comissao do Supervisor — apenas Diretor */}
+        {showCustos && <div className="bg-[#1a1f2e] rounded-xl p-6 shadow-sm border border-fuchsia-400/20 space-y-5">
+          <div className="flex items-center gap-2 mb-2">
+            <Target className="w-5 h-5 text-fuchsia-400" />
+            <h2 className="font-semibold text-gray-100">Comissao do Supervisor</h2>
+          </div>
+          <p className="text-xs text-gray-400 -mt-3">
+            Meta total da empresa e faixas de comissao do supervisor de operacao. Aplica conforme % atingida.
+          </p>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Meta de Receita Mensal (R$)</label>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={displays.metaReceitaMensal}
+              onChange={(e) => handleCurrencyField("metaReceitaMensal", e.target.value)}
+              className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 focus:ring-2 focus:ring-fuchsia-400 focus:border-transparent outline-none placeholder-gray-500"
+              placeholder="Ex: 360.000,00"
+              autoComplete="off"
+            />
+            <p className="text-xs text-gray-400 mt-1">Soma das metas individuais. Atualize quando entrar/sair vendedor.</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">% se &lt; 80% da meta</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="0.001"
+                  value={config.percentualSupervisorAte80}
+                  onChange={(e) => setConfig({ ...config, percentualSupervisorAte80: parseFloat(e.target.value) })}
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 focus:ring-2 focus:ring-fuchsia-400 outline-none"
+                />
+                <span className="text-gray-400 text-sm">({(config.percentualSupervisorAte80 * 100).toFixed(2)}%)</span>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">% se 80% - 99%</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="0.001"
+                  value={config.percentualSupervisor80a100}
+                  onChange={(e) => setConfig({ ...config, percentualSupervisor80a100: parseFloat(e.target.value) })}
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 focus:ring-2 focus:ring-fuchsia-400 outline-none"
+                />
+                <span className="text-gray-400 text-sm">({(config.percentualSupervisor80a100 * 100).toFixed(2)}%)</span>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">% se &gt;= 100%</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="0.001"
+                  value={config.percentualSupervisorAcima100}
+                  onChange={(e) => setConfig({ ...config, percentualSupervisorAcima100: parseFloat(e.target.value) })}
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 focus:ring-2 focus:ring-fuchsia-400 outline-none"
+                />
+                <span className="text-gray-400 text-sm">({(config.percentualSupervisorAcima100 * 100).toFixed(2)}%)</span>
+              </div>
             </div>
           </div>
         </div>}

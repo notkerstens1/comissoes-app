@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isAdmin } from "@/lib/roles";
+import { isAdmin, ROLES_VENDEDOR_TIME } from "@/lib/roles";
 import { calculateKPIs, getInvestment } from "@/lib/kpis";
 import { getDaysInRange } from "@/lib/dates";
 
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
       orderBy: { data: "asc" },
     }),
     prisma.user.findMany({
-      where: { role: "VENDEDOR", ativo: true },
+      where: { role: { in: [...ROLES_VENDEDOR_TIME] }, ativo: true },
       select: { id: true, nome: true },
       orderBy: { nome: "asc" },
     }),

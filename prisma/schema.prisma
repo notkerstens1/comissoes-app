@@ -12,7 +12,7 @@ model User {
   nome                 String
   email                String              @unique
   senha                String
-  role                 String              @default("VENDEDOR") // VENDEDOR | VENDEDOR_EXTERNO | ADMIN | DIRETOR | SDR | POS_VENDA | FINANCEIRO | TECNICO
+  role                 String              @default("VENDEDOR") // VENDEDOR | VENDEDOR_EXTERNO | VENDEDOR_HIBRIDO | ADMIN | DIRETOR | SUPERVISOR | SDR | POS_VENDA | FINANCEIRO | TECNICO
   ativo                Boolean             @default(true)
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
@@ -63,6 +63,20 @@ model Venda {
   custoEngenheiro            Float? // R$400 fixo por instalacao (engenheiro)
   custoMaterialCA            Float? // R$500 fixo (material CA)
   aliquotaImposto            Float? // padrao config (0.06 = 6%)
+
+  // === Margem de instalacao (engenharia/Pedro) ===
+  // Variaveis que definem o custo real da instalacao no campo
+  metragemCaboPrevista       Int?     // metros por perna (fase ou neutro)
+  bitolaCabo                 String?  // "6mm" | "10mm" — definida pela potencia do inversor + metragem
+  inversorTrifasico          Boolean  @default(false) // se sim, multiplica cabo por 4 em vez de 2
+  cidadeInstalacao           String?  // usada pra lookup de CustoDeslocamento
+  custoInstalacaoEstimado    Float?   // calculado no fechamento: cabo + eletroduto + fixos + deslocamento
+  custoInstalacaoReal        Float?   // preenchido pelo Pedro apos a instalacao concluida
+  // VERDE  = dentro do padrao (real <= limite)
+  // AMARELO = passou do padrao mas foi negociado/avisado
+  // VERMELHO = passou e gerou perda nao recuperada
+  statusMargemInstalacao     String?
+  observacaoMargemInstalacao String?  // contexto do que rolou se nao foi VERDE
   custoImposto               Float? // auto: aliquota * (valorVenda - custoEquipamentos)
   percentualComissaoOverride Float? // null = usa padrao da config (2.5%). Diretor pode alterar por venda
   comissaoVendedorCusto      Float? // copia do comissaoTotal para P&L
@@ -82,6 +96,10 @@ model Venda {
 
   dataConversao      DateTime
   fonte              String
+  // Origem da venda (relevante para VENDEDOR_HIBRIDO):
+  // INBOUND = lead da empresa (Meta Ads/SDR), aplica faixa progressiva normal
+  // EXTERNA = captacao propria do vendedor (porta a porta), comissao over flat 50%
+  tipoVenda          String              @default("INBOUND") // INBOUND | EXTERNA
   status             String              @default("AGUARDANDO") // AGUARDANDO | APROVADO | PAGO
   mesReferencia      String // formato: "2026-01" para agrupar por mês
   createdAt          DateTime            @default(now())
@@ -127,6 +145,21 @@ model Configuracao {
   // Metas (ranking)
   metaVendasMes   Float @default(120000) // Meta mensal de vendas por vendedor (R$)
   metaMargemMedia Float @default(1.8) // Meta de margem media por vendedor
+
+  // Meta de receita mensal da empresa (soma das metas individuais) — usada
+  // como base para calcular comissao do SUPERVISOR
+  metaReceitaMensal Float @default(360000) // R$ 360k = 3 vendedores x R$ 120k
+
+  // Comissao do SUPERVISOR: percentual sobre receita mensal total da empresa,
+  // aplicado em faixas conforme % da meta atingida
+  percentualSupervisorAte80      Float @default(0.0)   // < 80% da meta: 0%
+  percentualSupervisor80a100     Float @default(0.008) // 80-99% da meta: 0,8%
+  percentualSupervisorAcima100   Float @default(0.01)  // >= 100% da meta: 1%
+
+  // Margem de instalacao (engenharia)
+  limiteCustoInstalacao          Float @default(998)  // R$ — base do VERDE (Pedro mediu 23 de 34 dentro disso)
+  metragemCaboPadrao             Int   @default(15)   // m por perna — abaixo disso e VERDE garantido
+  metragemCaboTolerada           Int   @default(20)   // m por perna — entre padrao e tolerada e amarelo
 
   // Custos padrao (visao diretor)
   custoPlacaInstalacao     Float @default(70) // R$70 por placa
@@ -319,9 +352,12 @@ model SetorTecnico {
   vendaId        String?  @unique
   venda          Venda?   @relation(fields: [vendaId], references: [id])
   vendedorNome   String?
-  // Etapa atual do funil tecnico
+  // Etapa atual do funil tecnico (PROJETO + INSTALACAO)
   etapa          String   @default("NOVO_PROJETO")
-  // "NOVO_PROJETO" | "CONSULTAR_CARGA" | "AUMENTO_CARGA" | "EMITIR_TRT" | "PROJETO_ENVIADO" | "PROJETO_APROVADO"
+  // PROJETO (1-7): NOVO_PROJETO, CONSULTAR_CARGA, AUMENTO_CARGA, EMITIR_TRT,
+  //   LIBERADO_ENVIO, PROJETO_ENVIADO, PROJETO_APROVADO
+  // INSTALACAO (8-14): VISITA_AGENDADA, VISITA_FEITA, AGUARDANDO_MATERIAL,
+  //   MATERIAL_COMPRADO, INSTALACAO_AGENDADA, INSTALACAO_CONCLUIDA, REDE_LIGADA
   // Acompanhamento
   observacoes    String?
   ultimaAcao     String?
@@ -332,6 +368,19 @@ model SetorTecnico {
   anexos         String?
   // Comentarios do engenheiro (JSON array: [{id, autor, texto, criadoEm}])
   comentarios    String?
+  // Validacao de visita tecnica (engenheiro marca quando visita aconteceu — Yuri
+  // usa pra liberar pagamento da visita sem ter que perguntar no grupo)
+  visitaValidada Boolean  @default(false)
+  // Bloqueio atual (impede avanco de etapa). Key de MOTIVOS_BLOQUEIO em
+  // src/lib/setor-tecnico.ts ou null.
+  bloqueioStatus String?
+  // Checklist de documentos exigidos antes de virar etapa INSTALACAO
+  // (JSON: [{key, label, concluido}])
+  checklistDocumentos String?
+  // Datas-chave da fase instalacao (preenchidas pelo engenheiro)
+  dataVisita         String? // "YYYY-MM-DD"
+  dataInstalacao     String? // "YYYY-MM-DD"
+  dataRedeLigada     String? // "YYYY-MM-DD"
   // Controle
   ativo          Boolean  @default(true)
   createdAt      DateTime @default(now())
@@ -500,6 +549,31 @@ model YouTubeVideo {
   ctr             Float    @default(0)
   synced_at       DateTime @default(now())
 }
+
+// Tabela de precos unitarios de materiais de instalacao (admin/diretor edita).
+// Usada pra calcular custoInstalacaoEstimado na hora do fechamento da venda.
+model PrecoMaterial {
+  id        String   @id @default(cuid())
+  chave     String   @unique // "CABO_6MM", "CABO_10MM", "ELETRODUTO_MEIA", "ELETRODUTO_UMA", "DPS", "DISJUNTOR", "QUADRO"
+  label     String
+  precoUnit Float
+  unidade   String   // "m" (por metro) | "un" (por unidade)
+  ativo     Boolean  @default(true)
+  updatedAt DateTime @updatedAt
+}
+
+// Tabela de custos de deslocamento por cidade. Cidades fora da lista somam zero.
+model CustoDeslocamento {
+  id        String   @id @default(cuid())
+  cidade    String   @unique
+  valor     Float
+  updatedAt DateTime @updatedAt
+}
+
+// Limite operacional de custo de instalacao por venda — usado pra classificar
+// status VERDE/AMARELO/VERMELHO. Pedro ajusta conforme o real do mes.
+// (Esse limite vive em Configuracao porque e parametro unico do sistema; nao
+// gera nova tabela)
 
 // Campanhas: metas de vendas criadas por Diretor/Supervisor
 model Campanha {
