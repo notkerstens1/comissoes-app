@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canAccessTecnico } from "@/lib/roles";
-import { etapaTecnicoParaPosVenda, getCategoriaEtapa } from "@/lib/setor-tecnico";
+import { etapaInstalacaoParaPosVenda } from "@/lib/setor-tecnico";
 
 // GET — buscar registro completo (com campos pesados) sob demanda
 export async function GET(
@@ -46,7 +46,9 @@ export async function PUT(
 
   const body = await request.json();
   const {
-    nomeCliente, telefone, email, etapa, observacoes, ultimaAcao, proximaAcao,
+    nomeCliente, telefone, email,
+    etapa, etapaInstalacao,
+    observacoes, ultimaAcao, proximaAcao,
     anexos, comentarios,
     // Novos campos da fase instalacao
     visitaValidada, bloqueioStatus, checklistDocumentos,
@@ -71,6 +73,7 @@ export async function PUT(
   if (telefone !== undefined) data.telefone = telefone?.trim() || null;
   if (email !== undefined) data.email = email?.trim() || null;
   if (etapa !== undefined) data.etapa = etapa;
+  if (etapaInstalacao !== undefined) data.etapaInstalacao = etapaInstalacao;
   if (observacoes !== undefined) data.observacoes = observacoes?.trim() || null;
   if (ultimaAcao !== undefined) data.ultimaAcao = ultimaAcao?.trim() || null;
   if (visitaValidada !== undefined) data.visitaValidada = !!visitaValidada;
@@ -104,11 +107,11 @@ export async function PUT(
     data,
   });
 
-  // Sync com PosVenda: quando etapa do setor tecnico avanca para fase INSTALACAO,
-  // espelha a etapa correspondente no PosVenda associado (se houver). Yuri ve
-  // o progresso sem precisar perguntar no grupo.
-  if (etapa !== undefined && registro.vendaId) {
-    const etapaPosVenda = etapaTecnicoParaPosVenda(etapa);
+  // Sync com PosVenda: quando o trilho INSTALACAO avanca, espelha a etapa
+  // correspondente no PosVenda associado (se houver). Yuri ve o progresso
+  // sem precisar perguntar no grupo. Trilho PROJETO nao espelha — eh interno.
+  if (etapaInstalacao !== undefined && registro.vendaId) {
+    const etapaPosVenda = etapaInstalacaoParaPosVenda(etapaInstalacao);
     if (etapaPosVenda) {
       const posVenda = await prisma.posVenda.findFirst({
         where: { vendaId: registro.vendaId, ativo: true },
@@ -119,7 +122,7 @@ export async function PUT(
           where: { id: posVenda.id },
           data: {
             etapa: etapaPosVenda,
-            ultimaAcao: `Etapa sincronizada do setor tecnico (${etapa})`,
+            ultimaAcao: `Etapa sincronizada do setor tecnico (${etapaInstalacao})`,
           },
         });
       }

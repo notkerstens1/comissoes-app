@@ -2,15 +2,9 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { isDiretor, isAdmin, isPosVenda } from "@/lib/roles";
+import { isDiretor, isAdmin, isPosVenda, canViewDashboardCRO } from "@/lib/roles";
 import { RevenueDateFilter } from "@/components/revenue/RevenueDateFilter";
 import { SyncButton } from "@/components/revenue/SyncButton";
-import { AlertBanner } from "@/components/revenue/AlertBanner";
-import { RevenueSummaryCards } from "@/components/revenue/RevenueSummaryCards";
-import { FunnelVertical } from "@/components/revenue/FunnelVertical";
-import { SpendLeadsTrend } from "@/components/revenue/SpendLeadsTrend";
-import { TeamPerformance } from "@/components/revenue/TeamPerformance";
-import { CampaignROI } from "@/components/revenue/CampaignROI";
 import { SocialSummaryCards } from "@/components/revenue/SocialSummaryCards";
 import { SocialGrowthTrend } from "@/components/revenue/SocialGrowthTrend";
 import { TopPostsGrid } from "@/components/revenue/TopPostsGrid";
@@ -18,28 +12,36 @@ import { PosVendaKPIs } from "@/components/revenue/PosVendaKPIs";
 import { PosVendaPipeline } from "@/components/revenue/PosVendaPipeline";
 import { FinancialKPIs } from "@/components/revenue/FinancialKPIs";
 import { FinancialTrend } from "@/components/revenue/FinancialTrend";
+import { AlertaConcentracao } from "@/components/cro/AlertaConcentracao";
+import { QualidadeBanner } from "@/components/cro/QualidadeBanner";
+import { CanaisOverview } from "@/components/cro/CanaisOverview";
+import { MetaCruzamento } from "@/components/cro/MetaCruzamento";
+import { VendasSemFonteModal } from "@/components/cro/VendasSemFonteModal";
+import type { CROOverview } from "@/components/cro/types";
 import { BarChart3, Megaphone, PackageCheck, DollarSign } from "lucide-react";
 
-type Tab = "geral" | "marketing" | "posvenda" | "financeiro";
+type Tab = "cro" | "marketing" | "posvenda" | "financeiro";
 
 export default function RevenuePage() {
   const { data: session } = useSession();
   const role = (session?.user as any)?.role;
+  const podeVerCRO = canViewDashboardCRO(role);
 
-  const [tab, setTab] = useState<Tab>("geral");
+  const [tab, setTab] = useState<Tab>(podeVerCRO ? "cro" : "marketing");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [overviewData, setOverviewData] = useState<any>(null);
+  const [croData, setCroData] = useState<CROOverview | null>(null);
   const [marketingData, setMarketingData] = useState<any>(null);
   const [posVendaData, setPosVendaData] = useState<any>(null);
   const [financeiroData, setFinanceiroData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [modalSemFonte, setModalSemFonte] = useState(false);
 
-  // Defaults: ultimos 30 dias
+  // Default: mes corrente
   useEffect(() => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - 30);
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     setStartDate(start.toISOString().split("T")[0]);
     setEndDate(end.toISOString().split("T")[0]);
   }, []);
@@ -49,9 +51,9 @@ export default function RevenuePage() {
     setLoading(true);
 
     try {
-      if (tab === "geral") {
-        const res = await fetch(`/api/revenue/overview?startDate=${startDate}&endDate=${endDate}`);
-        if (res.ok) setOverviewData(await res.json());
+      if (tab === "cro" && podeVerCRO) {
+        const res = await fetch(`/api/cro/overview?startDate=${startDate}&endDate=${endDate}`);
+        if (res.ok) setCroData(await res.json());
       } else if (tab === "marketing") {
         const res = await fetch(`/api/revenue/marketing?startDate=${startDate}&endDate=${endDate}`);
         if (res.ok) setMarketingData(await res.json());
@@ -67,7 +69,7 @@ export default function RevenuePage() {
     } finally {
       setLoading(false);
     }
-  }, [tab, startDate, endDate, role]);
+  }, [tab, startDate, endDate, role, podeVerCRO]);
 
   useEffect(() => {
     fetchData();
@@ -79,7 +81,7 @@ export default function RevenuePage() {
   };
 
   const tabs: { key: Tab; label: string; icon: any; visible: boolean }[] = [
-    { key: "geral", label: "Visao Geral", icon: BarChart3, visible: true },
+    { key: "cro", label: "CRO", icon: BarChart3, visible: podeVerCRO },
     { key: "marketing", label: "Marketing", icon: Megaphone, visible: true },
     { key: "posvenda", label: "Pos-Venda", icon: PackageCheck, visible: !isPosVenda(role) || role === "POS_VENDA" || isAdmin(role) },
     { key: "financeiro", label: "Financeiro", icon: DollarSign, visible: isDiretor(role) },
@@ -90,8 +92,10 @@ export default function RevenuePage() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Revenue Analytics</h1>
-          <p className="text-gray-400 text-sm mt-1">Visao 360 — Marketing, Vendas, Pos-Venda e Financeiro</p>
+          <h1 className="text-2xl font-bold text-white">Dashboard CRO</h1>
+          <p className="text-gray-400 text-sm mt-1">
+            Análise integrada — canais de aquisição, tráfego pago, marketing, pós-venda e financeiro
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <RevenueDateFilter startDate={startDate} endDate={endDate} onChange={handleDateChange} />
@@ -124,19 +128,29 @@ export default function RevenuePage() {
         </div>
       )}
 
-      {/* Tab Content */}
-      {!loading && tab === "geral" && overviewData && (
-        <div className="space-y-6">
-          {overviewData.alerts?.length > 0 && <AlertBanner alerts={overviewData.alerts} />}
-          <RevenueSummaryCards kpis={overviewData.kpis} role={role} />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <FunnelVertical funnel={overviewData.funnel} />
-            <div className="lg:col-span-2">
-              <SpendLeadsTrend trend={overviewData.trend} />
-            </div>
-          </div>
-          <TeamPerformance team={overviewData.team} />
-          <CampaignROI campaigns={overviewData.campaigns} />
+      {/* CRO */}
+      {!loading && tab === "cro" && croData && (
+        <div className="space-y-4">
+          <AlertaConcentracao
+            exibir={croData.alertaConcentracao.exibir}
+            canal={croData.alertaConcentracao.canal}
+            percentual={croData.alertaConcentracao.percentual}
+          />
+          <QualidadeBanner
+            totalVendas={croData.qualidadeDado.totalVendas}
+            classificadas={croData.qualidadeDado.classificadas}
+            semFonte={croData.qualidadeDado.semFonte}
+            percentualClassificadas={croData.qualidadeDado.percentualClassificadas}
+            vendasSemFonte={croData.qualidadeDado.vendasSemFonte}
+            onAbrirDetalhe={() => setModalSemFonte(true)}
+          />
+          <CanaisOverview
+            canais={croData.canais}
+            comparacao={croData.comparacaoMesAnterior}
+            externoBreakdown={croData.externoBreakdown}
+            totalReceita={croData.totaisPeriodo.receitaTotal}
+          />
+          <MetaCruzamento data={croData.metaVsVendas} />
         </div>
       )}
 
@@ -163,6 +177,14 @@ export default function RevenuePage() {
           <FinancialKPIs kpis={financeiroData.kpis} />
           <FinancialTrend trend={financeiroData.trend} />
         </div>
+      )}
+
+      {/* Modal de vendas sem fonte */}
+      {modalSemFonte && croData && (
+        <VendasSemFonteModal
+          vendas={croData.qualidadeDado.vendasSemFonte}
+          onClose={() => setModalSemFonte(false)}
+        />
       )}
     </div>
   );

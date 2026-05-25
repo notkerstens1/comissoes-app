@@ -233,7 +233,11 @@ export async function POST(request: NextRequest) {
           nomeCliente: cliente,
           vendaId: venda.id,
           vendedorNome: session.user.name || "",
+          // Card nasce ja nos dois trilhos: Projetos (Novo Projeto) e
+          // Instalacoes (Agendar Visita). Aparece em ambas as abas desde a
+          // criacao — Pedro nao precisa abrir manualmente o trilho de campo.
           etapa: "NOVO_PROJETO",
+          etapaInstalacao: "AGENDAR_VISITA",
         },
       });
     } catch (tecErr) {
