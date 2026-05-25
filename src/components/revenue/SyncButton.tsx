@@ -12,19 +12,9 @@ export function SyncButton({ onSyncComplete }: { onSyncComplete?: () => void }) 
     setResult(null);
 
     try {
-      const endpoints = [
-        "/api/sync/meta-ads",
-        "/api/sync/gronner",
-        "/api/sync/instagram",
-        "/api/sync/youtube",
-      ];
-
-      const results = await Promise.allSettled(
-        endpoints.map((url) => fetch(url, { method: "POST" }).then((r) => r.json()))
-      );
-
-      const successCount = results.filter((r) => r.status === "fulfilled").length;
-      setResult(`${successCount}/${endpoints.length} syncs concluidos`);
+      const res = await fetch("/api/sync/meta-ads", { method: "POST" });
+      const data = await res.json();
+      setResult(res.ok ? "Meta Ads sincronizado" : data.error || "Erro no sync");
       onSyncComplete?.();
     } catch {
       setResult("Erro no sync");
@@ -42,7 +32,7 @@ export function SyncButton({ onSyncComplete }: { onSyncComplete?: () => void }) 
         className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#1a1f2e] border border-[#232a3b] text-gray-300 hover:text-lime-400 hover:border-lime-400/30 transition-all text-sm disabled:opacity-50"
       >
         <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
-        {syncing ? "Sincronizando..." : "Sync"}
+        {syncing ? "Sincronizando..." : "Sync Meta"}
       </button>
       {result && (
         <div className="absolute top-full right-0 mt-1 px-3 py-1.5 rounded-lg bg-lime-400/10 text-lime-400 text-xs whitespace-nowrap">
