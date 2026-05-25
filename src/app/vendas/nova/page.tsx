@@ -327,11 +327,12 @@ export default function NovaVendaPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Fonte do Lead
+                  Fonte do Lead *
                 </label>
                 <select
                   value={fonte}
                   onChange={(e) => setFonte(e.target.value)}
+                  required
                   className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none bg-[#141820] text-gray-100"
                 >
                   <option value="">Selecione...</option>

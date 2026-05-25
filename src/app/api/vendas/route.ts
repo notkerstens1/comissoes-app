@@ -86,6 +86,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (fonte !== "TRAFEGO" && fonte !== "INDICACAO") {
+      return NextResponse.json(
+        { error: "Fonte do lead obrigatoria (TRAFEGO ou INDICACAO)" },
+        { status: 400 }
+      );
+    }
+
     // Para vendedor hibrido, tipoVenda eh obrigatorio (INBOUND ou EXTERNA)
     const vendedorAtual = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -200,7 +207,7 @@ export async function POST(request: NextRequest) {
         lucroLiquido: custos.lucroLiquido,
         margemLucroLiquido: custos.margemLucroLiquido,
         dataConversao: data,
-        fonte: fonte || "",
+        fonte,
         tipoVenda: tipoVendaFinal,
         orcamentoUrl: orcamentoUrl || null,
         mesReferencia,
