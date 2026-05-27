@@ -598,7 +598,10 @@ export default function OportunidadesPage() {
                     </div>
                   )}
 
-                  {/* Margem de instalacao — engenharia */}
+                  {/* Margem de instalacao — engenharia. So admin/diretor veem
+                      aqui; vendedor nao mexe em cabos/bitola/cidade (Pedro
+                      cuida disso em /tecnico/margem depois da venda). */}
+                  {admin && (
                   <div className="rounded-lg border border-teal-400/30 bg-teal-400/5 p-3 space-y-3">
                     <div className="flex items-center justify-between">
                       <label className="block text-xs font-medium text-teal-300">
@@ -678,6 +681,7 @@ export default function OportunidadesPage() {
                       </div>
                     )}
                   </div>
+                  )}
 
                   {/* Upload do Orcamento PDF */}
                   <div>
