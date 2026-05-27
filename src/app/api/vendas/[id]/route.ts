@@ -88,8 +88,8 @@ export async function PUT(
     updateData.cliente = cliente.trim();
   }
   if (fonte !== undefined) {
-    if (fonte !== "TRAFEGO" && fonte !== "INDICACAO") {
-      return NextResponse.json({ error: "fonte invalida (TRAFEGO ou INDICACAO)" }, { status: 400 });
+    if (fonte !== "TRAFEGO" && fonte !== "INDICACAO" && fonte !== "EXTERNO") {
+      return NextResponse.json({ error: "fonte invalida (TRAFEGO, INDICACAO ou EXTERNO)" }, { status: 400 });
     }
     updateData.fonte = fonte;
   }
@@ -98,6 +98,10 @@ export async function PUT(
       return NextResponse.json({ error: "tipoVenda invalido (INBOUND ou EXTERNA)" }, { status: 400 });
     }
     updateData.tipoVenda = tipoVenda;
+    // EXTERNA implica fonte=EXTERNO; INBOUND nao volta automatico (precisa selecionar TRAFEGO/INDICACAO)
+    if (tipoVenda === "EXTERNA") {
+      updateData.fonte = "EXTERNO";
+    }
   }
   if (distribuidora !== undefined) updateData.distribuidora = String(distribuidora);
   if (formaPagamento !== undefined) updateData.formaPagamento = String(formaPagamento);
@@ -130,7 +134,8 @@ export async function PUT(
     const fator = vendaAtual.percentualComissaoOverride ?? 0.025;
     const newOver = Math.max(vv - ce * 1.8, 0);
     const newComissaoVenda = vv * fator;
-    const percentualOver = vendaAtual.tipoVenda === "EXTERNA" ? PERCENTUAL_OVER_EXTERNA : 0.35;
+    const tipoVendaEfetivo = updateData.tipoVenda ?? vendaAtual.tipoVenda;
+    const percentualOver = tipoVendaEfetivo === "EXTERNA" ? PERCENTUAL_OVER_EXTERNA : 0.35;
     const newComissaoOver = newOver * percentualOver;
     const newComissaoTotal = newComissaoVenda + newComissaoOver;
     const outrosCustos =
@@ -163,7 +168,8 @@ export async function PUT(
     // Vendas EXTERNA (vendedor hibrido — porta a porta) usam over flat de 50%.
     // INBOUND aplica 35% aqui como aproximacao da faixa base (recalculo mensal
     // ajusta para a faixa progressiva correta).
-    const percentualOver = vendaAtual.tipoVenda === "EXTERNA" ? PERCENTUAL_OVER_EXTERNA : 0.35;
+    const tipoVendaEfetivo = updateData.tipoVenda ?? vendaAtual.tipoVenda;
+    const percentualOver = tipoVendaEfetivo === "EXTERNA" ? PERCENTUAL_OVER_EXTERNA : 0.35;
     const comissaoOver = over * percentualOver;
     const comissaoVenda = vendaAtual.valorVenda * (vendaAtual.percentualComissaoOverride ?? 0.025);
     const novaComissaoTotal = comissaoOver + comissaoVenda;

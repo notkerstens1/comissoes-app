@@ -86,13 +86,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (fonte !== "TRAFEGO" && fonte !== "INDICACAO") {
-      return NextResponse.json(
-        { error: "Fonte do lead obrigatoria (TRAFEGO ou INDICACAO)" },
-        { status: 400 }
-      );
-    }
-
     // Para vendedor hibrido, tipoVenda eh obrigatorio (INBOUND ou EXTERNA)
     const vendedorAtual = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -113,6 +106,17 @@ export async function POST(request: NextRequest) {
       tipoVendaFinal = tipoVenda;
     }
 
+    // Fonte: EXTERNA auto-seta "EXTERNO"; demais devem ser TRAFEGO ou INDICACAO
+    let fonteFinal = fonte;
+    if (tipoVendaFinal === "EXTERNA") {
+      fonteFinal = "EXTERNO";
+    } else if (fonteFinal !== "TRAFEGO" && fonteFinal !== "INDICACAO") {
+      return NextResponse.json(
+        { error: "Fonte do lead obrigatoria (TRAFEGO ou INDICACAO)" },
+        { status: 400 }
+      );
+    }
+
     // Buscar configuracao
     const config = await prisma.configuracao.findFirst();
     const fatorMultiplicador = config?.fatorMultiplicador ?? 1.8;
@@ -129,6 +133,9 @@ export async function POST(request: NextRequest) {
     const over = margem >= 1.8 ? calcularOver(vVenda, vEquip, fatorMultiplicador) : 0;
     const geracaoKwh = calcularGeracaoKwh(vKwp, fatorGeracao);
     const comissaoVenda = vVenda * percentualComissaoVenda;
+    // EXTERNA: over flat 50% por venda. INBOUND: over progressivo, calculado mensalmente.
+    const comissaoOverVenda = tipoVendaFinal === "EXTERNA" ? over * PERCENTUAL_OVER_EXTERNA : 0;
+    const comissaoTotalVenda = comissaoVenda + comissaoOverVenda;
 
     // Determinar mes de referencia
     const data = new Date(dataConversao);
@@ -152,7 +159,7 @@ export async function POST(request: NextRequest) {
         custoEquipamentos: vEquip,
         quantidadePlacas: vPlacas,
         quantidadeInversores: 1,
-        comissaoTotal: comissaoVenda, // por enquanto so a comissao base, sera recalculado
+        comissaoTotal: comissaoTotalVenda, // ja inclui over EXTERNA quando aplicavel
       },
       configCustos
     );
@@ -190,8 +197,8 @@ export async function POST(request: NextRequest) {
         over,
         margem,
         comissaoVenda,
-        comissaoOver: 0,
-        comissaoTotal: comissaoVenda,
+        comissaoOver: comissaoOverVenda,
+        comissaoTotal: comissaoTotalVenda,
         // Novos campos de custo
         quantidadePlacas: vPlacas,
         quantidadeInversores: 1,
@@ -207,7 +214,7 @@ export async function POST(request: NextRequest) {
         lucroLiquido: custos.lucroLiquido,
         margemLucroLiquido: custos.margemLucroLiquido,
         dataConversao: data,
-        fonte,
+        fonte: fonteFinal,
         tipoVenda: tipoVendaFinal,
         orcamentoUrl: orcamentoUrl || null,
         mesReferencia,

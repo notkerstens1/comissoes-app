@@ -49,39 +49,49 @@ export function formatCurrencyInput(value: number): string {
 }
 
 /**
- * Mascara de input monetario brasileiro
- * Aceita apenas digitos e virgula, formata automaticamente
- * Retorna o valor formatado como string e o valor numerico
+ * Mascara de input monetario brasileiro.
+ * Aceita digitos, ponto e virgula. Resolve o teclado mobile que so expoe "."
+ * (iOS/Android inputMode=decimal) sem quebrar o auto-format de milhar.
+ *
+ * Regras pra escolher o decimal:
+ * - Se ha qualquer ",": eh sempre decimal (BR convention).
+ * - Caso contrario, considera o ultimo "." apenas se houver <= 2 digitos
+ *   depois dele. Mais que 2 digitos significa que o "." veio do auto-format
+ *   de milhar (ex: "1.2345" depois de "1.234" + tecla "5") — strip todos.
  */
 export function handleCurrencyKeyInput(rawValue: string): { display: string; numericValue: number } {
-  // Remove tudo que nao e digito ou virgula
-  let cleaned = rawValue.replace(/[^\d,]/g, "");
+  const cleaned = rawValue.replace(/[^\d.,]/g, "");
+  if (cleaned === "") return { display: "", numericValue: 0 };
 
-  // Permite no maximo uma virgula
-  const parts = cleaned.split(",");
-  if (parts.length > 2) {
-    cleaned = parts[0] + "," + parts.slice(1).join("");
+  let decimalPos = -1;
+  const lastComma = cleaned.lastIndexOf(",");
+  if (lastComma !== -1) {
+    decimalPos = lastComma;
+  } else {
+    const lastDot = cleaned.lastIndexOf(".");
+    if (lastDot !== -1 && cleaned.length - lastDot - 1 <= 2) {
+      decimalPos = lastDot;
+    }
   }
 
-  // Limita casas decimais a 2
-  if (parts.length === 2 && parts[1].length > 2) {
-    cleaned = parts[0] + "," + parts[1].substring(0, 2);
+  let intRaw: string;
+  let decRaw: string;
+  if (decimalPos === -1) {
+    intRaw = cleaned.replace(/[.,]/g, "");
+    decRaw = "";
+  } else {
+    intRaw = cleaned.substring(0, decimalPos).replace(/[.,]/g, "");
+    decRaw = cleaned.substring(decimalPos + 1).replace(/[.,]/g, "");
   }
 
-  // Adiciona pontos como separador de milhares na parte inteira
-  const partsFormatted = cleaned.split(",");
-  let intPart = partsFormatted[0];
+  if (decRaw.length > 2) decRaw = decRaw.substring(0, 2);
 
-  // Remove zeros a esquerda (exceto se for so "0")
-  intPart = intPart.replace(/^0+(\d)/, "$1");
+  intRaw = intRaw.replace(/^0+(\d)/, "$1");
+  if (intRaw === "") intRaw = decimalPos !== -1 ? "0" : "";
 
-  // Adiciona separador de milhar
-  intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-
-  const display = partsFormatted.length === 2 ? intPart + "," + partsFormatted[1] : intPart;
-
-  // Calcula valor numerico
-  const numericValue = parseCurrencyInput(cleaned);
+  const intFormatted = intRaw.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  const display = decimalPos !== -1 ? `${intFormatted},${decRaw}` : intFormatted;
+  const numericValue = parseFloat(`${intRaw || "0"}.${decRaw || "0"}`) || 0;
 
   return { display, numericValue };
 }
