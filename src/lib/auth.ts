@@ -45,6 +45,17 @@ export const authOptions: NextAuthOptions = {
         token.role = (user as any).role;
         token.id = user.id;
       }
+      // Refresh role do DB a cada renovacao do token. Garante que mudanca de
+      // role (migracao, promocao) tome efeito sem o usuario precisar deslogar.
+      if (token.id) {
+        const fresh = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, ativo: true },
+        });
+        if (fresh?.ativo) {
+          token.role = fresh.role;
+        }
+      }
       return token;
     },
     async session({ session, token }) {
