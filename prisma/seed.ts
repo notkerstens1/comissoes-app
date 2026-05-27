@@ -109,11 +109,10 @@ async function main() {
   });
   console.log("Vendedor Hibrido criado/mantido:", daniel.email);
 
-  // Backfill: vendas historicas do Daniel viraram EXTERNA (eram porta a porta antes)
-  await prisma.venda.updateMany({
-    where: { vendedorId: daniel.id, tipoVenda: { not: "EXTERNA" } },
-    data: { tipoVenda: "EXTERNA" },
-  });
+  // (removido) Backfill em massa de tipoVenda das vendas do Daniel. Agora
+  // ele tem vendas INBOUND legitimas (lead de trafego que ele atendeu) e
+  // EXTERNAS (porta a porta) — o tipo correto eh definido por venda no
+  // momento da criacao (ou em edicao admin), nao por massa no seed.
 
   // ── Yuri (Pós Venda) ──────────────────────────────────────────────────────────
   let yuri: { id: string; nome: string; email: string } | null = null;
