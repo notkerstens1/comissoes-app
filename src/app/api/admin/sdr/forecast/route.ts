@@ -14,6 +14,9 @@ export async function GET() {
   const registros = await prisma.registroSDR.findMany({
     where: {
       statusLead: { in: ["AGENDADO", "COMPARECEU"] },
+      // Forecast da SDR. Pipeline de auto-prospeccao do vendedor vive no painel
+      // de Oportunidades (admin ve todos la).
+      origemRegistro: "SDR",
     },
     include: {
       vendedora: { select: { id: true, nome: true } },

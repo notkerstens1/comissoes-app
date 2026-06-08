@@ -21,6 +21,7 @@ import {
   MessageSquare,
   StickyNote,
   Save,
+  Plus,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { isAdmin as checkAdmin } from "@/lib/roles";
@@ -96,6 +97,8 @@ type Registro = {
   sdr: { id: string; nome: string };
   vendedora: { id: string; nome: string };
   compareceu: boolean;
+  // "SDR" (prospeccao da SDR) | "VENDEDOR" (auto-prospeccao do proprio vendedor)
+  origemRegistro?: string;
   // Campos SDR visíveis ao vendedor
   consideracoes: string | null;
   imagemUrl: string | null;
@@ -151,6 +154,17 @@ export default function OportunidadesPage() {
   // Modal de descarte
   const [descartando, setDescartando] = useState<string | null>(null);
   const [motivoDescarte, setMotivoDescarte] = useState("");
+
+  // Modal de Nova Oportunidade (auto-prospeccao do vendedor)
+  const [novaOportunidade, setNovaOportunidade] = useState(false);
+  const [novaForm, setNovaForm] = useState({
+    nomeCliente: "",
+    dataReuniao: new Date().toISOString().split("T")[0],
+    valorForecast: "",
+    consideracoes: "",
+  });
+  const [salvandoNova, setSalvandoNova] = useState(false);
+  const [erroNova, setErroNova] = useState("");
 
   // Modal de fechar venda
   const [fechandoVenda, setFechandoVenda] = useState<Registro | null>(null);
@@ -403,6 +417,44 @@ export default function OportunidadesPage() {
     setSalvandoVenda(false);
   }
 
+  // Criar nova oportunidade (auto-prospeccao do vendedor)
+  async function criarNovaOportunidade() {
+    if (!novaForm.nomeCliente.trim() || !novaForm.dataReuniao) {
+      setErroNova("Nome do cliente e data do agendamento sao obrigatorios");
+      return;
+    }
+    setErroNova("");
+    setSalvandoNova(true);
+    try {
+      const res = await fetch("/api/vendedor/oportunidades", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nomeCliente: novaForm.nomeCliente,
+          dataReuniao: novaForm.dataReuniao,
+          valorForecast: novaForm.valorForecast || null,
+          consideracoes: novaForm.consideracoes,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Erro ao criar oportunidade");
+      }
+      setNovaOportunidade(false);
+      setNovaForm({
+        nomeCliente: "",
+        dataReuniao: new Date().toISOString().split("T")[0],
+        valorForecast: "",
+        consideracoes: "",
+      });
+      await fetchOportunidades();
+    } catch (error: any) {
+      setErroNova(error.message || "Erro ao criar oportunidade");
+    } finally {
+      setSalvandoNova(false);
+    }
+  }
+
   // Salvar nota do supervisor
   async function salvarNotaAdmin(registroId: string) {
     setSalvandoNota(true);
@@ -472,6 +524,84 @@ export default function OportunidadesPage() {
                   <button onClick={descartarLead} disabled={!motivoDescarte || saving}
                     className="flex-1 px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition disabled:opacity-50">
                     Descartar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Modal de Nova Oportunidade (auto-prospeccao do vendedor) */}
+          {novaOportunidade && (
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+              <div className="bg-[#1a1f2e] rounded-2xl max-w-md w-full shadow-lg">
+                <div className="p-5 border-b border-[#232a3b]">
+                  <h3 className="font-bold text-gray-100 flex items-center gap-2">
+                    <Target className="w-5 h-5 text-lime-400" />
+                    Nova Oportunidade
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Cliente que voce mesmo prospectou e agendou. Entra no seu pipeline e
+                    conta na sua eficiencia.
+                  </p>
+                </div>
+                <div className="p-5 space-y-4">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">Nome do Cliente *</label>
+                    <input
+                      type="text"
+                      value={novaForm.nomeCliente}
+                      onChange={(e) => setNovaForm({ ...novaForm, nomeCliente: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                      placeholder="Nome completo do cliente"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-gray-400 mb-1">Data do Agendamento *</label>
+                      <input
+                        type="date"
+                        value={novaForm.dataReuniao}
+                        onChange={(e) => setNovaForm({ ...novaForm, dataReuniao: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-400 mb-1">Valor Estimado (R$)</label>
+                      <input
+                        type="number"
+                        value={novaForm.valorForecast}
+                        onChange={(e) => setNovaForm({ ...novaForm, valorForecast: e.target.value })}
+                        className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                        placeholder="Ex: 45000"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">Observacoes</label>
+                    <textarea
+                      value={novaForm.consideracoes}
+                      onChange={(e) => setNovaForm({ ...novaForm, consideracoes: e.target.value })}
+                      rows={3}
+                      className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm resize-none"
+                      placeholder="Contexto do contato, qualificacao, proximo passo..."
+                    />
+                  </div>
+                  {erroNova && (
+                    <div className="bg-red-400/10 text-red-400 px-4 py-2 rounded-lg text-sm">{erroNova}</div>
+                  )}
+                </div>
+                <div className="p-5 border-t border-[#232a3b] flex gap-3">
+                  <button onClick={() => { setNovaOportunidade(false); setErroNova(""); }}
+                    className="flex-1 px-4 py-2 rounded-lg border border-[#232a3b] text-gray-400 hover:bg-[#232a3b] transition text-sm">
+                    Cancelar
+                  </button>
+                  <button onClick={criarNovaOportunidade} disabled={salvandoNova}
+                    className="flex-1 px-4 py-2 rounded-lg bg-lime-400 text-gray-900 text-sm font-medium hover:bg-lime-500 transition disabled:opacity-50 flex items-center justify-center gap-2">
+                    {salvandoNova ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900" />
+                    ) : (
+                      <><Plus className="w-4 h-4" /> Criar Oportunidade</>
+                    )}
                   </button>
                 </div>
               </div>
@@ -755,6 +885,15 @@ export default function OportunidadesPage() {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
+              {!admin && (
+                <button
+                  onClick={() => { setNovaOportunidade(true); setErroNova(""); }}
+                  className="px-4 py-2 rounded-lg bg-lime-400 text-gray-900 text-sm font-medium hover:bg-lime-500 transition flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Nova Oportunidade
+                </button>
+              )}
               {admin && vendedores.length > 0 && (
                 <select
                   value={vendedorFiltro}
@@ -927,7 +1066,13 @@ export default function OportunidadesPage() {
                         <tr className={`border-b border-[#232a3b]/40 hover:bg-[#141820]/50 transition ${vencido ? "opacity-70" : ""}`}>
                           <td className="pl-3 pr-1 py-3 overflow-hidden">
                             <p className="font-medium text-gray-100 text-sm truncate">{r.nomeCliente}</p>
-                            <p className="text-[11px] text-gray-500 mt-0.5 truncate">SDR: {r.sdr.nome}</p>
+                            {r.origemRegistro === "VENDEDOR" ? (
+                              <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-lime-400/10 text-lime-400 font-medium">
+                                Prospecção própria
+                              </span>
+                            ) : (
+                              <p className="text-[11px] text-gray-500 mt-0.5 truncate">SDR: {r.sdr.nome}</p>
+                            )}
                           </td>
                           {admin && (
                             <td className="px-1 py-3 text-gray-300 text-sm truncate overflow-hidden">{r.vendedora.nome}</td>
@@ -995,7 +1140,10 @@ export default function OportunidadesPage() {
                                         distribuidora: "",
                                         kwp: "",
                                         quantidadePlacas: "",
-                                        fonte: "",
+                                        // Oportunidade propria do vendedor = indicacao;
+                                        // oportunidade da SDR = trafego. Pre-seleciona pra
+                                        // o vinculo de comissao bater certo.
+                                        fonte: r.origemRegistro === "VENDEDOR" ? "INDICACAO" : "TRAFEGO",
                                         tipoVenda: "INBOUND",
                                         metragemCaboPrevista: "",
                                         bitolaCabo: "6mm",

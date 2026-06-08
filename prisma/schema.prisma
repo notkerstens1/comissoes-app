@@ -220,6 +220,11 @@ model RegistroSDR {
   sdrId                  String
   sdr                    User     @relation("sdrRegistros", fields: [sdrId], references: [id])
   dataRegistro           String // "YYYY-MM-DD" dia do lancamento
+  // Quem originou a oportunidade:
+  // SDR      = prospeccao da SDR (Samara/Joao Paulo) — paga comissao SDR normal
+  // VENDEDOR = auto-prospeccao do proprio vendedor (ligou/qualificou/agendou) —
+  //            conta a eficiencia mas NAO paga comissao SDR (sdrId == vendedoraId)
+  origemRegistro         String   @default("SDR") // "SDR" | "VENDEDOR"
   nomeCliente            String
   vendedoraId            String
   vendedora              User     @relation("vendedoraRegistros", fields: [vendedoraId], references: [id])

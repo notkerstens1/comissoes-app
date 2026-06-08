@@ -83,6 +83,70 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ registros: registrosResponse, totalForecast, totalPonderado, alertas5dias });
 }
 
+// POST — vendedor cria a propria oportunidade (auto-prospeccao)
+// Fluxo: vendedor ligou pro cliente, qualificou e agendou. Vira uma
+// oportunidade no pipeline dele (sdrId == vendedoraId == ele mesmo).
+// origemRegistro=VENDEDOR garante que NAO paga comissao SDR — so conta a
+// eficiencia. Ao fechar a venda, o auto-vinculo marca VENDIDO sem cash SDR.
+export async function POST(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session) return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
+
+  const role = session.user.role;
+  if (!isVendedor(role) && !isAdmin(role)) {
+    return NextResponse.json({ error: "Sem permissao" }, { status: 403 });
+  }
+
+  const body = await request.json();
+  const {
+    nomeCliente,
+    dataReuniao,
+    consideracoes,
+    valorForecast,
+    estagioOportunidade,
+    dataFechamentoEsperado,
+  } = body;
+
+  if (!nomeCliente?.trim() || !dataReuniao) {
+    return NextResponse.json(
+      { error: "Nome do cliente e data do agendamento sao obrigatorios" },
+      { status: 400 }
+    );
+  }
+
+  const hoje = new Date().toISOString().split("T")[0];
+  const actorId = session.user.id;
+
+  // compareceu=true: o vendedor ja teve contato e qualificou o cliente. Isso
+  // tambem habilita o auto-vinculo da venda quando ele fechar. comissaoReuniao
+  // fica 0 (origemRegistro=VENDEDOR nao paga SDR).
+  const registro = await prisma.registroSDR.create({
+    data: {
+      sdrId: actorId,
+      vendedoraId: actorId,
+      origemRegistro: "VENDEDOR",
+      dataRegistro: hoje,
+      nomeCliente: nomeCliente.trim(),
+      dataReuniao,
+      compareceu: true,
+      statusLead: "COMPARECEU",
+      consideracoes: consideracoes?.trim() || null,
+      valorForecast: valorForecast != null && valorForecast !== "" ? Number(valorForecast) : null,
+      estagioOportunidade: estagioOportunidade || "REUNIAO",
+      dataFechamentoEsperado: dataFechamentoEsperado || null,
+      comissaoReuniao: 0,
+      comissaoVenda: 0,
+      comissaoTotal: 0,
+    },
+    include: {
+      sdr: { select: { id: true, nome: true } },
+      vendedora: { select: { id: true, nome: true } },
+    },
+  });
+
+  return NextResponse.json(registro, { status: 201 });
+}
+
 // PUT — atualizar campos de forecast ou descartar/reativar
 export async function PUT(request: Request) {
   const session = await getServerSession(authOptions);

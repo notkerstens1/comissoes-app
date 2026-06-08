@@ -29,6 +29,14 @@ export async function tentarVincularVendaSDR(vendaId: string): Promise<void> {
     // Vendas EXTERNAS (captacao propria do vendedor hibrido) nao passam pela SDR
     if (venda.tipoVenda === "EXTERNA") return;
 
+    // Regra de canal:
+    //  - INDICACAO  = fluxo direto do vendedor (ele ligou/qualificou). NUNCA
+    //                 passou pela SDR. So casa com a oportunidade que o proprio
+    //                 vendedor criou (origemRegistro=VENDEDOR) e NAO paga SDR.
+    //  - TRAFEGO    = lead da empresa qualificado pela SDR (origemRegistro=SDR),
+    //                 paga comissao SDR normal.
+    const origemEsperada = venda.fonte === "INDICACAO" ? "VENDEDOR" : "SDR";
+
     // 2. Normalizar nome do cliente
     const nomeNormalizado = normalizeClientName(venda.cliente);
 
@@ -45,6 +53,7 @@ export async function tentarVincularVendaSDR(vendaId: string): Promise<void> {
         vendedoraId: venda.vendedorId,
         compareceu: true,
         vendaVinculadaId: null,
+        origemRegistro: origemEsperada,
         dataReuniao: {
           gte: limiteInferiorStr,
           lte: dataConversaoStr,
@@ -66,13 +75,18 @@ export async function tentarVincularVendaSDR(vendaId: string): Promise<void> {
     if (matches.length === 1) {
       // Match unico — vincular automaticamente
       const registro = matches[0];
+      // Auto-prospeccao do vendedor (origemRegistro=VENDEDOR): o vendedor ja
+      // recebe a comissao da venda. NAO acumula comissao SDR — so marca VENDIDO
+      // pra contabilizar a eficiencia da prospeccao propria.
+      const ehAutoProspeccao = registro.origemRegistro === "VENDEDOR";
+      const comissaoVendaSDR = ehAutoProspeccao ? 0 : COMISSAO_VENDA_SDR;
       await prisma.registroSDR.update({
         where: { id: registro.id },
         data: {
           vendaVinculadaId: venda.id,
           dataVendaVinculada: dataConversaoStr,
-          comissaoVenda: COMISSAO_VENDA_SDR,
-          comissaoTotal: registro.comissaoReuniao + COMISSAO_VENDA_SDR,
+          comissaoVenda: comissaoVendaSDR,
+          comissaoTotal: registro.comissaoReuniao + comissaoVendaSDR,
           statusLead: "VENDIDO",
         },
       });

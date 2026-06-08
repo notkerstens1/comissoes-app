@@ -25,7 +25,9 @@ export async function GET(request: NextRequest) {
   const semana = searchParams.get("semana");
   const mes = searchParams.get("mes");
 
-  const where: any = {};
+  // So conta prospeccao da SDR. Auto-prospeccao do vendedor (origemRegistro=
+  // VENDEDOR) aparece no painel de Oportunidades, nao nas metricas da SDR.
+  const where: any = { origemRegistro: "SDR" };
 
   // Filtrar por dataReuniao (data da reuniao) em vez de dataRegistro (data de cadastro)
   // Isso garante que dia/semana/mes mostrem dados diferentes baseados nas reunioes reais

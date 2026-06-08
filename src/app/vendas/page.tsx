@@ -69,6 +69,7 @@ interface Venda {
 export default function VendasPage() {
   const { data: session } = useSession();
   const admin = checkAdmin(session?.user?.role);
+  const isHibrido = session?.user?.role === "VENDEDOR_HIBRIDO";
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [loading, setLoading] = useState(true);
   const [vendaEditando, setVendaEditando] = useState<VendaEditavel | null>(null);
@@ -104,6 +105,7 @@ export default function VendasPage() {
     new Date().toISOString().split("T")[0]
   );
   const [fonte, setFonte] = useState("");
+  const [tipoVenda, setTipoVenda] = useState<"INBOUND" | "EXTERNA">("INBOUND");
   const [quantidadePlacas, setQuantidadePlacas] = useState("");
 
   // Valores monetarios
@@ -167,6 +169,7 @@ export default function VendasPage() {
     setDistribuidora("");
     setDataConversao(new Date().toISOString().split("T")[0]);
     setFonte("");
+    setTipoVenda("INBOUND");
     setQuantidadePlacas("");
     setValorVendaDisplay("");
     setValorVendaNum(0);
@@ -184,6 +187,7 @@ export default function VendasPage() {
     setShowModalMargem(false);
 
     try {
+      const isExterna = isHibrido && tipoVenda === "EXTERNA";
       const res = await fetch("/api/vendas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -196,7 +200,8 @@ export default function VendasPage() {
           custoEquipamentos: equipamentos,
           quantidadePlacas: parseInt(quantidadePlacas) || 0,
           dataConversao,
-          fonte,
+          fonte: isExterna ? "EXTERNO" : fonte,
+          ...(isHibrido ? { tipoVenda } : {}),
         }),
       });
 
@@ -695,6 +700,45 @@ export default function VendasPage() {
                   </div>
                 </div>
 
+                {/* Origem da venda (apenas vendedor hibrido) */}
+                {isHibrido && (
+                  <div className="rounded-lg border border-[#B7C1AC]/40 bg-[#141820] p-3">
+                    <label className="block text-xs font-medium text-gray-300 mb-2">
+                      Origem da venda <span className="text-[#B7C1AC]">*</span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setTipoVenda("INBOUND")}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition border ${
+                          tipoVenda === "INBOUND"
+                            ? "border-[#B7C1AC] bg-[#B7C1AC]/15 text-[#B7C1AC]"
+                            : "border-[#232a3b] bg-transparent text-gray-400 hover:text-gray-200"
+                        }`}
+                      >
+                        Inbound
+                        <span className="block text-[10px] font-normal text-gray-500 mt-0.5">
+                          Lead da empresa · over progressivo
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setTipoVenda("EXTERNA")}
+                        className={`px-3 py-2 rounded-lg text-sm font-medium transition border ${
+                          tipoVenda === "EXTERNA"
+                            ? "border-[#B7C1AC] bg-[#B7C1AC]/15 text-[#B7C1AC]"
+                            : "border-[#232a3b] bg-transparent text-gray-400 hover:text-gray-200"
+                        }`}
+                      >
+                        Externa
+                        <span className="block text-[10px] font-normal text-gray-500 mt-0.5">
+                          Captação própria · over 50% flat
+                        </span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Data + Fonte */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -709,20 +753,31 @@ export default function VendasPage() {
                       required
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
-                      Fonte do Lead
-                    </label>
-                    <select
-                      value={fonte}
-                      onChange={(e) => setFonte(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none bg-[#141820] text-gray-100"
-                    >
-                      <option value="">Selecione...</option>
-                      <option value="TRAFEGO">Trafego</option>
-                      <option value="INDICACAO">Indicacao</option>
-                    </select>
-                  </div>
+                  {isHibrido && tipoVenda === "EXTERNA" ? (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Fonte do Lead
+                      </label>
+                      <div className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] bg-[#141820]/60 text-gray-500 text-sm">
+                        Captação externa (preenchido automatico)
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Fonte do Lead {isHibrido && <span className="text-[#B7C1AC]">*</span>}
+                      </label>
+                      <select
+                        value={fonte}
+                        onChange={(e) => setFonte(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none bg-[#141820] text-gray-100"
+                      >
+                        <option value="">Selecione...</option>
+                        <option value="TRAFEGO">Trafego</option>
+                        <option value="INDICACAO">Indicacao</option>
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 {/* Alerta de Margem inline */}
