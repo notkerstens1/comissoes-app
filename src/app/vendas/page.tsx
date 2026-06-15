@@ -163,6 +163,18 @@ export default function VendasPage() {
     }
   }, [formAberto, alertaMargem, formErro, formSucesso, valor, equipamentos, kwpCalc]);
 
+  // Abrir o formulario "Nova Venda" automaticamente quando o vendedor chega
+  // via /vendas/nova (redirect com ?novaVenda=1). Mantem o atalho do Daniel
+  // funcionando, mas integrado em Minhas Vendas em vez de tela separada.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("novaVenda") === "1" && checkIsVendedor(session?.user?.role)) {
+      setAbaAtiva("vendas");
+      setFormAberto(true);
+    }
+  }, [session?.user?.role]);
+
   const resetForm = () => {
     setCliente("");
     setFormaPagamento("");
