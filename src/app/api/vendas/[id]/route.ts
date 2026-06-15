@@ -88,8 +88,8 @@ export async function PUT(
     updateData.cliente = cliente.trim();
   }
   if (fonte !== undefined) {
-    if (fonte !== "TRAFEGO" && fonte !== "INDICACAO" && fonte !== "EXTERNO") {
-      return NextResponse.json({ error: "fonte invalida (TRAFEGO, INDICACAO ou EXTERNO)" }, { status: 400 });
+    if (fonte !== "TRAFEGO" && fonte !== "INDICACAO" && fonte !== "FOLLOWUP" && fonte !== "EXTERNO") {
+      return NextResponse.json({ error: "fonte invalida (TRAFEGO, INDICACAO, FOLLOWUP ou EXTERNO)" }, { status: 400 });
     }
     updateData.fonte = fonte;
   }

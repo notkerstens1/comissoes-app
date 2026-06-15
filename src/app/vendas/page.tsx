@@ -656,6 +656,8 @@ export default function VendasPage() {
                       <option value="BELENERGY">Belenergy</option>
                       <option value="SOLFACIL">Solfacil</option>
                       <option value="BLUESUN">Bluesun</option>
+                      <option value="SOL_AGORA">Sol Agora</option>
+                      <option value="TVIN">TVIN</option>
                     </select>
                   </div>
                 </div>
@@ -789,6 +791,7 @@ export default function VendasPage() {
                         <option value="">Selecione...</option>
                         <option value="TRAFEGO">Trafego</option>
                         <option value="INDICACAO">Indicacao</option>
+                        <option value="FOLLOWUP">Followup (lead do trafego, sem SDR)</option>
                       </select>
                     </div>
                   )}

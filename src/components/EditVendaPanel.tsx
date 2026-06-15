@@ -72,7 +72,7 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
   });
   // Campos basicos da venda (editaveis por diretor/admin/financeiro)
   const [editCliente, setEditCliente] = useState("");
-  const [editFonte, setEditFonte] = useState<"TRAFEGO" | "INDICACAO" | "">("");
+  const [editFonte, setEditFonte] = useState<"TRAFEGO" | "INDICACAO" | "FOLLOWUP" | "">("");
   const [editTipoVenda, setEditTipoVenda] = useState<"INBOUND" | "EXTERNA" | "">("");
   const [editDistribuidora, setEditDistribuidora] = useState("");
   const [editFormaPagamento, setEditFormaPagamento] = useState("");
@@ -131,7 +131,7 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
     setEditCustoEquip(formatCurrencyInput(venda.custoEquipamentos));
     setEditCustoEquipNum(venda.custoEquipamentos);
     setEditCliente(venda.cliente);
-    setEditFonte((venda.fonte === "TRAFEGO" || venda.fonte === "INDICACAO") ? venda.fonte : "");
+    setEditFonte((venda.fonte === "TRAFEGO" || venda.fonte === "INDICACAO" || venda.fonte === "FOLLOWUP") ? venda.fonte : "");
     setEditTipoVenda((venda.tipoVenda === "INBOUND" || venda.tipoVenda === "EXTERNA") ? venda.tipoVenda : "");
     setEditDistribuidora(venda.distribuidora ?? "");
     setEditFormaPagamento(venda.formaPagamento ?? "");
@@ -326,12 +326,13 @@ export function EditVendaPanel({ venda, isOpen, onClose, onSaved }: EditVendaPan
               <label className="block text-xs font-medium text-gray-400 mb-1">Fonte do Lead</label>
               <select
                 value={editFonte}
-                onChange={(e) => setEditFonte(e.target.value as "TRAFEGO" | "INDICACAO" | "")}
+                onChange={(e) => setEditFonte(e.target.value as "TRAFEGO" | "INDICACAO" | "FOLLOWUP" | "")}
                 className="w-full px-3 py-2 rounded-lg border border-amber-400/30 focus:ring-2 focus:ring-amber-500 outline-none text-sm bg-[#0d1117] text-gray-100"
               >
                 <option value="">—</option>
                 <option value="TRAFEGO">Tráfego</option>
                 <option value="INDICACAO">Indicação</option>
+                <option value="FOLLOWUP">Followup</option>
               </select>
             </div>
             <div>

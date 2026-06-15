@@ -32,7 +32,9 @@ interface VendaLite {
 
 function classificarCanal(v: { fonte: string | null; tipoVenda: string }): CanalKey {
   if (v.tipoVenda === "EXTERNA") return "externoDaniel";
-  if (v.fonte === "TRAFEGO") return "trafego";
+  // FOLLOWUP = lead originado do trafego (vendedor assumiu apos followup), entao
+  // conta como trafego para ROAS/CAC.
+  if (v.fonte === "TRAFEGO" || v.fonte === "FOLLOWUP") return "trafego";
   if (v.fonte === "INDICACAO") return "indicacao";
   return "naoClassificado";
 }

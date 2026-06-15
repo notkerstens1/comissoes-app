@@ -33,9 +33,13 @@ export async function tentarVincularVendaSDR(vendaId: string): Promise<void> {
     //  - INDICACAO  = fluxo direto do vendedor (ele ligou/qualificou). NUNCA
     //                 passou pela SDR. So casa com a oportunidade que o proprio
     //                 vendedor criou (origemRegistro=VENDEDOR) e NAO paga SDR.
+    //  - FOLLOWUP   = lead que veio do trafego mas o vendedor assumiu apos o
+    //                 followup inicial. NAO passa pela SDR — casa com a
+    //                 oportunidade do proprio vendedor e NAO paga comissao SDR.
     //  - TRAFEGO    = lead da empresa qualificado pela SDR (origemRegistro=SDR),
     //                 paga comissao SDR normal.
-    const origemEsperada = venda.fonte === "INDICACAO" ? "VENDEDOR" : "SDR";
+    const origemEsperada =
+      venda.fonte === "INDICACAO" || venda.fonte === "FOLLOWUP" ? "VENDEDOR" : "SDR";
 
     // 2. Normalizar nome do cliente
     const nomeNormalizado = normalizeClientName(venda.cliente);

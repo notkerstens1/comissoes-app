@@ -110,9 +110,13 @@ export async function POST(request: NextRequest) {
     let fonteFinal = fonte;
     if (tipoVendaFinal === "EXTERNA") {
       fonteFinal = "EXTERNO";
-    } else if (fonteFinal !== "TRAFEGO" && fonteFinal !== "INDICACAO") {
+    } else if (
+      fonteFinal !== "TRAFEGO" &&
+      fonteFinal !== "INDICACAO" &&
+      fonteFinal !== "FOLLOWUP"
+    ) {
       return NextResponse.json(
-        { error: "Fonte do lead obrigatoria (TRAFEGO ou INDICACAO)" },
+        { error: "Fonte do lead obrigatoria (TRAFEGO, INDICACAO ou FOLLOWUP)" },
         { status: 400 }
       );
     }
