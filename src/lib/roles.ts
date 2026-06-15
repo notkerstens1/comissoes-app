@@ -190,6 +190,10 @@ export function getDefaultRoute(role: string | undefined | null): string {
     case "VENDEDOR":
     case "VENDEDOR_EXTERNO":
       return "/vendedor/oportunidades";
+    // Hibrido (Daniel, porta a porta) abre direto em Minhas Vendas, onde fica
+    // o botao "Nova Venda" — ele registra venda do zero, nao trabalha leads da SDR.
+    case "VENDEDOR_HIBRIDO":
+      return "/vendas";
     case "SDR":
       return "/sdr";
     case "POS_VENDA":
