@@ -626,6 +626,8 @@ export default function VendasPage() {
                       <option value="SANTANDER">Santander</option>
                       <option value="BV">BV</option>
                       <option value="SOLFACIL">Solfacil</option>
+                      <option value="SOL_AGORA">Sol Agora</option>
+                      <option value="TVIN">TVIN</option>
                       <option value="A_VISTA">A Vista</option>
                     </select>
                   </div>
