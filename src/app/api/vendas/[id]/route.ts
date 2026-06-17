@@ -131,18 +131,20 @@ export async function PUT(
     const vv = novoValorVenda ?? vendaAtual.valorVenda;
     const ce = novoCustoEquipamentos ?? vendaAtual.custoEquipamentos;
     const newMargem = ce > 0 ? vv / ce : 0;
-    const fator = vendaAtual.percentualComissaoOverride ?? 0.025;
+    const fator = (percentualComissaoOverride ?? vendaAtual.percentualComissaoOverride) ?? 0.025;
     const newOver = Math.max(vv - ce * 1.8, 0);
     const newComissaoVenda = vv * fator;
     const tipoVendaEfetivo = updateData.tipoVenda ?? vendaAtual.tipoVenda;
     const percentualOver = tipoVendaEfetivo === "EXTERNA" ? PERCENTUAL_OVER_EXTERNA : 0.35;
     const newComissaoOver = newOver * percentualOver;
     const newComissaoTotal = newComissaoVenda + newComissaoOver;
+    // Imposto incide sobre o servico (valorVenda - equipamentos); recalcular com os valores novos
+    const newImposto = Math.max(vv - ce, 0) * (vendaAtual.aliquotaImposto ?? 0.06);
     const outrosCustos =
       (vendaAtual.custoInstalacao ?? 0) + (vendaAtual.custoVisitaTecnica ?? 0) +
       (vendaAtual.custoCosern ?? 0) + (vendaAtual.custoTrtCrea ?? 0) +
       (vendaAtual.custoEngenheiro ?? 0) + (vendaAtual.custoMaterialCA ?? 0) +
-      (vendaAtual.custoImposto ?? 0);
+      newImposto;
     const newLucro = vv - ce - outrosCustos - newComissaoTotal;
     const newMargemLucro = vv > 0 ? newLucro / vv : 0;
 
@@ -152,6 +154,7 @@ export async function PUT(
     updateData.comissaoOver = newComissaoOver;
     updateData.comissaoTotal = newComissaoTotal;
     updateData.comissaoVendedorCusto = newComissaoTotal;
+    updateData.custoImposto = newImposto;
     updateData.geracaoKwh = vendaAtual.geracaoKwh;
     updateData.lucroLiquido = newLucro;
     updateData.margemLucroLiquido = newMargemLucro;
@@ -229,15 +232,22 @@ export async function PUT(
       const novasPlacas = quantidadePlacas ?? vendaAtual.quantidadePlacas;
       const novosInversores = quantidadeInversores ?? vendaAtual.quantidadeInversores;
 
+      // Valores EFETIVOS: se um bloco anterior (valor/equip/margem) ja atualizou
+      // estes campos nesta mesma requisicao, usar o valor novo — nunca o stale de
+      // vendaAtual. Sem isto, editar valor/material pelo modal recalcula a comissao
+      // com o valor antigo (bug do over/comissao que nao acompanha o ajuste).
+      const vvEfetivo = updateData.valorVenda ?? vendaAtual.valorVenda;
+      const ceEfetivo = updateData.custoEquipamentos ?? vendaAtual.custoEquipamentos;
+      const overEfetivo = updateData.comissaoOver ?? vendaAtual.comissaoOver;
       const novoOverride = percentualComissaoOverride !== undefined ? percentualComissaoOverride : vendaAtual.percentualComissaoOverride;
       const percentualEfetivo = novoOverride != null ? novoOverride : percentualComissaoVendaPadrao;
-      const novaComissaoVenda = vendaAtual.valorVenda * percentualEfetivo;
-      const novaComissaoTotal = novaComissaoVenda + vendaAtual.comissaoOver;
+      const novaComissaoVenda = vvEfetivo * percentualEfetivo;
+      const novaComissaoTotal = novaComissaoVenda + overEfetivo;
 
       const custos = calcularCustosVenda(
         {
-          valorVenda: vendaAtual.valorVenda,
-          custoEquipamentos: vendaAtual.custoEquipamentos,
+          valorVenda: vvEfetivo,
+          custoEquipamentos: ceEfetivo,
           quantidadePlacas: novasPlacas,
           quantidadeInversores: novosInversores,
           comissaoTotal: novaComissaoTotal,
