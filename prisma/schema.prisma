@@ -365,7 +365,8 @@ model SetorTecnico {
   etapa          String   @default("NOVO_PROJETO")
   // Trilho INSTALACAO (operacional, do agendamento ate a rede ligada).
   // Valores: AGENDAR_VISITA, VISITA_AGENDADA, VISITA_FEITA, AGUARDANDO_MATERIAL,
-  //   MATERIAL_COMPRADO, INSTALACAO_AGENDADA, INSTALACAO_CONCLUIDA, REDE_LIGADA
+  //   MATERIAL_ENTREGUE, INSTALACAO_AGENDADA, MATERIAL_COMPRADO, INSTALACAO_CONCLUIDA,
+  //   SOLICITADO_VISTORIA, REDE_LIGADA (rotulada "Usina Ligada")
   // Card nasce com AGENDAR_VISITA e aparece em ambas as abas desde o inicio.
   etapaInstalacao String  @default("AGENDAR_VISITA")
   // Acompanhamento

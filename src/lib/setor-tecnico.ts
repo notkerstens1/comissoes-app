@@ -34,14 +34,16 @@ export type EtapaProjeto = (typeof ETAPAS_PROJETO)[number]["key"];
 // TRILHO INSTALACAO
 // ------------------------------------------------------------
 export const ETAPAS_INSTALACAO = [
-  { key: "AGENDAR_VISITA",       label: "Agendar Visita",     cor: "slate",   ordem: 1 },
-  { key: "VISITA_AGENDADA",      label: "Visita Agendada",    cor: "teal",    ordem: 2 },
-  { key: "VISITA_FEITA",         label: "Visita Feita",       cor: "lime",    ordem: 3 },
-  { key: "AGUARDANDO_MATERIAL",  label: "Aguard. Material",   cor: "amber",   ordem: 4 },
-  { key: "MATERIAL_COMPRADO",    label: "Material Comprado",  cor: "yellow",  ordem: 5 },
-  { key: "INSTALACAO_AGENDADA",  label: "Instal. Agendada",   cor: "blue",    ordem: 6 },
-  { key: "INSTALACAO_CONCLUIDA", label: "Instal. Concluida",  cor: "purple",  ordem: 7 },
-  { key: "REDE_LIGADA",          label: "Rede Ligada",        cor: "lime",    ordem: 8 },
+  { key: "AGENDAR_VISITA",       label: "Agendar Visita",       cor: "slate",   ordem: 1 },
+  { key: "VISITA_AGENDADA",      label: "Visita Agendada",      cor: "teal",    ordem: 2 },
+  { key: "VISITA_FEITA",         label: "Visita Feita",         cor: "lime",    ordem: 3 },
+  { key: "AGUARDANDO_MATERIAL",  label: "Aguard. Material",     cor: "amber",   ordem: 4 },
+  { key: "MATERIAL_ENTREGUE",    label: "Material Entregue",    cor: "emerald", ordem: 5 },
+  { key: "INSTALACAO_AGENDADA",  label: "Instal. Agendada",     cor: "blue",    ordem: 6 },
+  { key: "MATERIAL_COMPRADO",    label: "Material CA Comprado", cor: "yellow",  ordem: 7 },
+  { key: "INSTALACAO_CONCLUIDA", label: "Instal. Concluida",    cor: "purple",  ordem: 8 },
+  { key: "SOLICITADO_VISTORIA",  label: "Solicitado Vistoria",  cor: "rose",    ordem: 9 },
+  { key: "REDE_LIGADA",          label: "Usina Ligada",         cor: "lime",    ordem: 10 },
 ] as const;
 
 export type EtapaInstalacao = (typeof ETAPAS_INSTALACAO)[number]["key"];
@@ -140,9 +142,11 @@ export function etapaInstalacaoParaPosVenda(key: string): string | null {
     case "VISITA_FEITA":
       return "VISITA_TECNICA";
     case "AGUARDANDO_MATERIAL":
+    case "MATERIAL_ENTREGUE":
     case "MATERIAL_COMPRADO":
       return "AGUARDANDO_MATERIAL";
     case "INSTALACAO_AGENDADA":
+    case "SOLICITADO_VISTORIA":
       return "AGUARDANDO_VISTORIA";
     case "INSTALACAO_CONCLUIDA":
       return "CADASTRAR_APP";
@@ -177,9 +181,11 @@ export const ETAPA_TECNICO_CORES: Record<string, { bg: string; text: string; bor
   VISITA_AGENDADA:      { bg: "bg-teal-400/10",    text: "text-teal-400",    border: "border-teal-400/30"    },
   VISITA_FEITA:         { bg: "bg-lime-400/10",    text: "text-lime-400",    border: "border-lime-400/30"    },
   AGUARDANDO_MATERIAL:  { bg: "bg-amber-500/10",   text: "text-amber-500",   border: "border-amber-500/30"   },
-  MATERIAL_COMPRADO:    { bg: "bg-yellow-400/10",  text: "text-yellow-400",  border: "border-yellow-400/30"  },
+  MATERIAL_ENTREGUE:    { bg: "bg-emerald-400/10", text: "text-emerald-400", border: "border-emerald-400/30" },
   INSTALACAO_AGENDADA:  { bg: "bg-blue-400/10",    text: "text-blue-400",    border: "border-blue-400/30"    },
+  MATERIAL_COMPRADO:    { bg: "bg-yellow-400/10",  text: "text-yellow-400",  border: "border-yellow-400/30"  },
   INSTALACAO_CONCLUIDA: { bg: "bg-purple-400/10",  text: "text-purple-400",  border: "border-purple-400/30"  },
+  SOLICITADO_VISTORIA:  { bg: "bg-rose-400/10",    text: "text-rose-400",    border: "border-rose-400/30"    },
   REDE_LIGADA:          { bg: "bg-lime-500/15",    text: "text-lime-400",    border: "border-lime-400/50"    },
 };
 
