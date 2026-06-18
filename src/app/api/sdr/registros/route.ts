@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdmin, isSDR } from "@/lib/roles";
 import { COMISSAO_REUNIAO } from "@/lib/sdr";
+import { normalizePhone, isValidPhone } from "@/lib/phone";
 
 // GET - Listar registros (SDR=proprios, Admin=todos)
 export async function GET(request: NextRequest) {
@@ -54,10 +55,15 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { nomeCliente, vendedoraId, dataReuniao, compareceu, motivoNaoCompareceu, consideracoes, imagemUrl } = body;
+    const { nomeCliente, telefone, vendedoraId, dataReuniao, compareceu, motivoNaoCompareceu, consideracoes, imagemUrl } = body;
 
     if (!nomeCliente?.trim() || !vendedoraId || !dataReuniao) {
       return NextResponse.json({ error: "Campos obrigatorios faltando" }, { status: 400 });
+    }
+
+    const telefoneNorm = normalizePhone(telefone);
+    if (!isValidPhone(telefoneNorm)) {
+      return NextResponse.json({ error: "Telefone do cliente é obrigatório (com DDD)" }, { status: 400 });
     }
 
     // Validar vendedora existe
@@ -77,6 +83,7 @@ export async function POST(request: NextRequest) {
         sdrId: session.user.id,
         dataRegistro: hoje,
         nomeCliente: nomeCliente.trim(),
+        telefone: telefoneNorm,
         vendedoraId,
         dataReuniao,
         compareceu: !!compareceu,

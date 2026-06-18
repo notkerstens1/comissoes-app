@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isVendedor, isAdmin } from "@/lib/roles";
+import { normalizePhone, isValidPhone } from "@/lib/phone";
 
 // GET — oportunidades abertas (vendedor=proprias, admin=todas ou filtradas)
 export async function GET(request: NextRequest) {
@@ -100,6 +101,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const {
     nomeCliente,
+    telefone,
     dataReuniao,
     consideracoes,
     valorForecast,
@@ -112,6 +114,11 @@ export async function POST(request: Request) {
       { error: "Nome do cliente e data do agendamento sao obrigatorios" },
       { status: 400 }
     );
+  }
+
+  const telefoneNorm = normalizePhone(telefone);
+  if (!isValidPhone(telefoneNorm)) {
+    return NextResponse.json({ error: "Telefone do cliente é obrigatório (com DDD)" }, { status: 400 });
   }
 
   const hoje = new Date().toISOString().split("T")[0];
@@ -127,6 +134,7 @@ export async function POST(request: Request) {
       origemRegistro: "VENDEDOR",
       dataRegistro: hoje,
       nomeCliente: nomeCliente.trim(),
+      telefone: telefoneNorm,
       dataReuniao,
       compareceu: true,
       statusLead: "COMPARECEU",

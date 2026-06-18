@@ -106,6 +106,7 @@ export default function RegistrosSDRPage() {
 
   // Form fields
   const [nomeCliente, setNomeCliente] = useState("");
+  const [telefone, setTelefone] = useState("");
   const [vendedoraId, setVendedoraId] = useState("");
   const [dataReuniao, setDataReuniao] = useState(new Date().toISOString().split("T")[0]);
   const [compareceu, setCompareceu] = useState(false);
@@ -200,6 +201,7 @@ export default function RegistrosSDRPage() {
 
   const resetForm = () => {
     setNomeCliente("");
+    setTelefone("");
     setVendedoraId("");
     setDataReuniao(new Date().toISOString().split("T")[0]);
     setCompareceu(false);
@@ -215,6 +217,12 @@ export default function RegistrosSDRPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormErro("");
+
+    if (!telefone.trim()) {
+      setFormErro("Telefone do cliente é obrigatório (com DDD)");
+      return;
+    }
+
     setFormLoading(true);
 
     try {
@@ -223,6 +231,7 @@ export default function RegistrosSDRPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nomeCliente,
+          telefone,
           vendedoraId,
           dataReuniao,
           compareceu,
@@ -667,6 +676,18 @@ export default function RegistrosSDRPage() {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div>
+              <label className={labelClass}>Telefone (WhatsApp) *</label>
+              <input
+                type="tel"
+                value={telefone}
+                onChange={(e) => setTelefone(e.target.value)}
+                className={inputClass}
+                placeholder="(84) 9 9999-9999"
+                required
+              />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

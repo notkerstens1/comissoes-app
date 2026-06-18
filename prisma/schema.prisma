@@ -226,6 +226,7 @@ model RegistroSDR {
   //            conta a eficiencia mas NAO paga comissao SDR (sdrId == vendedoraId)
   origemRegistro         String   @default("SDR") // "SDR" | "VENDEDOR"
   nomeCliente            String
+  telefone               String? // E.164 (55+DDD+numero) — chave de match CAPI Meta / ChatClean
   vendedoraId            String
   vendedora              User     @relation("vendedoraRegistros", fields: [vendedoraId], references: [id])
   dataReuniao            String // "YYYY-MM-DD"

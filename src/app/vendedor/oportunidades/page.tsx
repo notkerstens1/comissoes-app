@@ -159,6 +159,7 @@ export default function OportunidadesPage() {
   const [novaOportunidade, setNovaOportunidade] = useState(false);
   const [novaForm, setNovaForm] = useState({
     nomeCliente: "",
+    telefone: "",
     dataReuniao: new Date().toISOString().split("T")[0],
     valorForecast: "",
     consideracoes: "",
@@ -423,6 +424,10 @@ export default function OportunidadesPage() {
       setErroNova("Nome do cliente e data do agendamento sao obrigatorios");
       return;
     }
+    if (!novaForm.telefone.trim()) {
+      setErroNova("Telefone do cliente é obrigatório (com DDD)");
+      return;
+    }
     setErroNova("");
     setSalvandoNova(true);
     try {
@@ -431,6 +436,7 @@ export default function OportunidadesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nomeCliente: novaForm.nomeCliente,
+          telefone: novaForm.telefone,
           dataReuniao: novaForm.dataReuniao,
           valorForecast: novaForm.valorForecast || null,
           consideracoes: novaForm.consideracoes,
@@ -443,6 +449,7 @@ export default function OportunidadesPage() {
       setNovaOportunidade(false);
       setNovaForm({
         nomeCliente: "",
+        telefone: "",
         dataReuniao: new Date().toISOString().split("T")[0],
         valorForecast: "",
         consideracoes: "",
@@ -553,6 +560,16 @@ export default function OportunidadesPage() {
                       onChange={(e) => setNovaForm({ ...novaForm, nomeCliente: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
                       placeholder="Nome completo do cliente"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-1">Telefone (WhatsApp) *</label>
+                    <input
+                      type="tel"
+                      value={novaForm.telefone}
+                      onChange={(e) => setNovaForm({ ...novaForm, telefone: e.target.value })}
+                      className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                      placeholder="(84) 9 9999-9999"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
