@@ -19,6 +19,8 @@ import {
   X,
   ChevronDown,
   Edit2,
+  CheckCircle2,
+  Clock,
 } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 
@@ -64,6 +66,7 @@ interface Venda {
   excecao?: boolean;
   historicoAlteracoes?: string;
   tipoVenda?: string;
+  statusContrato?: string;
 }
 
 export default function VendasPage() {
@@ -106,6 +109,7 @@ export default function VendasPage() {
   );
   const [fonte, setFonte] = useState("");
   const [tipoVenda, setTipoVenda] = useState<"INBOUND" | "EXTERNA">("INBOUND");
+  const [statusContrato, setStatusContrato] = useState<"COMPLETO" | "A_FINALIZAR">("COMPLETO");
   const [quantidadePlacas, setQuantidadePlacas] = useState("");
 
   // Valores monetarios
@@ -182,6 +186,7 @@ export default function VendasPage() {
     setDataConversao(new Date().toISOString().split("T")[0]);
     setFonte("");
     setTipoVenda("INBOUND");
+    setStatusContrato("COMPLETO");
     setQuantidadePlacas("");
     setValorVendaDisplay("");
     setValorVendaNum(0);
@@ -213,6 +218,7 @@ export default function VendasPage() {
           quantidadePlacas: parseInt(quantidadePlacas) || 0,
           dataConversao,
           fonte: isExterna ? "EXTERNO" : fonte,
+          statusContrato,
           ...(isHibrido ? { tipoVenda } : {}),
         }),
       });
@@ -289,6 +295,31 @@ export default function VendasPage() {
       fetchVendas();
     } catch (error) {
       console.error("Erro:", error);
+    }
+  };
+
+  // Alternar o status do contrato (A_FINALIZAR <-> COMPLETO) direto na lista.
+  // Permissao final é checada no backend (dono da venda + supervisor/diretor).
+  const toggleStatusContrato = async (v: Venda) => {
+    const novo = v.statusContrato === "A_FINALIZAR" ? "COMPLETO" : "A_FINALIZAR";
+    const msg =
+      novo === "COMPLETO"
+        ? `Marcar a venda de ${v.cliente} como FECHADA por completo (empresa + banco)?`
+        : `Marcar a venda de ${v.cliente} como A FINALIZAR (ainda tem algo em aberto)?`;
+    if (!confirm(msg)) return;
+    try {
+      const res = await fetch(`/api/vendas/${v.id}/contrato`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statusContrato: novo }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Erro ao atualizar status do contrato");
+      }
+      fetchVendas();
+    } catch (error: any) {
+      alert(error.message);
     }
   };
 
@@ -755,6 +786,43 @@ export default function VendasPage() {
                   </div>
                 )}
 
+                {/* Status do contrato */}
+                <div className="rounded-lg border border-[#232a3b] bg-[#141820] p-3">
+                  <label className="block text-xs font-medium text-gray-300 mb-2">
+                    Status do contrato <span className="text-[#B7C1AC]">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setStatusContrato("COMPLETO")}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition border text-left ${
+                        statusContrato === "COMPLETO"
+                          ? "border-emerald-400 bg-emerald-400/15 text-emerald-400"
+                          : "border-[#232a3b] bg-transparent text-gray-400 hover:text-gray-200"
+                      }`}
+                    >
+                      Fechado por completo
+                      <span className="block text-[10px] font-normal text-gray-500 mt-0.5">
+                        Empresa + banco aprovado
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setStatusContrato("A_FINALIZAR")}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition border text-left ${
+                        statusContrato === "A_FINALIZAR"
+                          ? "border-amber-400 bg-amber-400/15 text-amber-400"
+                          : "border-[#232a3b] bg-transparent text-gray-400 hover:text-gray-200"
+                      }`}
+                    >
+                      A finalizar
+                      <span className="block text-[10px] font-normal text-gray-500 mt-0.5">
+                        Só assinou com a empresa
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
                 {/* Data + Fonte */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -969,6 +1037,7 @@ export default function VendasPage() {
                   <th className="text-right px-4 py-3 font-medium">Total</th>
                   <th className="text-center px-4 py-3 font-medium">Fonte</th>
                   <th className="text-center px-4 py-3 font-medium">Data</th>
+                  <th className="text-center px-4 py-3 font-medium">Contrato</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
@@ -1003,6 +1072,29 @@ export default function VendasPage() {
                     </td>
                     <td className="px-4 py-3 text-center text-gray-400">
                       {new Date(v.dataConversao).toLocaleDateString("pt-BR")}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <button
+                        onClick={() => toggleStatusContrato(v)}
+                        title="Clique para alternar o status do contrato"
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition ${
+                          v.statusContrato === "A_FINALIZAR"
+                            ? "bg-amber-400/10 text-amber-400 hover:bg-amber-400/20"
+                            : "bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400/20"
+                        }`}
+                      >
+                        {v.statusContrato === "A_FINALIZAR" ? (
+                          <>
+                            <Clock className="w-3 h-3" />
+                            A finalizar
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle2 className="w-3 h-3" />
+                            Fechado
+                          </>
+                        )}
+                      </button>
                     </td>
                     <td className="px-4 py-3 flex items-center gap-1">
                       {admin && (
@@ -1081,8 +1173,8 @@ export default function VendasPage() {
                   <td className="px-4 py-3 text-right text-yellow-400">{formatCurrency(totalComissaoOver)}</td>
                   {/* Total */}
                   <td className="px-4 py-3 text-right">{formatCurrency(totalComissao)}</td>
-                  {/* Fonte + Data + acoes */}
-                  <td colSpan={3}></td>
+                  {/* Fonte + Data + Contrato + acoes */}
+                  <td colSpan={4}></td>
                 </tr>
               </tfoot>
             </table>

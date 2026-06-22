@@ -101,6 +101,13 @@ model Venda {
   // EXTERNA = captacao propria do vendedor (porta a porta), comissao over flat 50%
   tipoVenda          String              @default("INBOUND") // INBOUND | EXTERNA
   status             String              @default("AGUARDANDO") // AGUARDANDO | APROVADO | PAGO
+  // Status do contrato (independente do pagamento de comissao):
+  // COMPLETO    = fechado com empresa E banco, aprovado, venda finalizada
+  // A_FINALIZAR = so assinou com a empresa; falta resolver burocracia
+  //               (troca de titularidade, aprovacao de banco, etc.)
+  // Default COMPLETO: vendas antigas e o caso comum ja entram como fechadas.
+  statusContrato     String              @default("COMPLETO") // COMPLETO | A_FINALIZAR
+  dataFinalizacaoContrato DateTime?       // quando passou de A_FINALIZAR -> COMPLETO
   mesReferencia      String // formato: "2026-01" para agrupar por mês
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
