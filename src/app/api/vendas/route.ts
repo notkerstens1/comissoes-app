@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
       fonte,
       orcamentoUrl,
       tipoVenda,
+      statusContrato,
       // Margem de instalacao (engenharia)
       metragemCaboPrevista,
       bitolaCabo,
@@ -140,6 +141,10 @@ export async function POST(request: NextRequest) {
     // EXTERNA: over flat 50% por venda. INBOUND: over progressivo, calculado mensalmente.
     const comissaoOverVenda = tipoVendaFinal === "EXTERNA" ? over * PERCENTUAL_OVER_EXTERNA : 0;
     const comissaoTotalVenda = comissaoVenda + comissaoOverVenda;
+
+    // Status do contrato: COMPLETO (default) ou A_FINALIZAR
+    const statusContratoFinal =
+      statusContrato === "A_FINALIZAR" ? "A_FINALIZAR" : "COMPLETO";
 
     // Determinar mes de referencia
     const data = new Date(dataConversao);
@@ -220,6 +225,8 @@ export async function POST(request: NextRequest) {
         dataConversao: data,
         fonte: fonteFinal,
         tipoVenda: tipoVendaFinal,
+        statusContrato: statusContratoFinal,
+        dataFinalizacaoContrato: statusContratoFinal === "COMPLETO" ? data : null,
         orcamentoUrl: orcamentoUrl || null,
         mesReferencia,
         // Margem de instalacao
