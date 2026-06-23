@@ -25,6 +25,7 @@ import {
   Send,
   Eye,
   Hammer,
+  Search,
 } from "lucide-react";
 import { Sidebar } from "@/components/Sidebar";
 import { OperacaoNav } from "@/components/OperacaoNav";
@@ -168,6 +169,7 @@ export default function SetorTecnicoPage() {
   const [saving, setSaving] = useState(false);
   const [erroMsg, setErroMsg] = useState("");
   const [filterEtapa, setFilterEtapa] = useState<string | null>(null);
+  const [buscaNome, setBuscaNome] = useState("");
   const [abaAtiva, setAbaAtiva] = useState<AbaAtiva>("PROJETOS");
   const [trocandoEtapaId, setTrocandoEtapaId] = useState<string | null>(null);
   const [novaEtapaSel, setNovaEtapaSel] = useState("");
@@ -446,6 +448,12 @@ export default function SetorTecnicoPage() {
       trilhoFiltro === "PROJETO" ? r.etapa === filterEtapa : r.etapaInstalacao === filterEtapa,
     );
   }
+  const buscaNorm = buscaNome.trim().toLowerCase();
+  if (buscaNorm) {
+    clientesFiltrados = clientesFiltrados.filter((r) =>
+      (r.nomeCliente || "").toLowerCase().includes(buscaNorm),
+    );
+  }
   clientesFiltrados = [...clientesFiltrados].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
@@ -619,6 +627,25 @@ export default function SetorTecnicoPage() {
             >
               Concluidos ({countConcluidos})
             </button>
+          </div>
+
+          {/* Busca por nome */}
+          <div className="mb-4 relative max-w-md">
+            <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              value={buscaNome}
+              onChange={(e) => setBuscaNome(e.target.value)}
+              className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg pl-9 pr-9 py-2 text-sm text-gray-100 focus:border-teal-400 outline-none"
+              placeholder="Buscar cliente por nome..."
+            />
+            {buscaNome && (
+              <button
+                onClick={() => setBuscaNome("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
           {/* Filtro por etapa do trilho ativo */}

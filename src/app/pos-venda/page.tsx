@@ -27,6 +27,7 @@ import {
   Eye,
   Package,
   Hammer,
+  Search,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { isAdmin as checkAdmin, isDiretor } from "@/lib/roles";
@@ -120,6 +121,7 @@ export default function PosVendaPage() {
   const [saving, setSaving] = useState(false);
   const [erroMsg, setErroMsg] = useState("");
   const [filterEtapa, setFilterEtapa] = useState<string | null>(null);
+  const [buscaNome, setBuscaNome] = useState("");
   const [trocandoEtapaId, setTrocandoEtapaId] = useState<string | null>(null);
   const [novaEtapaSel, setNovaEtapaSel] = useState("");
   const [uploadingAnexoId, setUploadingAnexoId] = useState<string | null>(null);
@@ -437,6 +439,14 @@ export default function PosVendaPage() {
     clientesFiltrados = clientesFiltrados.filter((r) => r.etapa === filterEtapa);
   }
 
+  // Busca por nome do cliente
+  const buscaNorm = buscaNome.trim().toLowerCase();
+  if (buscaNorm) {
+    clientesFiltrados = clientesFiltrados.filter((r) =>
+      (r.nomeCliente || "").toLowerCase().includes(buscaNorm)
+    );
+  }
+
   // Ordenar: vencidos primeiro, depois por próximo contato
   clientesFiltrados = [...clientesFiltrados].sort((a, b) => {
     const aVencido = a.proximoContato && a.proximoContato < hoje;
@@ -717,6 +727,25 @@ export default function PosVendaPage() {
               </div>
             </div>
           )}
+
+          {/* Busca por nome */}
+          <div className="mb-4 relative max-w-md">
+            <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              value={buscaNome}
+              onChange={(e) => setBuscaNome(e.target.value)}
+              className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg pl-9 pr-9 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
+              placeholder="Buscar cliente por nome..."
+            />
+            {buscaNome && (
+              <button
+                onClick={() => setBuscaNome("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
 
           {/* Filtros por etapa */}
           <div className="mb-6 flex gap-2 flex-wrap">
