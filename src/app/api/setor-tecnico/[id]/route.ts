@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canAccessTecnico } from "@/lib/roles";
-import { etapaInstalacaoParaPosVenda } from "@/lib/setor-tecnico";
 
 // GET — buscar registro completo (com campos pesados) sob demanda
 export async function GET(
@@ -107,27 +106,9 @@ export async function PUT(
     data,
   });
 
-  // Sync com PosVenda: quando o trilho INSTALACAO avanca, espelha a etapa
-  // correspondente no PosVenda associado (se houver). Yuri ve o progresso
-  // sem precisar perguntar no grupo. Trilho PROJETO nao espelha — eh interno.
-  if (etapaInstalacao !== undefined && registro.vendaId) {
-    const etapaPosVenda = etapaInstalacaoParaPosVenda(etapaInstalacao);
-    if (etapaPosVenda) {
-      const posVenda = await prisma.posVenda.findFirst({
-        where: { vendaId: registro.vendaId, ativo: true },
-        select: { id: true, etapa: true },
-      });
-      if (posVenda && posVenda.etapa !== etapaPosVenda) {
-        await prisma.posVenda.update({
-          where: { id: posVenda.id },
-          data: {
-            etapa: etapaPosVenda,
-            ultimaAcao: `Etapa sincronizada do setor tecnico (${etapaInstalacao})`,
-          },
-        });
-      }
-    }
-  }
+  // PosVenda e SetorTecnico sao cards independentes: o que o engenheiro faz no
+  // trilho de instalacao NAO espelha mais a etapa no card do Yuri. O pos-venda
+  // controla a propria etapa e acompanha cada processo individualmente.
 
   return NextResponse.json(updated);
 }
