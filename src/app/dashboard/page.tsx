@@ -8,13 +8,14 @@ export default function DashboardPage() {
   const { data: session } = useSession();
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-10">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-100">
-          Ola, {session?.user?.name?.split(" ")[0]}!
+      <div className="liv-rise">
+        <h1 className="text-[1.75rem] font-bold tracking-tight text-liv-ink">
+          Olá, {session?.user?.name?.split(" ")[0]}
+          <span className="text-liv-sage">.</span>
         </h1>
-        <p className="text-gray-400 text-sm">
+        <p className="mt-1 text-sm text-liv-muted">
           Acompanhe as campanhas e o ranking do time
         </p>
       </div>

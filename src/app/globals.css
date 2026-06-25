@@ -4,26 +4,45 @@
 
 @layer base {
   :root {
-    --background: 222 47% 6%;
-    --foreground: 210 20% 90%;
-    --card: 222 33% 14%;
-    --card-foreground: 210 20% 90%;
-    --popover: 222 33% 14%;
-    --popover-foreground: 210 20% 90%;
-    --primary: 82 85% 55%;
-    --primary-foreground: 222 47% 6%;
-    --secondary: 222 33% 18%;
-    --secondary-foreground: 210 20% 80%;
-    --muted: 222 33% 18%;
-    --muted-foreground: 215 16% 55%;
-    --accent: 82 85% 55%;
-    --accent-foreground: 222 47% 6%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 222 30% 18%;
-    --input: 222 30% 18%;
-    --ring: 82 85% 55%;
-    --radius: 0.5rem;
+    --font-sans: "Satoshi";
+
+    /* ===== LIV — design tokens (dark premium, puxado pro sage da marca) =====
+       Canais OKLCH (L C H) pra usar com oklch(var(--x) / <alpha-value>) — assim
+       os utilitários de opacidade do Tailwind funcionam (bg-liv-sage/10 etc). */
+    --liv-bg: 0.17 0.008 155;          /* base grafite-esverdeada */
+    --liv-surface: 0.215 0.009 155;    /* cartões */
+    --liv-surface-2: 0.255 0.011 155;  /* superfícies elevadas (header de tabela, toggle) */
+    --liv-line: 0.305 0.012 155;       /* bordas */
+    --liv-ink: 0.955 0.006 155;        /* texto primário (off-white tingido) */
+    --liv-muted: 0.74 0.010 155;       /* texto secundário */
+    --liv-faint: 0.56 0.010 155;       /* rótulos / metadados */
+    --liv-sage: 0.81 0.055 155;        /* acento principal (sage) */
+    --liv-sage-deep: 0.70 0.080 155;   /* preenchimentos / barras */
+    --liv-sand: 0.88 0.030 80;         /* destaque morno secundário (areia) */
+    --liv-gold: 0.84 0.105 90;         /* campeão (1º lugar) */
+    --liv-danger: 0.64 0.150 25;       /* alerta / prazo estourando */
+
+    /* ===== Compat: tokens shadcn remapeados pra paleta LIV (HSL) ===== */
+    --background: 156 9% 9%;
+    --foreground: 150 8% 95%;
+    --card: 156 8% 14%;
+    --card-foreground: 150 8% 95%;
+    --popover: 156 8% 14%;
+    --popover-foreground: 150 8% 95%;
+    --primary: 95 16% 72%;
+    --primary-foreground: 156 12% 10%;
+    --secondary: 156 7% 19%;
+    --secondary-foreground: 150 8% 85%;
+    --muted: 156 7% 19%;
+    --muted-foreground: 150 6% 60%;
+    --accent: 95 16% 72%;
+    --accent-foreground: 156 12% 10%;
+    --destructive: 12 70% 55%;
+    --destructive-foreground: 150 20% 96%;
+    --border: 156 8% 21%;
+    --input: 156 8% 21%;
+    --ring: 95 20% 60%;
+    --radius: 0.875rem;
   }
 }
 
@@ -33,6 +52,19 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Entrada escalonada — decelera de forma natural (ease-out-quint) */
+  @keyframes liv-rise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: none; }
+  }
+  .liv-rise { animation: liv-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .liv-rise { animation: none; }
   }
 }

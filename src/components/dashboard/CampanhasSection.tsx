@@ -107,10 +107,9 @@ export function CampanhasSection({ userRole }: Props) {
   };
 
   const getProgressColor = (percentual: number) => {
-    if (percentual >= 100) return "bg-lime-400";
-    if (percentual >= 70) return "bg-lime-400";
-    if (percentual >= 40) return "bg-yellow-400";
-    return "bg-orange-400";
+    if (percentual >= 70) return "bg-liv-sage";
+    if (percentual >= 40) return "bg-liv-sand";
+    return "bg-liv-faint";
   };
 
   const formatMeta = (tipo: string, valor: number) => {
@@ -133,33 +132,33 @@ export function CampanhasSection({ userRole }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Target className="w-4 h-4 text-lime-400" />
-          <h2 className="text-sm font-semibold text-gray-300 uppercase tracking-wide">
+          <Target className="h-4 w-4 text-liv-sage" />
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-liv-muted">
             Campanhas
           </h2>
         </div>
         {canManage && (
           <button
             onClick={handleNew}
-            className="flex items-center gap-1.5 text-xs font-medium text-lime-400 hover:text-lime-300 transition"
+            className="flex items-center gap-1.5 text-xs font-medium text-liv-sage transition hover:text-liv-ink"
           >
-            <Plus className="w-3.5 h-3.5" />
-            Nova Campanha
+            <Plus className="h-3.5 w-3.5" />
+            Nova campanha
           </button>
         )}
       </div>
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center justify-center py-4">
-          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-lime-400" />
+        <div className="flex items-center justify-center py-5">
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-liv-line border-t-liv-sage" />
         </div>
       )}
 
       {/* Cards de campanhas */}
       {!loading && campanhas.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {campanhas.map((campanha) => {
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          {campanhas.map((campanha, idx) => {
             const prog = progressos[campanha.id];
             const percentual = prog?.progressoTime?.percentual || 0;
             const atual = prog?.progressoTime?.atual || 0;
@@ -168,36 +167,37 @@ export function CampanhasSection({ userRole }: Props) {
             return (
               <div
                 key={campanha.id}
-                className="bg-[#1a1f2e] rounded-xl p-4 border border-[#232a3b] hover:border-[#2d3548] transition"
+                className="liv-rise rounded-2xl border border-liv-line bg-liv-surface p-4 transition-colors hover:border-liv-line/60"
+                style={{ animationDelay: `${idx * 60}ms` }}
               >
                 {/* Top row: titulo + badges + edit */}
-                <div className="flex items-start justify-between gap-2 mb-3">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-100 text-sm truncate">
+                <div className="mb-3 flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-sm font-semibold text-liv-ink">
                       {campanha.titulo}
                     </h3>
                     {campanha.descricao && (
-                      <p className="text-xs text-gray-500 mt-0.5 truncate">
+                      <p className="mt-0.5 truncate text-xs text-liv-faint">
                         {campanha.descricao}
                       </p>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
+                  <div className="flex shrink-0 items-center gap-1.5">
                     {/* Type badge */}
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-lime-400/10 text-lime-400 font-medium">
+                    <span className="rounded-full bg-liv-sage/12 px-2 py-0.5 text-[10px] font-medium text-liv-sage">
                       {campanha.tipo === "VALOR" ? "R$" : "Qtd"}
                     </span>
                     {/* Scope badge */}
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-400/10 text-blue-400 font-medium flex items-center gap-0.5">
+                    <span className="flex items-center gap-0.5 rounded-full bg-liv-surface-2 px-2 py-0.5 text-[10px] font-medium text-liv-muted">
                       {campanha.escopo === "TIME" ? (
                         <>
-                          <Users className="w-2.5 h-2.5" />
+                          <Users className="h-2.5 w-2.5" />
                           Time
                         </>
                       ) : (
                         <>
-                          <Trophy className="w-2.5 h-2.5" />
+                          <Trophy className="h-2.5 w-2.5" />
                           Individual
                         </>
                       )}
@@ -205,9 +205,9 @@ export function CampanhasSection({ userRole }: Props) {
                     {canManage && (
                       <button
                         onClick={() => handleEdit(campanha)}
-                        className="p-1 rounded text-gray-500 hover:text-gray-300 hover:bg-[#232a3b] transition"
+                        className="rounded-lg p-1 text-liv-faint transition hover:bg-liv-surface-2 hover:text-liv-ink"
                       >
-                        <Pencil className="w-3 h-3" />
+                        <Pencil className="h-3 w-3" />
                       </button>
                     )}
                   </div>
@@ -217,26 +217,24 @@ export function CampanhasSection({ userRole }: Props) {
                 {campanha.escopo === "TIME" && prog?.progressoTime && (
                   <>
                     {/* Progress bar */}
-                    <div className="w-full h-2 bg-[#232a3b] rounded-full overflow-hidden mb-2">
+                    <div className="mb-2 h-2 w-full overflow-hidden rounded-full bg-liv-surface-2">
                       <div
                         className={`h-full rounded-full transition-all duration-700 ${getProgressColor(
                           percentual
                         )}`}
-                        style={{
-                          width: `${Math.min(percentual, 100)}%`,
-                        }}
+                        style={{ width: `${Math.min(percentual, 100)}%` }}
                       />
                     </div>
 
                     {/* Stats */}
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-300 font-medium">
+                      <span className="font-medium tabular-nums text-liv-muted">
                         {formatAtual(campanha.tipo, atual)}{" "}
-                        <span className="text-gray-500">
+                        <span className="text-liv-faint">
                           / {formatMeta(campanha.tipo, campanha.meta)}
                         </span>
                       </span>
-                      <span className="font-bold text-lime-400">
+                      <span className="font-bold tabular-nums text-liv-sage">
                         {percentual.toFixed(1)}%
                       </span>
                     </div>
@@ -246,31 +244,29 @@ export function CampanhasSection({ userRole }: Props) {
                 {/* Progress para INDIVIDUAL */}
                 {campanha.escopo === "INDIVIDUAL" &&
                   prog?.progressoIndividual && (
-                    <div className="space-y-1.5 mb-2">
+                    <div className="mb-2 space-y-1.5">
                       {prog.progressoIndividual.slice(0, 4).map((pi) => (
                         <div key={pi.vendedorId}>
-                          <div className="flex items-center justify-between text-xs mb-0.5">
-                            <span className="text-gray-400 truncate">
+                          <div className="mb-0.5 flex items-center justify-between text-xs">
+                            <span className="truncate text-liv-muted">
                               {pi.vendedorNome}
                             </span>
-                            <span className="text-gray-300 font-medium shrink-0 ml-2">
+                            <span className="ml-2 shrink-0 font-medium tabular-nums text-liv-ink">
                               {pi.percentual.toFixed(0)}%
                             </span>
                           </div>
-                          <div className="w-full h-1.5 bg-[#232a3b] rounded-full overflow-hidden">
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-liv-surface-2">
                             <div
                               className={`h-full rounded-full transition-all duration-500 ${getProgressColor(
                                 pi.percentual
                               )}`}
-                              style={{
-                                width: `${Math.min(pi.percentual, 100)}%`,
-                              }}
+                              style={{ width: `${Math.min(pi.percentual, 100)}%` }}
                             />
                           </div>
                         </div>
                       ))}
                       {prog.progressoIndividual.length > 4 && (
-                        <p className="text-[10px] text-gray-500">
+                        <p className="text-[10px] text-liv-faint">
                           +{prog.progressoIndividual.length - 4} vendedores
                         </p>
                       )}
@@ -278,23 +274,23 @@ export function CampanhasSection({ userRole }: Props) {
                   )}
 
                 {/* Footer: datas + dias restantes */}
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-[#232a3b]/50">
-                  <span className="flex items-center gap-1 text-[10px] text-gray-500">
-                    <Calendar className="w-3 h-3" />
+                <div className="mt-2 flex items-center justify-between border-t border-liv-line pt-2">
+                  <span className="flex items-center gap-1 text-[10px] text-liv-faint">
+                    <Calendar className="h-3 w-3" />
                     {formatDateShort(campanha.dataInicio)} -{" "}
                     {formatDateShort(campanha.dataFim)}
                   </span>
                   <span
                     className={`text-[10px] font-medium ${
                       diasRestantes <= 3
-                        ? "text-red-400"
+                        ? "text-liv-danger"
                         : diasRestantes <= 7
-                        ? "text-yellow-400"
-                        : "text-gray-400"
+                        ? "text-liv-sand"
+                        : "text-liv-faint"
                     }`}
                   >
                     {diasRestantes === 0
-                      ? "Ultimo dia!"
+                      ? "Último dia!"
                       : `${diasRestantes} dias restantes`}
                   </span>
                 </div>

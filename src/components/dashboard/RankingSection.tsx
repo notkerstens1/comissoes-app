@@ -67,28 +67,18 @@ export function RankingSection() {
     fetchRanking();
   }, [fetchRanking]);
 
-  const getPosicaoIcon = (pos: number) => {
-    if (pos === 1)
-      return <Crown className="w-5 h-5 text-yellow-400" />;
-    if (pos === 2)
-      return <Medal className="w-5 h-5 text-gray-400" />;
-    if (pos === 3)
-      return <Medal className="w-5 h-5 text-amber-600" />;
-    return (
-      <span className="text-sm font-bold text-gray-500">
-        {pos}
-      </span>
-    );
+  // Cor do indicador de posicao — campeao em dourado, depois areia e sage.
+  const rankTone = (pos: number) => {
+    if (pos === 1) return "text-liv-gold";
+    if (pos === 2) return "text-liv-sand";
+    if (pos === 3) return "text-liv-sage";
+    return "text-liv-faint";
   };
 
-  const getCardStyle = (pos: number) => {
-    if (pos === 1)
-      return "bg-yellow-400/5 border-yellow-400/30 ring-1 ring-yellow-400/20";
-    if (pos === 2)
-      return "bg-[#1a1f2e] border-gray-400/30";
-    if (pos === 3)
-      return "bg-amber-400/5 border-amber-600/30";
-    return "bg-[#1a1f2e] border-[#232a3b]";
+  const rankIcon = (pos: number) => {
+    if (pos === 1) return <Crown className="h-[1.15rem] w-[1.15rem]" />;
+    if (pos <= 3) return <Medal className="h-[1.15rem] w-[1.15rem]" />;
+    return <span className="text-sm font-bold tabular-nums">{pos}</span>;
   };
 
   const renderBadges = (vendorId: string) => {
@@ -99,10 +89,10 @@ export function RankingSection() {
       badges.push(
         <span
           key="margem"
-          className="inline-flex items-center gap-1 text-[10px] bg-blue-400/10 text-blue-400 px-2 py-0.5 rounded-full font-medium"
+          className="inline-flex items-center gap-1 rounded-full bg-liv-sage/12 px-2 py-0.5 text-[10px] font-medium text-liv-sage"
         >
-          <TrendingUp className="w-3 h-3" />
-          Melhor Margem
+          <TrendingUp className="h-3 w-3" />
+          Melhor margem
         </span>
       );
     }
@@ -110,209 +100,205 @@ export function RankingSection() {
       badges.push(
         <span
           key="ticket"
-          className="inline-flex items-center gap-1 text-[10px] bg-purple-400/10 text-purple-400 px-2 py-0.5 rounded-full font-medium"
+          className="inline-flex items-center gap-1 rounded-full bg-liv-gold/12 px-2 py-0.5 text-[10px] font-medium text-liv-gold"
         >
-          <Target className="w-3 h-3" />
-          Maior Ticket
+          <Target className="h-3 w-3" />
+          Maior ticket
         </span>
       );
     }
 
     return badges.length > 0 ? (
-      <div className="flex gap-1.5 flex-wrap">{badges}</div>
+      <div className="flex flex-wrap gap-1.5">{badges}</div>
     ) : null;
   };
 
-  const top5 = dados?.ranking?.slice(0, 5) || [];
-  const restante = dados?.ranking?.slice(5) || [];
+  // Coluna de apoio (Vendido / Ticket / Margem)
+  const Stat = ({ label, value }: { label: string; value: string }) => (
+    <div className="text-right">
+      <p className="text-[10px] uppercase tracking-wide text-liv-faint">{label}</p>
+      <p className="mt-0.5 text-sm font-semibold tabular-nums text-liv-ink">{value}</p>
+    </div>
+  );
+
+  const ranking = dados?.ranking ?? [];
+  const campeao = ranking[0];
+  const top = ranking.slice(1, 5);
+  const restante = ranking.slice(5);
 
   return (
-    <div className="space-y-5">
-      {/* Header + Toggle */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Trophy className="w-5 h-5 text-lime-400" />
-          <h2 className="text-lg font-bold text-gray-100">
-            Ranking de Vendedores
+    <section className="space-y-5">
+      {/* Header + toggle de periodo */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2.5">
+          <Trophy className="h-5 w-5 text-liv-sage" />
+          <h2 className="text-lg font-semibold tracking-tight text-liv-ink">
+            Ranking de vendedores
           </h2>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex bg-[#141820] rounded-lg p-0.5 border border-[#232a3b]">
+        <div className="inline-flex rounded-full border border-liv-line bg-liv-surface-2 p-0.5">
+          {(["semana", "mes"] as Periodo[]).map((p) => (
             <button
-              onClick={() => setPeriodo("semana")}
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition ${
-                periodo === "semana"
-                  ? "bg-lime-400 text-gray-900"
-                  : "text-gray-400 hover:text-gray-200"
+              key={p}
+              onClick={() => setPeriodo(p)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                periodo === p
+                  ? "bg-liv-sage text-liv-bg"
+                  : "text-liv-muted hover:text-liv-ink"
               }`}
             >
-              Semana
+              {p === "semana" ? "Semana" : "Mês"}
             </button>
-            <button
-              onClick={() => setPeriodo("mes")}
-              className={`px-4 py-1.5 text-sm font-medium rounded-md transition ${
-                periodo === "mes"
-                  ? "bg-lime-400 text-gray-900"
-                  : "text-gray-400 hover:text-gray-200"
-              }`}
-            >
-              Mes
-            </button>
-          </div>
+          ))}
         </div>
       </div>
 
-      {/* Range label */}
-      <p className="text-xs text-gray-500">{rangeLabel}</p>
+      <p className="text-xs text-liv-faint">{rangeLabel}</p>
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-400" />
+        <div className="flex items-center justify-center py-10">
+          <div className="h-7 w-7 animate-spin rounded-full border-2 border-liv-line border-t-liv-sage" />
         </div>
       )}
 
-      {/* Top 5 Podium */}
-      {!loading && top5.length > 0 && (
-        <div className="space-y-3">
-          {top5.map((v) => (
-            <div
-              key={v.id}
-              className={`rounded-xl p-4 border transition hover:shadow-md ${getCardStyle(
-                v.posicao
-              )}`}
-            >
-              <div className="flex items-center gap-3">
-                {/* Posicao */}
-                <div className="w-9 h-9 rounded-full flex items-center justify-center bg-[#0b0f19]/60 shrink-0">
-                  {getPosicaoIcon(v.posicao)}
-                </div>
-
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-bold text-gray-100">{v.nome}</h3>
-                    {renderBadges(v.id)}
-                  </div>
-                </div>
-
-                {/* Metricas desktop */}
-                <div className="hidden sm:flex items-center gap-6 text-center">
-                  <div>
-                    <p className="text-[10px] text-gray-500 uppercase">
-                      Vendido
-                    </p>
-                    <p className="font-bold text-gray-100 text-sm">
-                      {formatCurrency(v.totalVendido)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-500 uppercase">
-                      Vendas
-                    </p>
-                    <p className="font-bold text-gray-100 text-sm">
-                      {v.qtdVendas}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-500 uppercase">
-                      Ticket
-                    </p>
-                    <p className="font-bold text-gray-100 text-sm">
-                      {formatCurrency(v.ticketMedio)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-gray-500 uppercase">
-                      Margem
-                    </p>
-                    <p className="font-bold text-gray-100 text-sm">
-                      {formatNumber(v.margemMedia)}x
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Metricas mobile */}
-              <div className="sm:hidden grid grid-cols-4 gap-2 mt-3 pt-3 border-t border-[#232a3b]/50">
-                <div>
-                  <p className="text-[10px] text-gray-500">Vendido</p>
-                  <p className="font-bold text-xs text-gray-100">
-                    {formatCurrency(v.totalVendido)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-500">Vendas</p>
-                  <p className="font-bold text-xs text-gray-100">
-                    {v.qtdVendas}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-500">Ticket</p>
-                  <p className="font-bold text-xs text-gray-100">
-                    {formatCurrency(v.ticketMedio)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-gray-500">Margem</p>
-                  <p className="font-bold text-xs text-gray-100">
-                    {formatNumber(v.margemMedia)}x
-                  </p>
-                </div>
-              </div>
+      {/* Campeao */}
+      {!loading && campeao && (
+        <article className="liv-rise relative overflow-hidden rounded-2xl border border-liv-gold/25 bg-liv-surface p-5">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-12 -top-16 h-44 w-44 rounded-full bg-liv-gold/10 blur-3xl"
+          />
+          <div className="relative flex items-center gap-4">
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-liv-surface-2 text-liv-gold ring-1 ring-liv-gold/30">
+              {rankIcon(1)}
             </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="truncate text-lg font-bold text-liv-ink">{campeao.nome}</h3>
+                {renderBadges(campeao.id)}
+              </div>
+              <p className="mt-0.5 text-xs text-liv-faint">Líder em vendas no período</p>
+            </div>
+            <div className="shrink-0 text-right">
+              <p className="text-3xl font-bold leading-none tabular-nums text-liv-ink">
+                {campeao.qtdVendas}
+              </p>
+              <p className="mt-1 text-[11px] uppercase tracking-wide text-liv-faint">
+                vendas
+              </p>
+            </div>
+          </div>
+
+          <div className="relative mt-5 grid grid-cols-3 gap-3 border-t border-liv-line pt-4">
+            <Stat label="Vendido" value={formatCurrency(campeao.totalVendido)} />
+            <Stat label="Ticket" value={formatCurrency(campeao.ticketMedio)} />
+            <Stat label="Margem" value={`${formatNumber(campeao.margemMedia)}x`} />
+          </div>
+        </article>
+      )}
+
+      {/* Posicoes 2 a 5 */}
+      {!loading && top.length > 0 && (
+        <div className="space-y-2.5">
+          {top.map((v, i) => (
+            <article
+              key={v.id}
+              className="liv-rise flex items-center gap-4 rounded-2xl border border-liv-line bg-liv-surface px-4 py-3.5 transition-colors hover:border-liv-line/60 hover:bg-liv-surface-2"
+              style={{ animationDelay: `${(i + 1) * 60}ms` }}
+            >
+              <div
+                className={`grid h-10 w-10 shrink-0 place-items-center rounded-full bg-liv-surface-2 ${rankTone(
+                  v.posicao
+                )}`}
+              >
+                {rankIcon(v.posicao)}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="truncate font-semibold text-liv-ink">{v.nome}</h3>
+                  {renderBadges(v.id)}
+                </div>
+                {/* Métricas de apoio no mobile */}
+                <div className="mt-1 flex items-center gap-3 text-xs text-liv-muted tabular-nums sm:hidden">
+                  <span>{formatCurrency(v.totalVendido)}</span>
+                  <span className="text-liv-faint">·</span>
+                  <span>ticket {formatCurrency(v.ticketMedio)}</span>
+                </div>
+              </div>
+
+              {/* Métricas de apoio no desktop */}
+              <div className="hidden items-center gap-7 sm:flex">
+                <Stat label="Vendido" value={formatCurrency(v.totalVendido)} />
+                <Stat label="Ticket" value={formatCurrency(v.ticketMedio)} />
+                <Stat label="Margem" value={`${formatNumber(v.margemMedia)}x`} />
+              </div>
+
+              {/* Métrica primária: vendas */}
+              <div className="shrink-0 text-right">
+                <p className="text-xl font-bold leading-none tabular-nums text-liv-sage">
+                  {v.qtdVendas}
+                </p>
+                <p className="mt-1 text-[10px] uppercase tracking-wide text-liv-faint">
+                  vendas
+                </p>
+              </div>
+            </article>
           ))}
         </div>
       )}
 
-      {/* Tabela completa (restante apos top 5) */}
+      {/* Tabela — demais vendedores */}
       {!loading && restante.length > 0 && (
-        <div className="bg-[#1a1f2e] rounded-xl shadow-sm border border-[#232a3b] overflow-hidden">
-          <div className="px-5 py-3 border-b border-[#232a3b]">
-            <h3 className="text-sm font-medium text-gray-400">
+        <div className="overflow-hidden rounded-2xl border border-liv-line bg-liv-surface">
+          <div className="border-b border-liv-line px-5 py-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wide text-liv-faint">
               Demais vendedores
             </h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#141820] text-gray-400">
+              <thead className="bg-liv-surface-2 text-liv-faint">
                 <tr>
-                  <th className="text-left px-5 py-2.5 font-medium">#</th>
-                  <th className="text-left px-5 py-2.5 font-medium">
+                  <th className="px-5 py-2.5 text-left text-[11px] font-medium uppercase tracking-wide">
+                    #
+                  </th>
+                  <th className="px-5 py-2.5 text-left text-[11px] font-medium uppercase tracking-wide">
                     Vendedor
                   </th>
-                  <th className="text-right px-5 py-2.5 font-medium">
+                  <th className="px-5 py-2.5 text-right text-[11px] font-medium uppercase tracking-wide">
                     Vendido
                   </th>
-                  <th className="text-right px-5 py-2.5 font-medium">
-                    Vendas
-                  </th>
-                  <th className="text-right px-5 py-2.5 font-medium">
+                  <th className="px-5 py-2.5 text-right text-[11px] font-medium uppercase tracking-wide">
                     Ticket
+                  </th>
+                  <th className="px-5 py-2.5 text-right text-[11px] font-medium uppercase tracking-wide">
+                    Vendas
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#232a3b]">
+              <tbody className="divide-y divide-liv-line">
                 {restante.map((v) => (
-                  <tr key={v.id} className="hover:bg-[#232a3b]">
-                    <td className="px-5 py-2.5 text-gray-500 font-medium">
+                  <tr key={v.id} className="transition-colors hover:bg-liv-surface-2">
+                    <td className="px-5 py-3 font-medium tabular-nums text-liv-faint">
                       {v.posicao}
                     </td>
-                    <td className="px-5 py-2.5 text-gray-100 font-medium">
+                    <td className="px-5 py-3 font-medium text-liv-ink">
                       <div className="flex items-center gap-2">
                         {v.nome}
                         {renderBadges(v.id)}
                       </div>
                     </td>
-                    <td className="px-5 py-2.5 text-right text-gray-100">
+                    <td className="px-5 py-3 text-right tabular-nums text-liv-muted">
                       {formatCurrency(v.totalVendido)}
                     </td>
-                    <td className="px-5 py-2.5 text-right text-gray-400">
-                      {v.qtdVendas}
-                    </td>
-                    <td className="px-5 py-2.5 text-right text-gray-400">
+                    <td className="px-5 py-3 text-right tabular-nums text-liv-muted">
                       {formatCurrency(v.ticketMedio)}
+                    </td>
+                    <td className="px-5 py-3 text-right font-semibold tabular-nums text-liv-ink">
+                      {v.qtdVendas}
                     </td>
                   </tr>
                 ))}
@@ -322,23 +308,21 @@ export function RankingSection() {
         </div>
       )}
 
-      {/* Totais */}
-      {!loading && dados && dados.ranking.length > 0 && (
-        <div className="flex justify-between items-center bg-[#141820] rounded-xl px-5 py-3 border border-[#232a3b]">
-          <span className="text-sm font-medium text-gray-400">
-            Total do time
-          </span>
-          <div className="flex gap-6">
+      {/* Total do time */}
+      {!loading && ranking.length > 0 && (
+        <div className="flex items-center justify-between rounded-2xl border border-liv-line bg-liv-surface-2 px-5 py-4">
+          <span className="text-sm font-medium text-liv-muted">Total do time</span>
+          <div className="flex gap-8">
             <div className="text-right">
-              <p className="text-[10px] text-gray-500 uppercase">Vendido</p>
-              <p className="font-bold text-lime-400">
-                {formatCurrency(dados.totais.totalGeralVendido)}
+              <p className="text-[10px] uppercase tracking-wide text-liv-faint">Vendido</p>
+              <p className="mt-0.5 font-bold tabular-nums text-liv-ink">
+                {formatCurrency(dados!.totais.totalGeralVendido)}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-[10px] text-gray-500 uppercase">Vendas</p>
-              <p className="font-bold text-lime-400">
-                {dados.totais.totalGeralVendas}
+              <p className="text-[10px] uppercase tracking-wide text-liv-faint">Vendas</p>
+              <p className="mt-0.5 font-bold tabular-nums text-liv-sage">
+                {dados!.totais.totalGeralVendas}
               </p>
             </div>
           </div>
@@ -346,17 +330,20 @@ export function RankingSection() {
       )}
 
       {/* Empty state */}
-      {!loading && (!dados?.ranking || dados.ranking.length === 0) && (
-        <div className="bg-[#1a1f2e] rounded-xl p-12 shadow-sm border border-[#232a3b] text-center">
-          <Trophy className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-100 mb-2">
-            Nenhuma venda no periodo
+      {!loading && ranking.length === 0 && (
+        <div className="rounded-2xl border border-liv-line bg-liv-surface px-6 py-14 text-center">
+          <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-liv-surface-2">
+            <Trophy className="h-6 w-6 text-liv-faint" />
+          </div>
+          <h3 className="text-base font-semibold text-liv-ink">
+            Nenhuma venda neste período
           </h3>
-          <p className="text-gray-400">
-            Aguardando registro de vendas para montar o ranking.
+          <p className="mx-auto mt-1 max-w-sm text-sm text-liv-muted">
+            Assim que as vendas forem registradas, o ranking aparece aqui — ordenado por
+            quantidade de vendas.
           </p>
         </div>
       )}
-    </div>
+    </section>
   );
 }

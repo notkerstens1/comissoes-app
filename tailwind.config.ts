@@ -9,7 +9,24 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", "system-ui", "-apple-system", "sans-serif"],
+      },
       colors: {
+        liv: {
+          bg: "oklch(var(--liv-bg) / <alpha-value>)",
+          surface: "oklch(var(--liv-surface) / <alpha-value>)",
+          "surface-2": "oklch(var(--liv-surface-2) / <alpha-value>)",
+          line: "oklch(var(--liv-line) / <alpha-value>)",
+          ink: "oklch(var(--liv-ink) / <alpha-value>)",
+          muted: "oklch(var(--liv-muted) / <alpha-value>)",
+          faint: "oklch(var(--liv-faint) / <alpha-value>)",
+          sage: "oklch(var(--liv-sage) / <alpha-value>)",
+          "sage-deep": "oklch(var(--liv-sage-deep) / <alpha-value>)",
+          sand: "oklch(var(--liv-sand) / <alpha-value>)",
+          gold: "oklch(var(--liv-gold) / <alpha-value>)",
+          danger: "oklch(var(--liv-danger) / <alpha-value>)",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
