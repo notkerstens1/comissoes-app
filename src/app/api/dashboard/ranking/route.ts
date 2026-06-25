@@ -63,8 +63,8 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  // Ordenar por total vendido (maior primeiro)
-  ranking.sort((a, b) => b.totalVendido - a.totalVendido);
+  // Ordenar por quantidade de vendas (maior primeiro); faturamento desempata
+  ranking.sort((a, b) => b.qtdVendas - a.qtdVendas || b.totalVendido - a.totalVendido);
 
   // Adicionar posicao
   const rankingComPosicao = ranking.map((r, i) => ({
