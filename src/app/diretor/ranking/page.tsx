@@ -106,10 +106,9 @@ export default function RankingPage() {
     return `${meses[parseInt(m) - 1]} ${ano}`;
   };
 
-  const getProgressTone = (pct: number): "gold" | "amber" | "sage" => {
+  const getProgressTone = (pct: number): "gold" | "amber" => {
     if (pct >= 100) return "gold";
-    if (pct >= 50) return "amber";
-    return "sage";
+    return "amber";
   };
 
   const getProgressTextColor = (pct: number) => {
