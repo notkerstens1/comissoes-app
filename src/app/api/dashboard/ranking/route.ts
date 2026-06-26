@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getCurrentWeekRange } from "@/lib/dates";
+import { getCurrentWeekRange, getNow } from "@/lib/dates";
 import { ROLES_VENDEDOR_TIME } from "@/lib/roles";
+import { buildDashboardRanking } from "@/lib/ranking";
 
 // GET - Ranking de vendedores por date range (todos os roles)
 export async function GET(request: NextRequest) {
@@ -42,35 +43,16 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  // Agrupar por vendedor
-  const ranking = vendedores.map((vendedor) => {
-    const vendasDoVendedor = vendas.filter((v) => v.vendedorId === vendedor.id);
-    const totalVendido = vendasDoVendedor.reduce((s, v) => s + v.valorVenda, 0);
-    const qtdVendas = vendasDoVendedor.length;
-    const ticketMedio = qtdVendas > 0 ? totalVendido / qtdVendas : 0;
-    const margemMedia =
-      qtdVendas > 0
-        ? vendasDoVendedor.reduce((s, v) => s + v.margem, 0) / qtdVendas
-        : 0;
+  // Buscar meta de vendas da configuração
+  const config = await prisma.configuracao.findFirst();
+  const meta = config?.metaVendasMes ?? 120000;
 
-    return {
-      id: vendedor.id,
-      nome: vendedor.nome,
-      totalVendido,
-      qtdVendas,
-      ticketMedio,
-      margemMedia,
-    };
-  });
-
-  // Ordenar por quantidade de vendas (maior primeiro); faturamento desempata
-  ranking.sort((a, b) => b.qtdVendas - a.qtdVendas || b.totalVendido - a.totalVendido);
-
-  // Adicionar posicao
-  const rankingComPosicao = ranking.map((r, i) => ({
-    posicao: i + 1,
-    ...r,
-  }));
+  // Calcular ranking e totais via helper
+  const { ranking, totais } = buildDashboardRanking(
+    vendedores.map((v) => ({ id: v.id, nome: v.nome })),
+    vendas.map((v) => ({ vendedorId: v.vendedorId, valorVenda: v.valorVenda, margem: v.margem })),
+    meta,
+  );
 
   // Calcular badges especiais (somente entre vendedores com pelo menos 1 venda)
   const comVendas = ranking.filter((r) => r.qtdVendas > 0);
@@ -101,14 +83,10 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     inicio,
     fim,
-    ranking: rankingComPosicao,
-    badges: {
-      melhorMargem,
-      maiorTicket,
-    },
-    totais: {
-      totalGeralVendido: ranking.reduce((s, r) => s + r.totalVendido, 0),
-      totalGeralVendas: ranking.reduce((s, r) => s + r.qtdVendas, 0),
-    },
+    geradoEm: getNow().toISOString(),
+    meta,
+    ranking,
+    badges: { melhorMargem, maiorTicket },
+    totais,
   });
 }

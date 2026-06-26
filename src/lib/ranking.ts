@@ -34,6 +34,34 @@ export function rankByVendas(vendedores: VendedorVendas[], meta: number): Ranked
     }));
 }
 
+interface VendedorRef { id: string; nome: string }
+interface VendaRef { vendedorId: string; valorVenda: number; margem: number }
+
+export function buildDashboardRanking(vendedores: VendedorRef[], vendas: VendaRef[], meta: number) {
+  const agregados: VendedorVendas[] = vendedores.map((v) => {
+    const suas = vendas.filter((x) => x.vendedorId === v.id);
+    const totalVendido = suas.reduce((s, x) => s + x.valorVenda, 0);
+    const qtdVendas = suas.length;
+    return {
+      id: v.id,
+      nome: v.nome,
+      totalVendido,
+      qtdVendas,
+      ticketMedio: qtdVendas > 0 ? totalVendido / qtdVendas : 0,
+      margemMedia: qtdVendas > 0 ? suas.reduce((s, x) => s + x.margem, 0) / qtdVendas : 0,
+    };
+  });
+
+  const ranking = rankByVendas(agregados, meta);
+  return {
+    ranking,
+    totais: {
+      totalGeralVendido: ranking.reduce((s, r) => s + r.totalVendido, 0),
+      totalGeralVendas: ranking.reduce((s, r) => s + r.qtdVendas, 0),
+    },
+  };
+}
+
 /** Compara dois snapshots e devolve os eventos de celebração. */
 export function diffRanking(prev: RankedVendedor[], next: RankedVendedor[]): LiveEvent[] {
   const prevById = new Map(prev.map((p) => [p.id, p]));

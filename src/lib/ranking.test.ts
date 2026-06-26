@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { rankByVendas, diffRanking, type VendedorVendas, type RankedVendedor } from "./ranking";
+import { rankByVendas, diffRanking, buildDashboardRanking, type VendedorVendas, type RankedVendedor } from "./ranking";
 
 const base = (over: Partial<VendedorVendas> & { id: string }): VendedorVendas => ({
   nome: over.id, totalVendido: 0, qtdVendas: 0, ticketMedio: 0, margemMedia: 0, ...over,
@@ -63,5 +63,25 @@ describe("diffRanking", () => {
     const prev: any[] = [];
     const next = [ranked({ id: "a", qtdVendas: 1, totalVendido: 5000, posicao: 1 })];
     expect(diffRanking(prev, next)).toEqual([]);
+  });
+});
+
+describe("buildDashboardRanking", () => {
+  const vendedores = [{ id: "a", nome: "Ana" }, { id: "b", nome: "Bia" }];
+  const vendas = [
+    { vendedorId: "a", valorVenda: 60000, margem: 1.8 },
+    { vendedorId: "a", valorVenda: 60000, margem: 2.0 },
+    { vendedorId: "b", valorVenda: 130000, margem: 1.5 },
+  ];
+
+  it("agrega vendas, ranqueia por quantidade e calcula meta/progresso", () => {
+    const { ranking, totais } = buildDashboardRanking(vendedores, vendas, 120000);
+    // Ana: 2 vendas / 120k; Bia: 1 venda / 130k → Ana lidera (mais vendas)
+    expect(ranking[0].id).toBe("a");
+    expect(ranking[0].qtdVendas).toBe(2);
+    expect(ranking[0].progresso).toBeCloseTo(1); // 120k/120k
+    expect(ranking[1].progresso).toBeCloseTo(130000 / 120000);
+    expect(totais.totalGeralVendas).toBe(3);
+    expect(totais.totalGeralVendido).toBe(250000);
   });
 });
