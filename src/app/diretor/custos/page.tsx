@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { formatCurrency, formatCurrencyInput, handleCurrencyKeyInput } from "@/lib/utils";
 import { Calculator, Save, X, Edit3 } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface VendaCusto {
   id: string;
@@ -154,56 +158,58 @@ export default function CustosPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-liv-gold"></div>
       </div>
     );
   }
 
+  const margemBadge = (margem: number) => {
+    if (margem >= 0.20 && margem <= 0.25) {
+      return <Badge variant="sage">Margem: {(margem * 100).toFixed(1)}%</Badge>;
+    }
+    if (margem < 0.20) {
+      return <Badge className="border-transparent bg-liv-danger/10 text-liv-danger">Margem: {(margem * 100).toFixed(1)}%</Badge>;
+    }
+    return <Badge variant="gold">Margem: {(margem * 100).toFixed(1)}%</Badge>;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-100 flex items-center gap-2">
-            <Calculator className="w-6 h-6 text-amber-500" />
-            Custos por Venda
-          </h1>
-          <p className="text-gray-400">{getNomeMes(mesAtual)} - Edite os custos individuais de cada venda</p>
-        </div>
-        <input
-          type="month"
-          value={mesAtual}
-          onChange={(e) => setMesAtual(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
-        />
-      </div>
+      <PageHeader
+        eyebrow="Diretoria"
+        title="Custos por Venda"
+        subtitle={`${getNomeMes(mesAtual)} — Edite os custos individuais de cada venda`}
+        actions={
+          <input
+            type="month"
+            value={mesAtual}
+            onChange={(e) => setMesAtual(e.target.value)}
+            className="px-3 py-2 rounded-lg border border-liv-line bg-liv-surface text-liv-ink text-sm focus:outline-none focus:ring-2 focus:ring-liv-gold/40"
+          />
+        }
+      />
 
       {/* Lista de Vendas com Edicao */}
       <div className="space-y-4">
         {vendas
           .filter((v) => !vendedorFiltro || v.vendedorId === vendedorFiltro)
           .map((venda) => (
-          <div key={venda.id} className="bg-[#1a1f2e] rounded-xl shadow-sm border border-[#232a3b] overflow-hidden">
+          <Card key={venda.id} className="border-liv-line bg-liv-surface overflow-hidden">
             {/* Cabecalho da venda */}
-            <div className="px-6 py-4 flex items-center justify-between border-b border-[#232a3b]">
+            <div className="px-6 py-4 flex items-center justify-between border-b border-liv-line">
               <div>
-                <h3 className="font-semibold text-gray-100">{venda.cliente}</h3>
-                <p className="text-sm text-gray-400">Vendedor: {venda.vendedor} | {formatCurrency(venda.valorVenda)}</p>
+                <h3 className="font-semibold text-liv-ink">{venda.cliente}</h3>
+                <p className="text-sm text-liv-muted">
+                  Vendedor: {venda.vendedor} | <span className="tabular-nums">{formatCurrency(venda.valorVenda)}</span>
+                </p>
               </div>
               <div className="flex items-center gap-3">
-                <span className={`inline-block px-3 py-1 text-sm rounded-full font-medium ${
-                  venda.margemLucroLiquido >= 0.20 && venda.margemLucroLiquido <= 0.25
-                    ? "bg-lime-400/15 text-lime-400"
-                    : venda.margemLucroLiquido < 0.20
-                    ? "bg-red-400/10 text-red-400"
-                    : "bg-amber-400/10 text-amber-400"
-                }`}>
-                  Margem: {(venda.margemLucroLiquido * 100).toFixed(1)}%
-                </span>
+                {margemBadge(venda.margemLucroLiquido)}
                 {editando !== venda.id && (
                   <button
                     onClick={() => iniciarEdicao(venda)}
-                    className="p-2 rounded-lg hover:bg-[#232a3b] text-gray-400 hover:text-gray-300 transition"
+                    className="p-2 rounded-lg hover:bg-liv-surface-2 text-liv-faint hover:text-liv-muted transition"
                     title="Editar custos"
                   >
                     <Edit3 className="w-4 h-4" />
@@ -213,173 +219,178 @@ export default function CustosPage() {
             </div>
 
             {/* Detalhes dos custos */}
-            <div className="px-6 py-4">
+            <CardContent className="pt-4">
               {editando === venda.id ? (
                 /* Modo de edicao */
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 sm:grid-cols-7 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Inversores</label>
+                      <label className="block text-xs font-medium text-liv-faint mb-1">Inversores</label>
                       <input
                         type="number"
                         min="1"
                         step="1"
                         value={editForm.quantidadeInversores}
                         onChange={(e) => setEditForm({ ...editForm, quantidadeInversores: parseInt(e.target.value) || 1 })}
-                        className="w-full px-3 py-2 rounded-lg border border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm bg-[#141820] text-gray-100"
+                        className="w-full px-3 py-2 rounded-lg border border-liv-gold/50 focus:ring-2 focus:ring-liv-gold/40 focus:border-transparent outline-none text-sm bg-liv-surface-2 text-liv-ink"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">COSERN (R$)</label>
+                      <label className="block text-xs font-medium text-liv-faint mb-1">COSERN (R$)</label>
                       <input
                         type="text"
                         inputMode="decimal"
                         value={editFormDisplay.custoCosern}
                         onChange={(e) => handleEditCurrency("custoCosern", e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm bg-[#141820] text-gray-100"
+                        className="w-full px-3 py-2 rounded-lg border border-liv-gold/50 focus:ring-2 focus:ring-liv-gold/40 focus:border-transparent outline-none text-sm bg-liv-surface-2 text-liv-ink tabular-nums"
                         placeholder="0,00"
                         autoComplete="off"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Visita Tecnica (R$)</label>
+                      <label className="block text-xs font-medium text-liv-faint mb-1">Visita Tecnica (R$)</label>
                       <input
                         type="text"
                         inputMode="decimal"
                         value={editFormDisplay.custoVisitaTecnica}
                         onChange={(e) => handleEditCurrency("custoVisitaTecnica", e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm bg-[#141820] text-gray-100"
+                        className="w-full px-3 py-2 rounded-lg border border-liv-gold/50 focus:ring-2 focus:ring-liv-gold/40 focus:border-transparent outline-none text-sm bg-liv-surface-2 text-liv-ink tabular-nums"
                         placeholder="0,00"
                         autoComplete="off"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">TRT/CREA (R$)</label>
+                      <label className="block text-xs font-medium text-liv-faint mb-1">TRT/CREA (R$)</label>
                       <input
                         type="text"
                         inputMode="decimal"
                         value={editFormDisplay.custoTrtCrea}
                         onChange={(e) => handleEditCurrency("custoTrtCrea", e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm bg-[#141820] text-gray-100"
+                        className="w-full px-3 py-2 rounded-lg border border-liv-gold/50 focus:ring-2 focus:ring-liv-gold/40 focus:border-transparent outline-none text-sm bg-liv-surface-2 text-liv-ink tabular-nums"
                         placeholder="0,00"
                         autoComplete="off"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Engenheiro (R$)</label>
+                      <label className="block text-xs font-medium text-liv-faint mb-1">Engenheiro (R$)</label>
                       <input
                         type="text"
                         inputMode="decimal"
                         value={editFormDisplay.custoEngenheiro}
                         onChange={(e) => handleEditCurrency("custoEngenheiro", e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm bg-[#141820] text-gray-100"
+                        className="w-full px-3 py-2 rounded-lg border border-liv-gold/50 focus:ring-2 focus:ring-liv-gold/40 focus:border-transparent outline-none text-sm bg-liv-surface-2 text-liv-ink tabular-nums"
                         placeholder="0,00"
                         autoComplete="off"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Material CA (R$)</label>
+                      <label className="block text-xs font-medium text-liv-faint mb-1">Material CA (R$)</label>
                       <input
                         type="text"
                         inputMode="decimal"
                         value={editFormDisplay.custoMaterialCA}
                         onChange={(e) => handleEditCurrency("custoMaterialCA", e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg border border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm bg-[#141820] text-gray-100"
+                        className="w-full px-3 py-2 rounded-lg border border-liv-gold/50 focus:ring-2 focus:ring-liv-gold/40 focus:border-transparent outline-none text-sm bg-liv-surface-2 text-liv-ink tabular-nums"
                         placeholder="0,00"
                         autoComplete="off"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">% Comissao</label>
+                      <label className="block text-xs font-medium text-liv-faint mb-1">% Comissao</label>
                       <input
                         type="text"
                         inputMode="decimal"
                         value={editForm.percentualComissao}
                         onChange={(e) => setEditForm({ ...editForm, percentualComissao: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-amber-300 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none text-sm bg-[#141820] text-gray-100"
+                        className="w-full px-3 py-2 rounded-lg border border-liv-gold/50 focus:ring-2 focus:ring-liv-gold/40 focus:border-transparent outline-none text-sm bg-liv-surface-2 text-liv-ink tabular-nums"
                         placeholder="2.5"
                         autoComplete="off"
                       />
                     </div>
                   </div>
                   <div className="flex gap-2 justify-end">
-                    <button
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setEditando(null)}
-                      className="px-4 py-2 rounded-lg border border-[#232a3b] text-gray-400 text-sm font-medium hover:bg-[#232a3b] transition flex items-center gap-1"
+                      className="border-liv-line text-liv-muted hover:bg-liv-surface-2"
                     >
-                      <X className="w-3 h-3" /> Cancelar
-                    </button>
-                    <button
+                      <X className="w-3 h-3 mr-1" /> Cancelar
+                    </Button>
+                    <Button
+                      variant="gold"
+                      size="sm"
                       onClick={salvarEdicao}
                       disabled={salvando}
-                      className="px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition disabled:opacity-50 flex items-center gap-1"
                     >
                       {salvando ? (
-                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                        <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-liv-bg mr-1"></div>
                       ) : (
-                        <Save className="w-3 h-3" />
+                        <Save className="w-3 h-3 mr-1" />
                       )}
                       Salvar
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
                 /* Modo de visualizacao */
                 <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-3">
                   <div>
-                    <p className="text-xs text-gray-400">Equipamentos</p>
-                    <p className="font-medium text-sm">{formatCurrency(venda.custoEquipamentos)}</p>
+                    <p className="text-xs text-liv-faint">Equipamentos</p>
+                    <p className="font-medium text-sm text-liv-ink tabular-nums">{formatCurrency(venda.custoEquipamentos)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Placas</p>
-                    <p className="font-medium text-sm">{venda.quantidadePlacas}</p>
+                    <p className="text-xs text-liv-faint">Placas</p>
+                    <p className="font-medium text-sm text-liv-ink tabular-nums">{venda.quantidadePlacas}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Inversores</p>
-                    <p className="font-medium text-sm">{venda.quantidadeInversores}</p>
+                    <p className="text-xs text-liv-faint">Inversores</p>
+                    <p className="font-medium text-sm text-liv-ink tabular-nums">{venda.quantidadeInversores}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Instalacao</p>
-                    <p className="font-medium text-sm">{formatCurrency(venda.custoInstalacao)}</p>
+                    <p className="text-xs text-liv-faint">Instalacao</p>
+                    <p className="font-medium text-sm text-liv-ink tabular-nums">{formatCurrency(venda.custoInstalacao)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Engenheiro</p>
-                    <p className="font-medium text-sm">{formatCurrency(venda.custoEngenheiro)}</p>
+                    <p className="text-xs text-liv-faint">Engenheiro</p>
+                    <p className="font-medium text-sm text-liv-ink tabular-nums">{formatCurrency(venda.custoEngenheiro)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Material CA</p>
-                    <p className="font-medium text-sm">{formatCurrency((venda as any).custoMaterialCA ?? 0)}</p>
+                    <p className="text-xs text-liv-faint">Material CA</p>
+                    <p className="font-medium text-sm text-liv-ink tabular-nums">{formatCurrency((venda as any).custoMaterialCA ?? 0)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Imposto</p>
-                    <p className="font-medium text-sm">{formatCurrency(venda.custoImposto)}</p>
+                    <p className="text-xs text-liv-faint">Imposto</p>
+                    <p className="font-medium text-sm text-liv-ink tabular-nums">{formatCurrency(venda.custoImposto)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">COSERN</p>
-                    <p className="font-medium text-sm">{formatCurrency(venda.custoCosern)}</p>
+                    <p className="text-xs text-liv-faint">COSERN</p>
+                    <p className="font-medium text-sm text-liv-ink tabular-nums">{formatCurrency(venda.custoCosern)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-400">Comissao</p>
-                    <p className="font-medium text-sm">{formatCurrency(venda.comissaoVendedor)}</p>
+                    <p className="text-xs text-liv-faint">Comissao</p>
+                    <p className="font-medium text-sm text-liv-ink tabular-nums">{formatCurrency(venda.comissaoVendedor)}</p>
                   </div>
-                  <div className="bg-[#141820] rounded-lg p-2 -m-1">
-                    <p className="text-xs text-gray-400">Lucro</p>
-                    <p className={`font-bold text-sm ${venda.lucroLiquido >= 0 ? "text-lime-400" : "text-red-400"}`}>
+                  <div className="bg-liv-surface-2 rounded-lg p-2 -m-1">
+                    <p className="text-xs text-liv-faint">Lucro</p>
+                    <p className={`font-bold text-sm tabular-nums ${venda.lucroLiquido >= 0 ? "text-liv-sage" : "text-liv-danger"}`}>
                       {formatCurrency(venda.lucroLiquido)}
                     </p>
                   </div>
                 </div>
               )}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ))}
 
         {vendas.length === 0 && (
-          <div className="bg-[#1a1f2e] rounded-xl p-12 shadow-sm border border-[#232a3b] text-center">
-            <Calculator className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-100 mb-2">Nenhuma venda este mes</h3>
-            <p className="text-gray-400">Aguardando registro de vendas pelos vendedores.</p>
-          </div>
+          <Card className="border-liv-line bg-liv-surface">
+            <CardContent className="py-16 text-center">
+              <Calculator className="w-12 h-12 text-liv-faint mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-liv-ink mb-2">Nenhuma venda este mes</h3>
+              <p className="text-liv-muted">Aguardando registro de vendas pelos vendedores.</p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
