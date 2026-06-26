@@ -28,14 +28,14 @@ const ETAPA_LABELS: Record<string, string> = {
 };
 
 const ETAPA_COLORS: Record<string, string> = {
-  TRAMITES: "bg-blue-500",
-  AGUARDANDO_MATERIAL: "bg-amber-500",
-  VISITA_TECNICA: "bg-purple-500",
-  AGUARDANDO_VISTORIA: "bg-teal-500",
-  CADASTRAR_APP: "bg-cyan-500",
-  ACOMPANHAMENTO_30: "bg-indigo-500",
-  CLIENTE_FINALIZADO: "bg-lime-500",
-  MANUTENCOES: "bg-gray-500",
+  TRAMITES: "bg-liv-info",
+  AGUARDANDO_MATERIAL: "bg-liv-gold",
+  VISITA_TECNICA: "bg-liv-violet",
+  AGUARDANDO_VISTORIA: "bg-liv-teal",
+  CADASTRAR_APP: "bg-liv-teal",
+  ACOMPANHAMENTO_30: "bg-liv-violet",
+  CLIENTE_FINALIZADO: "bg-liv-sage",
+  MANUTENCOES: "bg-liv-muted/50",
 };
 
 export function PosVendaPipeline({ pipeline, atrasados }: { pipeline: PipelineStage[]; atrasados: Atrasado[] }) {
@@ -44,8 +44,8 @@ export function PosVendaPipeline({ pipeline, atrasados }: { pipeline: PipelineSt
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       {/* Pipeline */}
-      <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
-        <h3 className="text-white font-semibold mb-4">Pipeline Pos-Venda</h3>
+      <div className="bg-liv-surface border border-liv-line rounded-xl p-5">
+        <h3 className="text-liv-ink font-semibold mb-4">Pipeline Pos-Venda</h3>
         <div className="space-y-3">
           {pipeline
             .filter((p) => p.etapa !== "MANUTENCOES")
@@ -54,12 +54,12 @@ export function PosVendaPipeline({ pipeline, atrasados }: { pipeline: PipelineSt
               return (
                 <div key={stage.etapa}>
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs text-gray-400">{ETAPA_LABELS[stage.etapa] || stage.etapa}</span>
-                    <span className="text-sm font-medium text-white">{stage.quantidade}</span>
+                    <span className="text-xs text-liv-muted">{ETAPA_LABELS[stage.etapa] || stage.etapa}</span>
+                    <span className="text-sm font-medium text-liv-ink">{stage.quantidade}</span>
                   </div>
-                  <div className="w-full bg-[#0b0f19] rounded-full h-2.5">
+                  <div className="w-full bg-liv-surface-2 rounded-full h-2.5">
                     <div
-                      className={`h-2.5 rounded-full ${ETAPA_COLORS[stage.etapa] || "bg-gray-500"} transition-all`}
+                      className={`h-2.5 rounded-full ${ETAPA_COLORS[stage.etapa] || "bg-liv-muted/50"} transition-all`}
                       style={{ width: `${width}%` }}
                     />
                   </div>
@@ -70,24 +70,24 @@ export function PosVendaPipeline({ pipeline, atrasados }: { pipeline: PipelineSt
       </div>
 
       {/* Atrasados */}
-      <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
-        <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 text-amber-400" />
+      <div className="bg-liv-surface border border-liv-line rounded-xl p-5">
+        <h3 className="text-liv-ink font-semibold mb-4 flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-liv-gold" />
           Clientes com Atraso ({atrasados.length})
         </h3>
         {atrasados.length === 0 ? (
-          <p className="text-gray-500 text-sm">Nenhum cliente com atraso &gt;15 dias</p>
+          <p className="text-liv-faint text-sm">Nenhum cliente com atraso &gt;15 dias</p>
         ) : (
           <div className="space-y-2 max-h-[300px] overflow-y-auto">
             {atrasados.map((a) => (
-              <div key={a.id} className="flex items-center justify-between p-3 rounded-lg bg-[#0b0f19] border border-amber-500/20">
+              <div key={a.id} className="flex items-center justify-between p-3 rounded-lg bg-liv-surface-2 border border-liv-gold/20">
                 <div>
-                  <p className="text-white text-sm font-medium">{a.cliente}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-liv-ink text-sm font-medium">{a.cliente}</p>
+                  <p className="text-xs text-liv-faint">
                     {ETAPA_LABELS[a.etapa] || a.etapa} &middot; {a.operador}
                   </p>
                 </div>
-                <span className="text-amber-400 text-sm font-bold">{a.diasParado}d</span>
+                <span className="text-liv-gold text-sm font-bold">{a.diasParado}d</span>
               </div>
             ))}
           </div>

@@ -29,13 +29,13 @@ export function SyncButton({ onSyncComplete }: { onSyncComplete?: () => void }) 
       <button
         onClick={handleSync}
         disabled={syncing}
-        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#1a1f2e] border border-[#232a3b] text-gray-300 hover:text-lime-400 hover:border-lime-400/30 transition-all text-sm disabled:opacity-50"
+        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-liv-surface border border-liv-line text-liv-muted hover:text-liv-sage hover:border-liv-sage/30 transition-all text-sm disabled:opacity-50"
       >
         <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
         {syncing ? "Sincronizando..." : "Sync Meta"}
       </button>
       {result && (
-        <div className="absolute top-full right-0 mt-1 px-3 py-1.5 rounded-lg bg-lime-400/10 text-lime-400 text-xs whitespace-nowrap">
+        <div className="absolute top-full right-0 mt-1 px-3 py-1.5 rounded-lg bg-liv-sage/10 text-liv-sage text-xs whitespace-nowrap">
           {result}
         </div>
       )}

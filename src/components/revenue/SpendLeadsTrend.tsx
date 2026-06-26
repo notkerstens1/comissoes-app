@@ -17,21 +17,21 @@ export function SpendLeadsTrend({ trend }: { trend: TrendPoint[] }) {
   }));
 
   return (
-    <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
-      <h3 className="text-white font-semibold mb-4">Investimento x Leads x Vendas</h3>
+    <div className="bg-liv-surface border border-liv-line rounded-xl p-5">
+      <h3 className="text-liv-ink font-semibold mb-4">Investimento x Leads x Vendas</h3>
       <div className="h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={formatted}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#232a3b" />
-            <XAxis dataKey="dateLabel" tick={{ fill: "#9ca3af", fontSize: 11 }} />
-            <YAxis yAxisId="left" tick={{ fill: "#9ca3af", fontSize: 11 }} />
-            <YAxis yAxisId="right" orientation="right" tick={{ fill: "#9ca3af", fontSize: 11 }} />
+            <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--liv-line))" />
+            <XAxis dataKey="dateLabel" tick={{ fill: "oklch(var(--liv-faint))", fontSize: 11 }} />
+            <YAxis yAxisId="left" tick={{ fill: "oklch(var(--liv-faint))", fontSize: 11 }} />
+            <YAxis yAxisId="right" orientation="right" tick={{ fill: "oklch(var(--liv-faint))", fontSize: 11 }} />
             <Tooltip
               contentStyle={{
-                background: "#1a1f2e",
-                border: "1px solid #232a3b",
+                background: "oklch(var(--liv-surface))",
+                border: "1px solid oklch(var(--liv-line))",
                 borderRadius: "8px",
-                color: "#fff",
+                color: "oklch(var(--liv-ink))",
               }}
             />
             <Legend />
@@ -40,7 +40,7 @@ export function SpendLeadsTrend({ trend }: { trend: TrendPoint[] }) {
               type="monotone"
               dataKey="spend"
               name="Investido (R$)"
-              stroke="#ef4444"
+              stroke="oklch(var(--liv-danger))"
               strokeWidth={2}
               dot={false}
             />
@@ -49,7 +49,7 @@ export function SpendLeadsTrend({ trend }: { trend: TrendPoint[] }) {
               type="monotone"
               dataKey="leads"
               name="Leads"
-              stroke="#3b82f6"
+              stroke="oklch(var(--liv-info))"
               strokeWidth={2}
               dot={false}
             />
@@ -58,7 +58,7 @@ export function SpendLeadsTrend({ trend }: { trend: TrendPoint[] }) {
               type="monotone"
               dataKey="sales"
               name="Vendas"
-              stroke="#a3e635"
+              stroke="oklch(var(--liv-sage))"
               strokeWidth={2}
               dot={{ r: 3 }}
             />

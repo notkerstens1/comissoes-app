@@ -18,9 +18,9 @@ export function AlertBanner({ alerts }: { alerts: Alert[] }) {
   };
 
   const colors = {
-    info: "bg-blue-500/10 border-blue-500/30 text-blue-400",
-    warning: "bg-amber-500/10 border-amber-500/30 text-amber-400",
-    danger: "bg-red-500/10 border-red-500/30 text-red-400",
+    info: "bg-liv-info/10 border-liv-info/30 text-liv-info",
+    warning: "bg-liv-gold/10 border-liv-gold/30 text-liv-gold",
+    danger: "bg-liv-danger/10 border-liv-danger/30 text-liv-danger",
   };
 
   return (

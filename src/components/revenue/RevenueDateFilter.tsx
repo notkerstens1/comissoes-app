@@ -38,8 +38,8 @@ export function RevenueDateFilter({ startDate, endDate, onChange }: Props) {
           onClick={() => handlePreset(p.value, p.days)}
           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
             preset === p.value && !showCustom
-              ? "bg-lime-400/10 text-lime-400 border border-lime-400/30"
-              : "text-gray-400 hover:text-white bg-[#1a1f2e] border border-[#232a3b]"
+              ? "bg-liv-sage/10 text-liv-sage border border-liv-sage/30"
+              : "text-liv-muted hover:text-liv-ink bg-liv-surface border border-liv-line"
           }`}
         >
           {p.label}
@@ -49,8 +49,8 @@ export function RevenueDateFilter({ startDate, endDate, onChange }: Props) {
         onClick={() => { setShowCustom(!showCustom); setPreset("custom"); }}
         className={`px-2 py-1.5 rounded-lg text-xs transition-all ${
           showCustom
-            ? "bg-lime-400/10 text-lime-400 border border-lime-400/30"
-            : "text-gray-400 hover:text-white bg-[#1a1f2e] border border-[#232a3b]"
+            ? "bg-liv-sage/10 text-liv-sage border border-liv-sage/30"
+            : "text-liv-muted hover:text-liv-ink bg-liv-surface border border-liv-line"
         }`}
       >
         <Calendar className="w-4 h-4" />
@@ -61,14 +61,14 @@ export function RevenueDateFilter({ startDate, endDate, onChange }: Props) {
             type="date"
             value={startDate}
             onChange={(e) => onChange(e.target.value, endDate)}
-            className="bg-[#141820] border border-[#232a3b] rounded-lg px-2 py-1 text-xs text-white"
+            className="bg-liv-surface-2 border border-liv-line rounded-lg px-2 py-1 text-xs text-liv-ink"
           />
-          <span className="text-gray-500 text-xs">a</span>
+          <span className="text-liv-faint text-xs">a</span>
           <input
             type="date"
             value={endDate}
             onChange={(e) => onChange(startDate, e.target.value)}
-            className="bg-[#141820] border border-[#232a3b] rounded-lg px-2 py-1 text-xs text-white"
+            className="bg-liv-surface-2 border border-liv-line rounded-lg px-2 py-1 text-xs text-liv-ink"
           />
         </div>
       )}

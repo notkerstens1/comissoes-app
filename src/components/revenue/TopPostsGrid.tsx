@@ -22,70 +22,70 @@ interface IGPost {
 export function TopPostsGrid({ posts, platform }: { posts: IGPost[]; platform: "instagram" | "youtube" }) {
   if (!posts || posts.length === 0) {
     return (
-      <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
-        <h3 className="text-white font-semibold mb-4">
+      <div className="bg-liv-surface border border-liv-line rounded-xl p-5">
+        <h3 className="text-liv-ink font-semibold mb-4">
           {platform === "instagram" ? "Top Posts Instagram" : "Top Videos YouTube"}
         </h3>
-        <p className="text-gray-500 text-sm">Nenhum conteudo no periodo</p>
+        <p className="text-liv-faint text-sm">Nenhum conteudo no periodo</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
-      <h3 className="text-white font-semibold mb-4">
+    <div className="bg-liv-surface border border-liv-line rounded-xl p-5">
+      <h3 className="text-liv-ink font-semibold mb-4">
         {platform === "instagram" ? "Top Posts Instagram" : "Top Videos YouTube"}
       </h3>
       <div className="space-y-3">
         {posts.slice(0, 5).map((post, i) => (
-          <div key={post.id} className="flex items-start gap-3 p-3 rounded-lg bg-[#0b0f19] border border-[#232a3b]/50">
-            <span className="text-xs text-gray-500 font-mono w-5">#{i + 1}</span>
+          <div key={post.id} className="flex items-start gap-3 p-3 rounded-lg bg-liv-surface-2 border border-liv-line/50">
+            <span className="text-xs text-liv-faint font-mono w-5">#{i + 1}</span>
             <div className="flex-1 min-w-0">
-              <p className="text-white text-sm truncate">
+              <p className="text-liv-ink text-sm truncate">
                 {platform === "instagram"
                   ? post.caption || `Post ${post.tipo || ""}`
                   : post.titulo || "Video"}
               </p>
-              <p className="text-[10px] text-gray-500 mt-0.5">
+              <p className="text-[10px] text-liv-faint mt-0.5">
                 {new Date(post.publishedAt).toLocaleDateString("pt-BR")}
               </p>
               <div className="flex gap-3 mt-2">
                 {platform === "instagram" ? (
                   <>
-                    <span className="flex items-center gap-1 text-xs text-gray-400">
-                      <Heart className="w-3 h-3 text-red-400" /> {formatNumber(post.likes)}
+                    <span className="flex items-center gap-1 text-xs text-liv-muted">
+                      <Heart className="w-3 h-3 text-liv-danger" /> {formatNumber(post.likes)}
                     </span>
-                    <span className="flex items-center gap-1 text-xs text-gray-400">
-                      <MessageCircle className="w-3 h-3 text-blue-400" /> {formatNumber(post.comments)}
+                    <span className="flex items-center gap-1 text-xs text-liv-muted">
+                      <MessageCircle className="w-3 h-3 text-liv-info" /> {formatNumber(post.comments)}
                     </span>
                     {post.shares != null && (
-                      <span className="flex items-center gap-1 text-xs text-gray-400">
-                        <Share2 className="w-3 h-3 text-purple-400" /> {formatNumber(post.shares)}
+                      <span className="flex items-center gap-1 text-xs text-liv-muted">
+                        <Share2 className="w-3 h-3 text-liv-violet" /> {formatNumber(post.shares)}
                       </span>
                     )}
                     {post.saves != null && (
-                      <span className="flex items-center gap-1 text-xs text-gray-400">
-                        <Bookmark className="w-3 h-3 text-amber-400" /> {formatNumber(post.saves)}
+                      <span className="flex items-center gap-1 text-xs text-liv-muted">
+                        <Bookmark className="w-3 h-3 text-liv-gold" /> {formatNumber(post.saves)}
                       </span>
                     )}
                   </>
                 ) : (
                   <>
-                    <span className="flex items-center gap-1 text-xs text-gray-400">
-                      <Eye className="w-3 h-3 text-red-400" /> {formatNumber(post.views || 0)}
+                    <span className="flex items-center gap-1 text-xs text-liv-muted">
+                      <Eye className="w-3 h-3 text-liv-danger" /> {formatNumber(post.views || 0)}
                     </span>
-                    <span className="flex items-center gap-1 text-xs text-gray-400">
-                      <ThumbsUp className="w-3 h-3 text-blue-400" /> {formatNumber(post.likes)}
+                    <span className="flex items-center gap-1 text-xs text-liv-muted">
+                      <ThumbsUp className="w-3 h-3 text-liv-info" /> {formatNumber(post.likes)}
                     </span>
-                    <span className="flex items-center gap-1 text-xs text-gray-400">
-                      <MessageCircle className="w-3 h-3 text-teal-400" /> {formatNumber(post.comments)}
+                    <span className="flex items-center gap-1 text-xs text-liv-muted">
+                      <MessageCircle className="w-3 h-3 text-liv-teal" /> {formatNumber(post.comments)}
                     </span>
                   </>
                 )}
               </div>
             </div>
             {post.engagement != null && (
-              <span className="text-xs text-lime-400 font-medium">{post.engagement}%</span>
+              <span className="text-xs text-liv-sage font-medium">{post.engagement}%</span>
             )}
           </div>
         ))}

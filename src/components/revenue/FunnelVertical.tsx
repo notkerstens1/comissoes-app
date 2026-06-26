@@ -13,18 +13,18 @@ interface FunnelData {
 
 export function FunnelVertical({ funnel }: { funnel: FunnelData }) {
   const stages = [
-    { label: "Leads", value: funnel.leads, color: "bg-blue-500" },
-    { label: "Qualificados", value: funnel.qualificados, color: "bg-purple-500" },
-    { label: "Reunioes", value: funnel.reunioes, color: "bg-amber-500" },
-    { label: "Propostas", value: funnel.propostas, color: "bg-teal-500" },
-    { label: "Fechados", value: funnel.fechados, color: "bg-lime-500" },
+    { label: "Leads", value: funnel.leads, color: "bg-liv-info" },
+    { label: "Qualificados", value: funnel.qualificados, color: "bg-liv-violet" },
+    { label: "Reunioes", value: funnel.reunioes, color: "bg-liv-gold" },
+    { label: "Propostas", value: funnel.propostas, color: "bg-liv-teal" },
+    { label: "Fechados", value: funnel.fechados, color: "bg-liv-sage" },
   ];
 
   const maxValue = Math.max(...stages.map((s) => s.value), 1);
 
   return (
-    <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
-      <h3 className="text-white font-semibold mb-4">Funil de Conversao</h3>
+    <div className="bg-liv-surface border border-liv-line rounded-xl p-5">
+      <h3 className="text-liv-ink font-semibold mb-4">Funil de Conversao</h3>
       <div className="space-y-3">
         {stages.map((stage, i) => {
           const width = Math.max((stage.value / maxValue) * 100, 8);
@@ -34,15 +34,15 @@ export function FunnelVertical({ funnel }: { funnel: FunnelData }) {
           return (
             <div key={stage.label}>
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-gray-400">{stage.label}</span>
+                <span className="text-xs text-liv-muted">{stage.label}</span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-white">{formatNumber(stage.value)}</span>
+                  <span className="text-sm font-medium text-liv-ink">{formatNumber(stage.value)}</span>
                   {convRate && i > 0 && (
-                    <span className="text-[10px] text-gray-500">{convRate}%</span>
+                    <span className="text-[10px] text-liv-faint">{convRate}%</span>
                   )}
                 </div>
               </div>
-              <div className="w-full bg-[#0b0f19] rounded-full h-3">
+              <div className="w-full bg-liv-surface-2 rounded-full h-3">
                 <div
                   className={`h-3 rounded-full ${stage.color} transition-all duration-500`}
                   style={{ width: `${width}%` }}
@@ -53,10 +53,10 @@ export function FunnelVertical({ funnel }: { funnel: FunnelData }) {
         })}
       </div>
       {funnel.receita > 0 && (
-        <div className="mt-4 pt-3 border-t border-[#232a3b]">
+        <div className="mt-4 pt-3 border-t border-liv-line">
           <div className="flex justify-between items-center">
-            <span className="text-xs text-gray-400">Receita Total</span>
-            <span className="text-lime-400 font-bold">{formatCurrency(funnel.receita)}</span>
+            <span className="text-xs text-liv-muted">Receita Total</span>
+            <span className="text-liv-sage font-bold">{formatCurrency(funnel.receita)}</span>
           </div>
         </div>
       )}

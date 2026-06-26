@@ -20,42 +20,42 @@ export function RevenueSummaryCards({ kpis, role }: { kpis: KPIs; role: string }
       label: "Investido",
       value: formatCurrency(kpis.gasto),
       icon: DollarSign,
-      color: "text-red-400",
+      color: "text-liv-danger",
       visible: true,
     },
     {
       label: "CPL",
       value: kpis.cpl ? formatCurrency(kpis.cpl) : "—",
       icon: Users,
-      color: "text-blue-400",
+      color: "text-liv-info",
       visible: true,
     },
     {
       label: "CPL Qualificado",
       value: kpis.cplQualificado ? formatCurrency(kpis.cplQualificado) : "—",
       icon: Target,
-      color: "text-purple-400",
+      color: "text-liv-violet",
       visible: true,
     },
     {
       label: "CAC",
       value: kpis.cac ? formatCurrency(kpis.cac) : "—",
       icon: ShoppingCart,
-      color: "text-amber-400",
+      color: "text-liv-gold",
       visible: true,
     },
     {
       label: "Ticket Medio",
       value: kpis.ticketMedio ? formatCurrency(kpis.ticketMedio) : "—",
       icon: BarChart,
-      color: "text-teal-400",
+      color: "text-liv-teal",
       visible: isDiretor(role),
     },
     {
       label: "ROI",
       value: kpis.roi != null ? `${kpis.roi.toFixed(0)}%` : "—",
       icon: TrendingUp,
-      color: kpis.roi && kpis.roi > 0 ? "text-lime-400" : "text-red-400",
+      color: kpis.roi && kpis.roi > 0 ? "text-liv-sage" : "text-liv-danger",
       visible: isDiretor(role),
     },
   ];
@@ -67,11 +67,11 @@ export function RevenueSummaryCards({ kpis, role }: { kpis: KPIs; role: string }
         .map((card) => (
           <div
             key={card.label}
-            className="flex-shrink-0 min-w-[140px] bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4"
+            className="flex-shrink-0 min-w-[140px] bg-liv-surface border border-liv-line rounded-xl p-4"
           >
             <div className="flex items-center gap-2 mb-2">
               <card.icon className={`w-4 h-4 ${card.color}`} />
-              <span className="text-xs text-gray-400">{card.label}</span>
+              <span className="text-xs text-liv-muted">{card.label}</span>
             </div>
             <p className={`text-lg font-bold ${card.color}`}>{card.value}</p>
           </div>
