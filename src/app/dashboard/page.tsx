@@ -15,7 +15,12 @@ export default function DashboardPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const [periodo, setPeriodo] = React.useState<Periodo>("semana");
+  const [demo, setDemo] = React.useState(false);
   const range = periodo === "semana" ? getCurrentWeekRange() : getCurrentMonthRange();
+
+  React.useEffect(() => {
+    setDemo(new URLSearchParams(window.location.search).get("demo") === "1");
+  }, []);
 
   return (
     <div className="space-y-10">
@@ -46,6 +51,7 @@ export default function DashboardPage() {
       <LiveRanking
         inicio={range.start}
         fim={range.end}
+        demo={demo}
         onOpenTelao={() => router.push("/telao")}
       />
     </div>

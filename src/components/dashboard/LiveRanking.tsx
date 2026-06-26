@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Layers } from "lucide-react";
+import { Layers, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLiveRanking } from "./use-live-ranking";
 import { Podium } from "./ranking/Podium";
@@ -54,6 +54,12 @@ export function LiveRanking({ inicio, fim, telao, demo, onOpenTelao }: LiveRanki
     return () => clearTimeout(id);
   }, [burst]);
 
+  function simular() {
+    const alvo = ranking[Math.min(1, ranking.length - 1)] ?? { id: "demo", nome: "Demo", totalVendido: 0 };
+    const ev: LiveEvent = { kind: "sale", id: alvo.id, nome: alvo.nome, delta: 12000 };
+    setToasts((q) => [...q.slice(-2), { ...ev, toastId: ++toastSeq }]);
+  }
+
   const top3 = ranking.slice(0, 3);
   const rest = ranking.slice(3);
 
@@ -90,12 +96,13 @@ export function LiveRanking({ inicio, fim, telao, demo, onOpenTelao }: LiveRanki
       <Toasts items={toasts} />
       <Confetti burstKey={burst} />
 
-      {demo && <DemoTrigger />}
+      {demo && (
+        <div className="pt-2">
+          <Button variant="default" size="sm" onClick={simular}>
+            <ShoppingCart className="mr-1.5 h-4 w-4" /> Simular venda
+          </Button>
+        </div>
+      )}
     </div>
   );
-}
-
-function DemoTrigger() {
-  // Placeholder de demo: gatilho visual só-dev (ver Task 16, que injeta a lógica).
-  return null;
 }
