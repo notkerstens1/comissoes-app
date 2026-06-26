@@ -16,6 +16,10 @@ import { VendorDrilldown } from "@/components/performance/VendorDrilldown";
 import { EditDayPanel } from "@/components/performance/EditDayPanel";
 import { TrafficForm } from "@/components/performance/TrafficForm";
 import { CommercialTable } from "@/components/performance/CommercialTable";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { SegmentedControl } from "@/components/ui/segmented-control";
 import { Save, Copy } from "lucide-react";
 
 interface TrafficTotals {
@@ -337,7 +341,7 @@ export default function PerformancePage() {
   if (loading && !data && activeTab === "dashboard") {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-liv-sage"></div>
       </div>
     );
   }
@@ -360,44 +364,29 @@ export default function PerformancePage() {
     leadsDescartados: 0,
   };
 
+  const tabOptions: { value: Tab; label: string }[] = [
+    { value: "dashboard", label: "Dashboard" },
+    { value: "registrar", label: "Registrar" },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-100">Performance</h1>
-          {activeTab === "dashboard" && (
-            <p className="text-gray-400 text-sm mt-1">{rangeLabel}</p>
-          )}
-        </div>
-        {activeTab === "dashboard" && (
+      <PageHeader
+        eyebrow="Performance"
+        title="Painel de Performance"
+        subtitle={activeTab === "dashboard" ? rangeLabel : undefined}
+        actions={activeTab === "dashboard" ? (
           <InvestmentToggle type={investmentType} onChange={setInvestmentType} />
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {/* Tab navigation */}
-      <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-lg p-1 inline-flex gap-1">
-        <button
-          onClick={() => setActiveTab("dashboard")}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === "dashboard"
-              ? "bg-teal-400 text-gray-900"
-              : "text-gray-400 hover:text-gray-100"
-          }`}
-        >
-          Dashboard
-        </button>
-        <button
-          onClick={() => setActiveTab("registrar")}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-            activeTab === "registrar"
-              ? "bg-teal-400 text-gray-900"
-              : "text-gray-400 hover:text-gray-100"
-          }`}
-        >
-          Registrar
-        </button>
-      </div>
+      <SegmentedControl
+        options={tabOptions}
+        value={activeTab}
+        onChange={setActiveTab}
+      />
 
       {/* ===================== DASHBOARD TAB ===================== */}
       {activeTab === "dashboard" && (
@@ -415,8 +404,8 @@ export default function PerformancePage() {
           {/* Loading overlay */}
           {loading && (
             <div className="flex items-center justify-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-teal-400"></div>
-              <span className="ml-2 text-sm text-gray-400">Atualizando...</span>
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-liv-sage"></div>
+              <span className="ml-2 text-sm text-liv-muted">Atualizando...</span>
             </div>
           )}
 
@@ -428,7 +417,7 @@ export default function PerformancePage() {
 
           {/* KPIs */}
           <div>
-            <h2 className="text-lg font-semibold text-gray-100 mb-3">KPIs de Performance</h2>
+            <h2 className="text-lg font-semibold text-liv-ink mb-3">KPIs de Performance</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               <KpiCard
                 label="CPM"
@@ -500,89 +489,98 @@ export default function PerformancePage() {
       {activeTab === "registrar" && (
         <div className="space-y-6">
           {/* Date selector */}
-          <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Data do registro
-                </label>
-                <input
-                  type="date"
-                  value={regDate}
-                  onChange={(e) => setRegDate(e.target.value)}
-                  className="px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none"
-                />
+          <Card className="border-liv-line bg-liv-surface">
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-liv-muted mb-1">
+                    Data do registro
+                  </label>
+                  <input
+                    type="date"
+                    value={regDate}
+                    onChange={(e) => setRegDate(e.target.value)}
+                    className="px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:ring-2 focus:ring-liv-sage focus:border-transparent outline-none"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleSaveDay}
+                    disabled={regSaving}
+                    className="bg-liv-sage text-liv-bg hover:bg-liv-sage-deep"
+                    size="sm"
+                  >
+                    {regSaving ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-liv-bg"></div>
+                    ) : (
+                      <Save className="w-4 h-4" />
+                    )}
+                    Salvar
+                  </Button>
+                  <Button
+                    onClick={handleCopyDay}
+                    disabled={regCopying}
+                    variant="outline"
+                    size="sm"
+                    className="border-liv-line text-liv-muted hover:text-liv-ink hover:bg-liv-surface-2"
+                  >
+                    {regCopying ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-liv-muted"></div>
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                    Copiar
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSaveDay}
-                  disabled={regSaving}
-                  className="px-4 py-2 rounded-lg bg-teal-500 text-white text-sm font-medium hover:bg-teal-600 transition disabled:opacity-50 flex items-center gap-2"
-                >
-                  {regSaving ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
-                  Salvar
-                </button>
-                <button
-                  onClick={handleCopyDay}
-                  disabled={regCopying}
-                  className="px-4 py-2 rounded-lg border border-[#232a3b] text-gray-300 text-sm font-medium hover:bg-[#232a3b] transition disabled:opacity-50 flex items-center gap-2"
-                >
-                  {regCopying ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-300"></div>
-                  ) : (
-                    <Copy className="w-4 h-4" />
-                  )}
-                  Copiar
-                </button>
-              </div>
-            </div>
 
-            {/* Status message */}
-            {regMessage && (
-              <div
-                className={`mt-3 px-4 py-2 rounded-lg text-sm ${
-                  regMessage.type === "success"
-                    ? "bg-teal-400/10 text-teal-400"
-                    : "bg-red-400/10 text-red-400"
-                }`}
-              >
-                {regMessage.text}
-              </div>
-            )}
-          </div>
+              {/* Status message */}
+              {regMessage && (
+                <div
+                  className={`mt-3 px-4 py-2 rounded-lg text-sm ${
+                    regMessage.type === "success"
+                      ? "bg-liv-sage/10 text-liv-sage"
+                      : "bg-liv-danger/10 text-liv-danger"
+                  }`}
+                >
+                  {regMessage.text}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Loading */}
           {regLoading && (
             <div className="flex items-center justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-400"></div>
-              <span className="ml-2 text-sm text-gray-400">Carregando dados do dia...</span>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-liv-sage"></div>
+              <span className="ml-2 text-sm text-liv-muted">Carregando dados do dia...</span>
             </div>
           )}
 
           {/* Traffic Form */}
           {!regLoading && (
-            <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] p-6">
-              <TrafficForm
-                data={regTraffic}
-                onChange={setRegTraffic}
-                readOnly={trafficReadOnly}
-              />
-            </div>
+            <Card className="border-liv-line bg-liv-surface">
+              <CardContent className="p-6">
+                <TrafficForm
+                  data={regTraffic}
+                  onChange={setRegTraffic}
+                  readOnly={trafficReadOnly}
+                />
+              </CardContent>
+            </Card>
           )}
 
           {/* Commercial Table */}
           {!regLoading && (
-            <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] p-6">
-              <CommercialTable
-                vendors={regVendors}
-                onChange={setRegVendors}
-                readOnly={false}
-              />
-            </div>
+            <Card className="border-liv-line bg-liv-surface">
+              <CardContent className="p-6">
+                <CommercialTable
+                  vendors={regVendors}
+                  onChange={setRegVendors}
+                  readOnly={false}
+                />
+              </CardContent>
+            </Card>
           )}
         </div>
       )}
