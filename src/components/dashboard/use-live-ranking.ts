@@ -30,12 +30,15 @@ export function useLiveRanking({ inicio, fim, intervalMs = 25000, alwaysOn = fal
   const [events, setEvents] = React.useState<LiveEvent[]>([]);
   const [loading, setLoading] = React.useState(true);
   const prevRef = React.useRef<RankedVendedor[]>([]);
+  const genRef = React.useRef(0);
 
   const url = `/api/dashboard/ranking?inicio=${inicio}&fim=${fim}`;
 
   const tick = React.useCallback(async () => {
+    const gen = genRef.current;
     try {
       const data = await fetcher(url);
+      if (gen !== genRef.current) return; // período mudou no meio do fetch — descarta resultado stale
       const next = data.ranking;
       const novos = diffRanking(prevRef.current, next);
       if (novos.length) setEvents((q) => [...q, ...novos]);
@@ -45,12 +48,12 @@ export function useLiveRanking({ inicio, fim, intervalMs = 25000, alwaysOn = fal
     } catch {
       /* mantém último snapshot em caso de falha de rede */
     } finally {
-      setLoading(false);
+      if (gen === genRef.current) setLoading(false);
     }
   }, [url, fetcher]);
 
-  // reset de baseline ao trocar de período
-  React.useEffect(() => { prevRef.current = []; setLoading(true); }, [inicio, fim]);
+  // reset de baseline ao trocar de período (bump de geração invalida fetches em voo)
+  React.useEffect(() => { genRef.current += 1; prevRef.current = []; setLoading(true); }, [inicio, fim]);
 
   React.useEffect(() => {
     let active = true;
