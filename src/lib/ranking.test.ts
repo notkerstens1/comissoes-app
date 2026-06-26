@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { rankByVendas, diffRanking, type VendedorVendas } from "./ranking";
+import { rankByVendas, diffRanking, type VendedorVendas, type RankedVendedor } from "./ranking";
 
 const base = (over: Partial<VendedorVendas> & { id: string }): VendedorVendas => ({
   nome: over.id, totalVendido: 0, qtdVendas: 0, ticketMedio: 0, margemMedia: 0, ...over,
@@ -29,10 +29,9 @@ describe("rankByVendas", () => {
 });
 
 describe("diffRanking", () => {
-  const ranked = (over: Partial<Rankedish> & { id: string }) => {
-    return { nome: over.id, totalVendido: 0, qtdVendas: 0, ticketMedio: 0, margemMedia: 0, posicao: 1, meta: 120000, progresso: 0, ...over } as any;
-  };
-  type Rankedish = ReturnType<typeof ranked>;
+  const ranked = (over: Partial<RankedVendedor> & { id: string }): RankedVendedor => ({
+    nome: over.id, totalVendido: 0, qtdVendas: 0, ticketMedio: 0, margemMedia: 0, posicao: 1, meta: 120000, progresso: 0, ...over,
+  });
 
   it("detecta nova venda quando qtdVendas aumenta", () => {
     const prev = [ranked({ id: "a", qtdVendas: 1, totalVendido: 10000, posicao: 1 })];
