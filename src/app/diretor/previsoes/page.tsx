@@ -10,8 +10,10 @@ import {
   RefreshCw,
   User,
 } from "lucide-react";
-import { Sidebar } from "@/components/Sidebar";
 import { getEtapaLabel, ETAPA_CORES, type EtapaPosVenda } from "@/lib/pos-venda";
+import { PageHeader } from "@/components/ui/page-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 type Previsao = {
   id: string;
@@ -112,7 +114,7 @@ export default function PrevisoesPage() {
   const countInstalacao = registros.filter((r) => r.previsaoInstalacao).length;
 
   function renderEvento(e: Evento) {
-    const cores = ETAPA_CORES[e.etapa] ?? { bg: "bg-gray-400/10", text: "text-gray-400" };
+    const cores = ETAPA_CORES[e.etapa] ?? { bg: "bg-liv-surface-2", text: "text-liv-faint" };
     const isMaterial = e.tipo === "material";
     const vencido = e.data < hoje;
 
@@ -121,16 +123,16 @@ export default function PrevisoesPage() {
         key={e.id}
         className={`flex items-center gap-4 p-4 rounded-xl border transition ${
           vencido
-            ? "bg-rose-500/5 border-rose-500/30"
-            : "bg-[#1a1f2e] border-[#232a3b] hover:border-[#2a3050]"
+            ? "bg-liv-danger/5 border-liv-danger/30"
+            : "bg-liv-surface border-liv-line hover:border-liv-line/80"
         }`}
       >
         {/* Ícone tipo */}
         <div
           className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
             isMaterial
-              ? "bg-yellow-400/10 text-yellow-400"
-              : "bg-violet-400/10 text-violet-400"
+              ? "bg-liv-gold/10 text-liv-gold"
+              : "bg-liv-violet/10 text-liv-violet"
           }`}
         >
           {isMaterial ? <Package className="w-5 h-5" /> : <Hammer className="w-5 h-5" />}
@@ -139,14 +141,14 @@ export default function PrevisoesPage() {
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-gray-100 truncate">
+            <span className="text-sm font-bold text-liv-ink truncate">
               {e.nomeCliente}
             </span>
             <span className={`px-2 py-0.5 rounded text-xs font-bold ${cores.bg} ${cores.text}`}>
               {getEtapaLabel(e.etapa as EtapaPosVenda)}
             </span>
           </div>
-          <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+          <div className="flex items-center gap-3 mt-1 text-xs text-liv-faint">
             <span className="flex items-center gap-1">
               <User className="w-3 h-3" />
               {e.operador}
@@ -162,16 +164,16 @@ export default function PrevisoesPage() {
 
         {/* Data */}
         <div className="text-right shrink-0">
-          <p className="text-xs text-gray-500 uppercase font-semibold">
+          <p className="text-xs text-liv-faint uppercase font-semibold">
             {isMaterial ? "Material" : "Instalação"}
           </p>
           <p
-            className={`text-sm font-bold flex items-center gap-1.5 justify-end ${
-              vencido ? "text-rose-400" : "text-gray-100"
+            className={`text-sm font-bold tabular-nums flex items-center gap-1.5 justify-end ${
+              vencido ? "text-liv-danger" : "text-liv-ink"
             }`}
           >
             {vencido && <AlertCircle className="w-3.5 h-3.5" />}
-            <Calendar className="w-3.5 h-3.5 text-gray-500" />
+            <Calendar className="w-3.5 h-3.5 text-liv-faint" />
             {formatDate(e.data)}
           </p>
         </div>
@@ -180,121 +182,122 @@ export default function PrevisoesPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#0b0f19]">
-      <Sidebar />
-      <main className="flex-1 lg:ml-64 p-6">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* Header */}
+      <PageHeader
+        eyebrow="Diretoria"
+        title="Previsões"
+        subtitle="Chegada de material e instalações previstas"
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchData}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Atualizar
+          </Button>
+        }
+      />
+
+      {/* Cards resumo */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-liv-faint uppercase font-semibold tracking-wide">Atrasados</p>
+            <p className="text-2xl font-bold tabular-nums text-liv-danger mt-1">{atrasados.length}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-liv-faint uppercase font-semibold tracking-wide flex items-center gap-1.5">
+              <Package className="w-3 h-3 text-liv-gold" />
+              Material Previsto
+            </p>
+            <p className="text-2xl font-bold tabular-nums text-liv-gold mt-1">{countMaterial}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-xs text-liv-faint uppercase font-semibold tracking-wide flex items-center gap-1.5">
+              <Hammer className="w-3 h-3 text-liv-violet" />
+              Instalações Previstas
+            </p>
+            <p className="text-2xl font-bold tabular-nums text-liv-violet mt-1">{countInstalacao}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Filtros */}
+      <div className="flex gap-2">
+        {([
+          ["todos", "Todos"],
+          ["material", "Material"],
+          ["instalacao", "Instalação"],
+        ] as const).map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setFiltro(key)}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
+              filtro === key
+                ? "bg-liv-gold text-liv-bg"
+                : "bg-liv-surface border border-liv-line text-liv-muted hover:border-liv-gold/40 hover:text-liv-ink"
+            }`}
+          >
+            {label} ({key === "todos" ? eventos.length : key === "material" ? countMaterial : countInstalacao})
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="text-center text-liv-muted py-12">Carregando previsões...</div>
+      ) : eventos.length === 0 ? (
+        <Card>
+          <CardContent className="py-12">
+            <p className="text-center text-liv-muted">Nenhuma previsão cadastrada pelo pós-venda</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+          {/* Atrasados */}
+          {atrasados.length > 0 && (
             <div>
-              <h1 className="text-2xl font-bold text-gray-100 flex items-center gap-2">
-                <Calendar className="w-6 h-6 text-amber-400" />
-                Previsões
-              </h1>
-              <p className="text-gray-400 text-sm mt-1">
-                Chegada de material e instalações previstas
-              </p>
+              <h2 className="text-sm font-bold text-liv-danger uppercase tracking-wider mb-3 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" />
+                Atrasados ({atrasados.length})
+              </h2>
+              <div className="space-y-2">
+                {atrasados.map(renderEvento)}
+              </div>
             </div>
-            <button
-              onClick={fetchData}
-              className="flex items-center gap-2 px-3 py-2 bg-[#232a3b] text-gray-300 rounded-lg text-sm hover:bg-[#2a3040] transition"
-            >
-              <RefreshCw className="w-4 h-4" />
-              Atualizar
-            </button>
-          </div>
+          )}
 
-          {/* Cards resumo */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
-              <p className="text-xs text-gray-500 uppercase font-semibold">Atrasados</p>
-              <p className="text-2xl font-bold text-rose-400 mt-1">{atrasados.length}</p>
+          {/* Esta semana */}
+          {estaSemana.length > 0 && (
+            <div>
+              <h2 className="text-sm font-bold text-liv-sage uppercase tracking-wider mb-3">
+                Próximos 7 dias ({estaSemana.length})
+              </h2>
+              <div className="space-y-2">
+                {estaSemana.map(renderEvento)}
+              </div>
             </div>
-            <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
-              <p className="text-xs text-gray-500 uppercase font-semibold flex items-center gap-1.5">
-                <Package className="w-3 h-3 text-yellow-400" />
-                Material Previsto
-              </p>
-              <p className="text-2xl font-bold text-yellow-400 mt-1">{countMaterial}</p>
-            </div>
-            <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
-              <p className="text-xs text-gray-500 uppercase font-semibold flex items-center gap-1.5">
-                <Hammer className="w-3 h-3 text-violet-400" />
-                Instalações Previstas
-              </p>
-              <p className="text-2xl font-bold text-violet-400 mt-1">{countInstalacao}</p>
-            </div>
-          </div>
+          )}
 
-          {/* Filtros */}
-          <div className="flex gap-2 mb-6">
-            {([
-              ["todos", "Todos"],
-              ["material", "Material"],
-              ["instalacao", "Instalação"],
-            ] as const).map(([key, label]) => (
-              <button
-                key={key}
-                onClick={() => setFiltro(key)}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition ${
-                  filtro === key
-                    ? "bg-amber-400 text-gray-900"
-                    : "bg-[#232a3b] text-gray-300 hover:bg-[#2a3040]"
-                }`}
-              >
-                {label} ({key === "todos" ? eventos.length : key === "material" ? countMaterial : countInstalacao})
-              </button>
-            ))}
-          </div>
-
-          {loading ? (
-            <div className="text-center text-gray-500 py-12">Carregando previsões...</div>
-          ) : eventos.length === 0 ? (
-            <div className="text-center text-gray-500 py-12 bg-[#1a1f2e] rounded-xl border border-[#232a3b]">
-              Nenhuma previsão cadastrada pelo pós-venda
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Atrasados */}
-              {atrasados.length > 0 && (
-                <div>
-                  <h2 className="text-sm font-bold text-rose-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4" />
-                    Atrasados ({atrasados.length})
-                  </h2>
-                  <div className="space-y-2">
-                    {atrasados.map(renderEvento)}
-                  </div>
-                </div>
-              )}
-
-              {/* Esta semana */}
-              {estaSemana.length > 0 && (
-                <div>
-                  <h2 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3">
-                    Próximos 7 dias ({estaSemana.length})
-                  </h2>
-                  <div className="space-y-2">
-                    {estaSemana.map(renderEvento)}
-                  </div>
-                </div>
-              )}
-
-              {/* Futuras */}
-              {futuras.length > 0 && (
-                <div>
-                  <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">
-                    Futuras ({futuras.length})
-                  </h2>
-                  <div className="space-y-2">
-                    {futuras.map(renderEvento)}
-                  </div>
-                </div>
-              )}
+          {/* Futuras */}
+          {futuras.length > 0 && (
+            <div>
+              <h2 className="text-sm font-bold text-liv-muted uppercase tracking-wider mb-3">
+                Futuras ({futuras.length})
+              </h2>
+              <div className="space-y-2">
+                {futuras.map(renderEvento)}
+              </div>
             </div>
           )}
         </div>
-      </main>
+      )}
     </div>
   );
 }
