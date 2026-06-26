@@ -22,6 +22,23 @@
     --liv-gold: 0.84 0.105 90;         /* campeão (1º lugar) */
     --liv-danger: 0.64 0.150 25;       /* alerta / prazo estourando */
 
+    /* status tones extra (OKLCH L C H) */
+    --liv-info:   0.70 0.130 250;   /* azul info */
+    --liv-teal:   0.78 0.110 180;   /* setor técnico/financeiro */
+    --liv-violet: 0.70 0.150 300;   /* admin/supervisor */
+    --liv-orange: 0.74 0.150 55;    /* pós-venda */
+
+    /* motion */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+    --dur-fast: 120ms;
+    --dur-base: 220ms;
+    --dur-slow: 360ms;
+
+    /* glows de acento (estado vencedor/foco) */
+    --glow-gold: 0 0 0 1px oklch(var(--liv-gold) / 0.45), 0 6px 22px oklch(var(--liv-gold) / 0.16);
+    --glow-sage: 0 0 0 1px oklch(var(--liv-sage) / 0.55), 0 6px 22px oklch(var(--liv-sage) / 0.20);
+
     /* ===== Compat: tokens shadcn remapeados pra paleta LIV (HSL) ===== */
     --background: 156 9% 9%;
     --foreground: 150 8% 95%;
@@ -64,7 +81,25 @@
   }
   .liv-rise { animation: liv-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
+  @keyframes liv-confetti-fall {
+    0% { opacity: 1; transform: translateY(-10vh) rotate(0deg); }
+    100% { opacity: 0; transform: translateY(110vh) rotate(540deg); }
+  }
+  @keyframes liv-pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.45; transform: scale(1.5); }
+  }
+  @keyframes liv-shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .liv-skeleton {
+    background: linear-gradient(90deg, oklch(var(--liv-surface)) 25%, oklch(var(--liv-surface-2)) 37%, oklch(var(--liv-surface)) 63%);
+    background-size: 200% 100%;
+    animation: liv-shimmer 1.4s ease-in-out infinite;
+  }
   @media (prefers-reduced-motion: reduce) {
     .liv-rise { animation: none; }
+    .liv-skeleton { animation: none; }
   }
 }
