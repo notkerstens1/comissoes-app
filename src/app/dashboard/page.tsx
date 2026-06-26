@@ -46,7 +46,7 @@ export default function DashboardPage() {
       <LiveRanking
         inicio={range.start}
         fim={range.end}
-        onOpenTelao={() => router.push("/dashboard/telao")}
+        onOpenTelao={() => router.push("/telao")}
       />
     </div>
   );
