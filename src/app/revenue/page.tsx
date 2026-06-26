@@ -10,6 +10,7 @@ import { QualidadeBanner } from "@/components/cro/QualidadeBanner";
 import { CanaisOverview } from "@/components/cro/CanaisOverview";
 import { MetaCruzamento } from "@/components/cro/MetaCruzamento";
 import { VendasSemFonteModal } from "@/components/cro/VendasSemFonteModal";
+import { PageHeader } from "@/components/ui/page-header";
 import type { CROOverview } from "@/components/cro/types";
 
 export default function RevenuePage() {
@@ -58,31 +59,29 @@ export default function RevenuePage() {
   if (!podeVerCRO) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-gray-400 text-sm">Acesso restrito a Diretor, Supervisor e Admin.</p>
+        <p className="text-liv-muted text-sm">Acesso restrito a Diretor, Supervisor e Admin.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Dashboard CRO</h1>
-          <p className="text-gray-400 text-sm mt-1">
-            Análise integrada — canais de aquisição cruzados com tráfego pago
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <RevenueDateFilter startDate={startDate} endDate={endDate} onChange={handleDateChange} />
-          {isAdmin(role) && <SyncButton onSyncComplete={fetchData} />}
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Revenue"
+        title="Dashboard CRO"
+        subtitle="Análise integrada — canais de aquisição cruzados com tráfego pago"
+        actions={
+          <>
+            <RevenueDateFilter startDate={startDate} endDate={endDate} onChange={handleDateChange} />
+            {isAdmin(role) && <SyncButton onSyncComplete={fetchData} />}
+          </>
+        }
+      />
 
       {/* Loading */}
       {loading && (
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-lime-400"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-liv-sage"></div>
         </div>
       )}
 

@@ -24,10 +24,10 @@ export function QualidadeBanner({
   const vazio = totalVendas === 0;
 
   const cor = tudoClassificado
-    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+    ? "border-liv-sage/30 bg-liv-sage/10 text-liv-sage"
     : percentualClassificadas >= 80
-    ? "border-amber-500/30 bg-amber-500/10 text-amber-400"
-    : "border-red-500/30 bg-red-500/10 text-red-400";
+    ? "border-liv-gold/30 bg-liv-gold/10 text-liv-gold"
+    : "border-liv-danger/30 bg-liv-danger/10 text-liv-danger";
 
   const Icon = tudoClassificado ? CheckCircle2 : AlertTriangle;
 
