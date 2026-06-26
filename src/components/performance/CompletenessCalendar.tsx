@@ -16,17 +16,17 @@ interface CompletenessCalendarProps {
 const weekDayHeaders = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
 
 const statusStyles: Record<string, string> = {
-  completo: "bg-lime-400/15 border-lime-400/30 text-lime-400",
-  falta_trafego: "bg-yellow-400/10 border-yellow-400/30 text-yellow-400",
-  falta_comercial: "bg-orange-400/10 border-orange-400/30 text-orange-400",
-  vazio: "bg-red-400/10 border-red-400/20 text-red-400",
+  completo: "bg-liv-sage/15 border-liv-sage/30 text-liv-sage",
+  falta_trafego: "bg-liv-gold/10 border-liv-gold/30 text-liv-gold",
+  falta_comercial: "bg-liv-orange/10 border-liv-orange/30 text-liv-orange",
+  vazio: "bg-liv-danger/10 border-liv-danger/20 text-liv-danger",
 };
 
 const legendItems = [
-  { status: "completo", label: "Completo", color: "bg-lime-400" },
-  { status: "falta_trafego", label: "Falta trafego", color: "bg-yellow-400" },
-  { status: "falta_comercial", label: "Falta comercial", color: "bg-orange-400" },
-  { status: "vazio", label: "Vazio", color: "bg-red-400" },
+  { status: "completo", label: "Completo", color: "bg-liv-sage" },
+  { status: "falta_trafego", label: "Falta trafego", color: "bg-liv-gold" },
+  { status: "falta_comercial", label: "Falta comercial", color: "bg-liv-orange" },
+  { status: "vazio", label: "Vazio", color: "bg-liv-danger" },
 ];
 
 export function CompletenessCalendar({
@@ -68,8 +68,8 @@ export function CompletenessCalendar({
   }
 
   return (
-    <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] p-6">
-      <h3 className="text-lg font-semibold text-gray-100 mb-4">
+    <div className="bg-liv-surface rounded-xl border border-liv-line p-6">
+      <h3 className="text-lg font-semibold text-liv-ink mb-4">
         Completude do Diario
       </h3>
 
@@ -78,7 +78,7 @@ export function CompletenessCalendar({
         {weekDayHeaders.map((day) => (
           <div
             key={day}
-            className="text-center text-xs font-medium text-gray-400 py-1"
+            className="text-center text-xs font-medium text-liv-muted py-1"
           >
             {day}
           </div>
@@ -106,13 +106,13 @@ export function CompletenessCalendar({
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-[#232a3b]">
+      <div className="flex flex-wrap items-center gap-4 mt-4 pt-4 border-t border-liv-line">
         {legendItems.map((item) => (
           <div key={item.status} className="flex items-center gap-1.5">
             <span
               className={cn("w-2.5 h-2.5 rounded-full", item.color)}
             />
-            <span className="text-xs text-gray-400">{item.label}</span>
+            <span className="text-xs text-liv-muted">{item.label}</span>
           </div>
         ))}
       </div>

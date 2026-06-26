@@ -71,12 +71,12 @@ export function TeamTrendChart({ dailyData, onDayClick }: TeamTrendChartProps) {
   };
 
   return (
-    <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] p-6">
+    <div className="bg-liv-surface rounded-xl border border-liv-line p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-100">
+        <h3 className="text-lg font-semibold text-liv-ink">
           Tendencia do Time
         </h3>
-        <div className="inline-flex rounded-full bg-[#141820] p-0.5">
+        <div className="inline-flex rounded-full bg-liv-surface-2 p-0.5">
           {tabs.map((tab) => (
             <button
               key={tab.value}
@@ -84,8 +84,8 @@ export function TeamTrendChart({ dailyData, onDayClick }: TeamTrendChartProps) {
               className={cn(
                 "px-3 py-1 rounded-full text-xs font-medium transition",
                 activeTab === tab.value
-                  ? "bg-teal-400 text-gray-900"
-                  : "bg-[#141820] text-gray-400 hover:bg-[#232a3b]"
+                  ? "bg-liv-teal text-liv-bg"
+                  : "bg-liv-surface-2 text-liv-muted hover:bg-liv-surface"
               )}
             >
               {tab.label}
@@ -97,47 +97,47 @@ export function TeamTrendChart({ dailyData, onDayClick }: TeamTrendChartProps) {
       <ResponsiveContainer width="100%" height={300}>
         {activeTab === "receita" ? (
           <AreaChart data={chartData} onClick={handleChartClick}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#232a3b" />
+            <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--liv-line))" />
             <XAxis
               dataKey="date"
               tickFormatter={formatDateShort}
-              tick={{ fontSize: 12, fill: '#9ca3af' }}
+              tick={{ fontSize: 12, fill: 'oklch(var(--liv-faint))' }}
             />
             <YAxis
               tickFormatter={(v: number) => formatCurrency(v)}
-              tick={{ fontSize: 12, fill: '#9ca3af' }}
+              tick={{ fontSize: 12, fill: 'oklch(var(--liv-faint))' }}
             />
             <Tooltip
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               formatter={(value: any) => [formatCurrency(Number(value) || 0), "Valor em vendas"]}
               labelFormatter={(label: any) => formatDateShort(String(label || ""))}
-              contentStyle={{ backgroundColor: '#1a1f2e', border: '1px solid #232a3b', borderRadius: '8px' }}
-              itemStyle={{ color: '#e5e7eb' }}
-              labelStyle={{ color: '#9ca3af' }}
+              contentStyle={{ backgroundColor: 'oklch(var(--liv-surface))', border: '1px solid oklch(var(--liv-line))', borderRadius: '8px' }}
+              itemStyle={{ color: 'oklch(var(--liv-ink))' }}
+              labelStyle={{ color: 'oklch(var(--liv-faint))' }}
             />
             <Area
               type="monotone"
               dataKey="valorEmVendas"
-              stroke="#a3e635"
-              fill="#a3e635"
+              stroke="oklch(var(--liv-sage))"
+              fill="oklch(var(--liv-sage))"
               fillOpacity={0.2}
               name="Valor em vendas"
             />
           </AreaChart>
         ) : (
           <LineChart data={chartData} onClick={handleChartClick}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#232a3b" />
+            <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--liv-line))" />
             <XAxis
               dataKey="date"
               tickFormatter={formatDateShort}
-              tick={{ fontSize: 12, fill: '#9ca3af' }}
+              tick={{ fontSize: 12, fill: 'oklch(var(--liv-faint))' }}
             />
-            <YAxis tick={{ fontSize: 12, fill: '#9ca3af' }} />
+            <YAxis tick={{ fontSize: 12, fill: 'oklch(var(--liv-faint))' }} />
             <Tooltip
               labelFormatter={(label: any) => formatDateShort(String(label || ""))}
-              contentStyle={{ backgroundColor: '#1a1f2e', border: '1px solid #232a3b', borderRadius: '8px' }}
-              itemStyle={{ color: '#e5e7eb' }}
-              labelStyle={{ color: '#9ca3af' }}
+              contentStyle={{ backgroundColor: 'oklch(var(--liv-surface))', border: '1px solid oklch(var(--liv-line))', borderRadius: '8px' }}
+              itemStyle={{ color: 'oklch(var(--liv-ink))' }}
+              labelStyle={{ color: 'oklch(var(--liv-faint))' }}
             />
 
             {activeTab === "topo" && (
@@ -145,7 +145,7 @@ export function TeamTrendChart({ dailyData, onDayClick }: TeamTrendChartProps) {
                 <Line
                   type="monotone"
                   dataKey="pessoasAlcancadas"
-                  stroke="#60a5fa"
+                  stroke="oklch(var(--liv-info))"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   name="Pessoas alcancadas"
@@ -153,7 +153,7 @@ export function TeamTrendChart({ dailyData, onDayClick }: TeamTrendChartProps) {
                 <Line
                   type="monotone"
                   dataKey="leads"
-                  stroke="#a3e635"
+                  stroke="oklch(var(--liv-sage))"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   name="Leads"
@@ -166,7 +166,7 @@ export function TeamTrendChart({ dailyData, onDayClick }: TeamTrendChartProps) {
                 <Line
                   type="monotone"
                   dataKey="atendidos"
-                  stroke="#60a5fa"
+                  stroke="oklch(var(--liv-info))"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   name="Atendidos"
@@ -174,7 +174,7 @@ export function TeamTrendChart({ dailyData, onDayClick }: TeamTrendChartProps) {
                 <Line
                   type="monotone"
                   dataKey="mql"
-                  stroke="#a3e635"
+                  stroke="oklch(var(--liv-sage))"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   name="MQL"
@@ -182,7 +182,7 @@ export function TeamTrendChart({ dailyData, onDayClick }: TeamTrendChartProps) {
                 <Line
                   type="monotone"
                   dataKey="reunioes"
-                  stroke="#2dd4bf"
+                  stroke="oklch(var(--liv-teal))"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   name="Reunioes"
@@ -190,7 +190,7 @@ export function TeamTrendChart({ dailyData, onDayClick }: TeamTrendChartProps) {
                 <Line
                   type="monotone"
                   dataKey="propostas"
-                  stroke="#fbbf24"
+                  stroke="oklch(var(--liv-gold))"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   name="Propostas"
@@ -198,7 +198,7 @@ export function TeamTrendChart({ dailyData, onDayClick }: TeamTrendChartProps) {
                 <Line
                   type="monotone"
                   dataKey="fechados"
-                  stroke="#c084fc"
+                  stroke="oklch(var(--liv-violet))"
                   strokeWidth={2}
                   dot={{ r: 3 }}
                   name="Fechados"

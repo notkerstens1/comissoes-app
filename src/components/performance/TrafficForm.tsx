@@ -51,15 +51,15 @@ export function TrafficForm({ data, onChange, readOnly }: TrafficFormProps) {
   };
 
   const inputBase =
-    "w-full px-3 py-2 text-sm rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 focus:ring-2 focus:ring-teal-400 focus:border-transparent outline-none";
+    "w-full px-3 py-2 text-sm rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink focus:ring-2 focus:ring-liv-teal focus:border-transparent outline-none";
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Cloud className="w-5 h-5 text-teal-400" />
-        <h3 className="text-base font-semibold text-gray-100">Trafego do Dia</h3>
+        <Cloud className="w-5 h-5 text-liv-teal" />
+        <h3 className="text-base font-semibold text-liv-ink">Trafego do Dia</h3>
         {readOnly && (
-          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-400/10 text-yellow-400">
+          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-liv-gold/10 text-liv-gold">
             Somente visualizacao
           </span>
         )}
@@ -68,7 +68,7 @@ export function TrafficForm({ data, onChange, readOnly }: TrafficFormProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Pessoas alcancadas */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-liv-faint mb-1">
             Pessoas alcancadas
           </label>
           <input
@@ -77,14 +77,14 @@ export function TrafficForm({ data, onChange, readOnly }: TrafficFormProps) {
             value={data.pessoasAlcancadas || ""}
             onChange={(e) => handleIntChange("pessoasAlcancadas", e.target.value)}
             disabled={readOnly}
-            className={`${inputBase} ${readOnly ? "bg-[#1a1f2e]" : ""}`}
+            className={`${inputBase} ${readOnly ? "bg-liv-surface" : ""}`}
             placeholder="0"
           />
         </div>
 
         {/* Total de leads */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-liv-faint mb-1">
             Total de leads
           </label>
           <input
@@ -93,14 +93,14 @@ export function TrafficForm({ data, onChange, readOnly }: TrafficFormProps) {
             value={data.totalLeads || ""}
             onChange={(e) => handleIntChange("totalLeads", e.target.value)}
             disabled={readOnly}
-            className={`${inputBase} ${readOnly ? "bg-[#1a1f2e]" : ""}`}
+            className={`${inputBase} ${readOnly ? "bg-liv-surface" : ""}`}
             placeholder="0"
           />
         </div>
 
         {/* Investimento em vendas */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-liv-faint mb-1">
             Investimento em vendas (R$)
           </label>
           <input
@@ -111,7 +111,7 @@ export function TrafficForm({ data, onChange, readOnly }: TrafficFormProps) {
               handleCurrencyChange("valorInvestidoVendas", e.target.value, setDisplayInvestVendas)
             }
             disabled={readOnly}
-            className={`${inputBase} ${readOnly ? "bg-[#1a1f2e]" : ""}`}
+            className={`${inputBase} ${readOnly ? "bg-liv-surface" : ""}`}
             placeholder="0,00"
             autoComplete="off"
           />
@@ -119,7 +119,7 @@ export function TrafficForm({ data, onChange, readOnly }: TrafficFormProps) {
 
         {/* Investimento em branding */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-liv-faint mb-1">
             Investimento em branding (R$)
           </label>
           <input
@@ -130,7 +130,7 @@ export function TrafficForm({ data, onChange, readOnly }: TrafficFormProps) {
               handleCurrencyChange("valorInvestidoBranding", e.target.value, setDisplayInvestBranding)
             }
             disabled={readOnly}
-            className={`${inputBase} ${readOnly ? "bg-[#1a1f2e]" : ""}`}
+            className={`${inputBase} ${readOnly ? "bg-liv-surface" : ""}`}
             placeholder="0,00"
             autoComplete="off"
           />
@@ -138,7 +138,7 @@ export function TrafficForm({ data, onChange, readOnly }: TrafficFormProps) {
 
         {/* Valor gasto */}
         <div>
-          <label className="block text-sm font-medium text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-liv-faint mb-1">
             Valor gasto (R$)
           </label>
           <input
@@ -149,7 +149,7 @@ export function TrafficForm({ data, onChange, readOnly }: TrafficFormProps) {
               handleCurrencyChange("valorGasto", e.target.value, setDisplayValorGasto)
             }
             disabled={readOnly}
-            className={`${inputBase} ${readOnly ? "bg-[#1a1f2e]" : ""}`}
+            className={`${inputBase} ${readOnly ? "bg-liv-surface" : ""}`}
             placeholder="0,00"
             autoComplete="off"
           />

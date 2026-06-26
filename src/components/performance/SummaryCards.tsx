@@ -49,19 +49,19 @@ interface CardDef {
 
 function SummaryCard({ label, value, icon: Icon, color, isCurrency }: CardDef) {
   const colorMap: Record<string, { bg: string; text: string }> = {
-    blue: { bg: "bg-blue-400/10", text: "text-blue-400" },
-    green: { bg: "bg-lime-400/10", text: "text-lime-400" },
-    teal: { bg: "bg-teal-400/10", text: "text-teal-400" },
-    purple: { bg: "bg-purple-400/10", text: "text-purple-400" },
-    red: { bg: "bg-red-400/10", text: "text-red-400" },
-    amber: { bg: "bg-amber-400/10", text: "text-amber-400" },
-    emerald: { bg: "bg-emerald-400/10", text: "text-emerald-400" },
+    blue: { bg: "bg-liv-info/10", text: "text-liv-info" },
+    green: { bg: "bg-liv-sage/10", text: "text-liv-sage" },
+    teal: { bg: "bg-liv-teal/10", text: "text-liv-teal" },
+    purple: { bg: "bg-liv-violet/10", text: "text-liv-violet" },
+    red: { bg: "bg-liv-danger/10", text: "text-liv-danger" },
+    amber: { bg: "bg-liv-gold/10", text: "text-liv-gold" },
+    emerald: { bg: "bg-liv-sage/10", text: "text-liv-sage" },
   };
 
   const c = colorMap[color] ?? colorMap.blue;
 
   return (
-    <div className="bg-[#1a1f2e] rounded-xl p-4 shadow-sm border border-[#232a3b]">
+    <div className="bg-liv-surface rounded-xl p-4 shadow-sm border border-liv-line">
       <div className="flex items-center gap-2 mb-2">
         <div
           className={`w-8 h-8 ${c.bg} rounded-lg flex items-center justify-center`}
@@ -69,8 +69,8 @@ function SummaryCard({ label, value, icon: Icon, color, isCurrency }: CardDef) {
           <Icon className={`w-4 h-4 ${c.text}`} />
         </div>
       </div>
-      <p className="text-xs text-gray-400">{label}</p>
-      <p className="text-lg font-bold text-gray-100">
+      <p className="text-xs text-liv-muted">{label}</p>
+      <p className="text-lg font-bold text-liv-ink">
         {isCurrency ? formatCurrency(value) : formatNumber(value, 0)}
       </p>
     </div>
@@ -175,7 +175,7 @@ export function SummaryCards({
     <div className="space-y-4">
       {/* Trafego */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+        <p className="text-xs font-semibold text-liv-faint uppercase tracking-wider mb-2">
           Trafego
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -187,7 +187,7 @@ export function SummaryCards({
 
       {/* Comercial */}
       <div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+        <p className="text-xs font-semibold text-liv-faint uppercase tracking-wider mb-2">
           Comercial
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">

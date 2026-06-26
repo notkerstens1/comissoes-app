@@ -46,8 +46,8 @@ export function DateRangeFilter({
             className={cn(
               "px-3 py-1.5 rounded-full text-sm font-medium transition",
               preset === p
-                ? "bg-teal-400 text-gray-900"
-                : "bg-[#1a1f2e] text-gray-400 hover:bg-[#232a3b]"
+                ? "bg-liv-teal text-liv-bg"
+                : "bg-liv-surface text-liv-muted hover:bg-liv-surface-2"
             )}
           >
             {presetLabels[p]}
@@ -60,20 +60,20 @@ export function DateRangeFilter({
               type="date"
               value={startDate}
               onChange={(e) => onCustomRangeChange(e.target.value, endDate)}
-              className="px-3 py-1.5 rounded-lg border border-[#232a3b] bg-[#1a1f2e] text-gray-100 text-sm"
+              className="px-3 py-1.5 rounded-lg border border-liv-line bg-liv-surface text-liv-ink text-sm"
             />
-            <span className="text-gray-500 text-sm">ate</span>
+            <span className="text-liv-faint text-sm">ate</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => onCustomRangeChange(startDate, e.target.value)}
-              className="px-3 py-1.5 rounded-lg border border-[#232a3b] bg-[#1a1f2e] text-gray-100 text-sm"
+              className="px-3 py-1.5 rounded-lg border border-liv-line bg-liv-surface text-liv-ink text-sm"
             />
           </div>
         )}
       </div>
 
-      <p className="text-sm text-gray-400">{label}</p>
+      <p className="text-sm text-liv-muted">{label}</p>
     </div>
   );
 }

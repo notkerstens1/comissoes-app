@@ -227,7 +227,7 @@ export function EditDayPanel({
     <SlidePanel isOpen={date !== null} onClose={onClose} title={title}>
       {loading ? (
         <div className="flex items-center justify-center py-16">
-          <Loader2 className="w-8 h-8 animate-spin text-teal-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-liv-teal" />
         </div>
       ) : (
         <div className="space-y-8">
@@ -246,12 +246,12 @@ export function EditDayPanel({
           />
 
           {/* Footer buttons */}
-          <div className="flex items-center gap-3 pt-4 border-t border-[#232a3b]">
+          <div className="flex items-center gap-3 pt-4 border-t border-liv-line">
             <button
               type="button"
               onClick={handleCopyPrevious}
               disabled={saving}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-300 bg-[#1a1f2e] border border-[#232a3b] rounded-lg hover:bg-[#232a3b] transition disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-liv-muted bg-liv-surface border border-liv-line rounded-lg hover:bg-liv-surface-2 transition disabled:opacity-50"
             >
               <Copy className="w-4 h-4" />
               Copiar do dia anterior
@@ -261,7 +261,7 @@ export function EditDayPanel({
               type="button"
               onClick={handleSave}
               disabled={saving}
-              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-900 bg-teal-400 rounded-lg hover:bg-teal-500 transition disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-liv-bg bg-liv-sage rounded-lg hover:bg-liv-sage-deep transition disabled:opacity-50"
             >
               {saving ? (
                 <Loader2 className="w-4 h-4 animate-spin" />

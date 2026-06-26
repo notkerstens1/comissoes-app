@@ -73,27 +73,27 @@ export function FunnelEfficiencyChart({
   };
 
   const formatTooltipValue = (value: number | null): string => {
-    if (value === null || value === undefined) return "\u2014";
+    if (value === null || value === undefined) return "—";
     return `R$ ${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
   };
 
   return (
-    <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] p-6">
-      <h3 className="text-lg font-semibold text-gray-100 mb-4">
+    <div className="bg-liv-surface rounded-xl border border-liv-line p-6">
+      <h3 className="text-lg font-semibold text-liv-ink mb-4">
         Eficiencia do Funil
       </h3>
 
       <ResponsiveContainer width="100%" height={300}>
         <LineChart data={chartData} onClick={handleChartClick}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#232a3b" />
+          <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--liv-line))" />
           <XAxis
             dataKey="date"
             tickFormatter={formatDateShort}
-            tick={{ fontSize: 12, fill: '#9ca3af' }}
+            tick={{ fontSize: 12, fill: 'oklch(var(--liv-faint))' }}
           />
           <YAxis
             tickFormatter={(v: number) => formatTooltipValue(v)}
-            tick={{ fontSize: 12, fill: '#9ca3af' }}
+            tick={{ fontSize: 12, fill: 'oklch(var(--liv-faint))' }}
           />
           <Tooltip
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,14 +102,14 @@ export function FunnelEfficiencyChart({
               String(name || ""),
             ]}
             labelFormatter={(label: any) => formatDateShort(String(label || ""))}
-            contentStyle={{ backgroundColor: '#1a1f2e', border: '1px solid #232a3b', borderRadius: '8px' }}
-            itemStyle={{ color: '#e5e7eb' }}
-            labelStyle={{ color: '#9ca3af' }}
+            contentStyle={{ backgroundColor: 'oklch(var(--liv-surface))', border: '1px solid oklch(var(--liv-line))', borderRadius: '8px' }}
+            itemStyle={{ color: 'oklch(var(--liv-ink))' }}
+            labelStyle={{ color: 'oklch(var(--liv-faint))' }}
           />
           <Line
             type="monotone"
             dataKey="cpm"
-            stroke="#60a5fa"
+            stroke="oklch(var(--liv-info))"
             strokeWidth={2}
             dot={{ r: 3 }}
             connectNulls
@@ -118,7 +118,7 @@ export function FunnelEfficiencyChart({
           <Line
             type="monotone"
             dataKey="cpl"
-            stroke="#a3e635"
+            stroke="oklch(var(--liv-sage))"
             strokeWidth={2}
             dot={{ r: 3 }}
             connectNulls
@@ -127,7 +127,7 @@ export function FunnelEfficiencyChart({
           <Line
             type="monotone"
             dataKey="custoMql"
-            stroke="#2dd4bf"
+            stroke="oklch(var(--liv-teal))"
             strokeWidth={2}
             dot={{ r: 3 }}
             connectNulls
@@ -136,7 +136,7 @@ export function FunnelEfficiencyChart({
           <Line
             type="monotone"
             dataKey="custoSql"
-            stroke="#fbbf24"
+            stroke="oklch(var(--liv-gold))"
             strokeWidth={2}
             dot={{ r: 3 }}
             connectNulls
@@ -145,7 +145,7 @@ export function FunnelEfficiencyChart({
           <Line
             type="monotone"
             dataKey="cac"
-            stroke="#c084fc"
+            stroke="oklch(var(--liv-violet))"
             strokeWidth={2}
             dot={{ r: 3 }}
             connectNulls

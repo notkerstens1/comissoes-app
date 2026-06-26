@@ -14,7 +14,7 @@ const options: { value: "vendas" | "total"; label: string }[] = [
 
 export function InvestmentToggle({ type, onChange }: InvestmentToggleProps) {
   return (
-    <div className="inline-flex rounded-full bg-[#1a1f2e] p-0.5">
+    <div className="inline-flex rounded-full bg-liv-surface p-0.5">
       {options.map((opt) => (
         <button
           key={opt.value}
@@ -22,8 +22,8 @@ export function InvestmentToggle({ type, onChange }: InvestmentToggleProps) {
           className={cn(
             "px-3 py-1 rounded-full text-xs font-medium transition",
             type === opt.value
-              ? "bg-teal-400 text-gray-900"
-              : "bg-[#1a1f2e] text-gray-400 hover:bg-[#232a3b]"
+              ? "bg-liv-teal text-liv-bg"
+              : "bg-liv-surface text-liv-muted hover:bg-liv-surface-2"
           )}
         >
           {opt.label}

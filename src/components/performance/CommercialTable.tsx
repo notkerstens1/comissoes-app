@@ -37,7 +37,7 @@ const intColumns = [
 type IntKey = (typeof intColumns)[number]["key"];
 
 const inputStyle =
-  "px-2 py-1 text-sm rounded border border-[#232a3b] bg-[#141820] text-gray-100 focus:ring-1 focus:ring-teal-400 focus:border-teal-400 outline-none";
+  "px-2 py-1 text-sm rounded border border-liv-line bg-liv-surface-2 text-liv-ink focus:ring-1 focus:ring-liv-teal focus:border-liv-teal outline-none";
 
 export function CommercialTable({ vendors, onChange, readOnly }: CommercialTableProps) {
   // Local display state for each vendor's currency field
@@ -119,28 +119,28 @@ export function CommercialTable({ vendors, onChange, readOnly }: CommercialTable
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <BarChart3 className="w-5 h-5 text-teal-400" />
-        <h3 className="text-base font-semibold text-gray-100">Comercial do Dia</h3>
+        <BarChart3 className="w-5 h-5 text-liv-teal" />
+        <h3 className="text-base font-semibold text-liv-ink">Comercial do Dia</h3>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[#232a3b]">
-              <th className="text-left py-2 px-2 font-medium text-gray-400">Vendedor</th>
+            <tr className="border-b border-liv-line">
+              <th className="text-left py-2 px-2 font-medium text-liv-muted">Vendedor</th>
               {intColumns.map((col) => (
-                <th key={col.key} className="text-center py-2 px-1 font-medium text-gray-400">
+                <th key={col.key} className="text-center py-2 px-1 font-medium text-liv-muted">
                   {col.label}
                 </th>
               ))}
-              <th className="text-center py-2 px-1 font-medium text-gray-400">Valor Vendas</th>
-              <th className="text-center py-2 px-1 font-medium text-gray-400">Descartados</th>
+              <th className="text-center py-2 px-1 font-medium text-liv-muted">Valor Vendas</th>
+              <th className="text-center py-2 px-1 font-medium text-liv-muted">Descartados</th>
             </tr>
           </thead>
           <tbody>
             {vendors.map((vendor) => (
-              <tr key={vendor.vendedorId} className="border-b border-[#232a3b]">
-                <td className="py-2 px-2 text-gray-100 whitespace-nowrap">{vendor.nome}</td>
+              <tr key={vendor.vendedorId} className="border-b border-liv-line">
+                <td className="py-2 px-2 text-liv-ink whitespace-nowrap">{vendor.nome}</td>
                 {intColumns.map((col) => (
                   <td key={col.key} className="py-2 px-1 text-center">
                     <input
@@ -150,7 +150,7 @@ export function CommercialTable({ vendors, onChange, readOnly }: CommercialTable
                       value={vendor[col.key] || ""}
                       onChange={(e) => handleIntChange(vendor.vendedorId, col.key, e.target.value)}
                       disabled={readOnly}
-                      className={`w-16 text-center ${inputStyle} ${readOnly ? "bg-[#1a1f2e]" : ""}`}
+                      className={`w-16 text-center ${inputStyle} ${readOnly ? "bg-liv-surface" : ""}`}
                     />
                   </td>
                 ))}
@@ -161,7 +161,7 @@ export function CommercialTable({ vendors, onChange, readOnly }: CommercialTable
                     value={currencyDisplays[vendor.vendedorId] ?? ""}
                     onChange={(e) => handleCurrencyChange(vendor.vendedorId, e.target.value)}
                     disabled={readOnly}
-                    className={`w-24 text-center ${inputStyle} ${readOnly ? "bg-[#1a1f2e]" : ""}`}
+                    className={`w-24 text-center ${inputStyle} ${readOnly ? "bg-liv-surface" : ""}`}
                     placeholder="0,00"
                     autoComplete="off"
                   />
@@ -174,24 +174,24 @@ export function CommercialTable({ vendors, onChange, readOnly }: CommercialTable
                     value={vendor.leadsDescartados || ""}
                     onChange={(e) => handleDescartadosChange(vendor.vendedorId, e.target.value)}
                     disabled={readOnly}
-                    className={`w-16 text-center ${inputStyle} ${readOnly ? "bg-[#1a1f2e]" : ""}`}
+                    className={`w-16 text-center ${inputStyle} ${readOnly ? "bg-liv-surface" : ""}`}
                   />
                 </td>
               </tr>
             ))}
 
             {/* Total row */}
-            <tr className="border-t-2 border-gray-600 bg-[#141820]">
-              <td className="py-2 px-2 font-bold text-gray-100">Total do time</td>
+            <tr className="border-t-2 border-liv-muted bg-liv-surface">
+              <td className="py-2 px-2 font-bold text-liv-ink">Total do time</td>
               {intColumns.map((col) => (
-                <td key={col.key} className="py-2 px-1 text-center font-bold text-gray-100">
+                <td key={col.key} className="py-2 px-1 text-center font-bold text-liv-ink">
                   {totals[col.key]}
                 </td>
               ))}
-              <td className="py-2 px-1 text-center font-bold text-gray-100">
+              <td className="py-2 px-1 text-center font-bold text-liv-ink">
                 {formatCurrency(totals.valorEmVendas)}
               </td>
-              <td className="py-2 px-1 text-center font-bold text-gray-100">
+              <td className="py-2 px-1 text-center font-bold text-liv-ink">
                 {totals.leadsDescartados}
               </td>
             </tr>

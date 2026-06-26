@@ -16,13 +16,13 @@ export function KpiCard({
   color = "teal",
 }: KpiCardProps) {
   const colorMap: Record<string, { bg: string; text: string }> = {
-    blue: { bg: "bg-blue-400/10", text: "text-blue-400" },
-    green: { bg: "bg-lime-400/10", text: "text-lime-400" },
-    teal: { bg: "bg-teal-400/10", text: "text-teal-400" },
-    purple: { bg: "bg-purple-400/10", text: "text-purple-400" },
-    red: { bg: "bg-red-400/10", text: "text-red-400" },
-    amber: { bg: "bg-amber-400/10", text: "text-amber-400" },
-    emerald: { bg: "bg-emerald-400/10", text: "text-emerald-400" },
+    blue: { bg: "bg-liv-info/10", text: "text-liv-info" },
+    green: { bg: "bg-liv-sage/10", text: "text-liv-sage" },
+    teal: { bg: "bg-liv-teal/10", text: "text-liv-teal" },
+    purple: { bg: "bg-liv-violet/10", text: "text-liv-violet" },
+    red: { bg: "bg-liv-danger/10", text: "text-liv-danger" },
+    amber: { bg: "bg-liv-gold/10", text: "text-liv-gold" },
+    emerald: { bg: "bg-liv-sage/10", text: "text-liv-sage" },
   };
 
   const c = colorMap[color] ?? colorMap.teal;
@@ -35,12 +35,12 @@ export function KpiCard({
         : `${prefix}${value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   return (
-    <div className="bg-[#1a1f2e] rounded-xl p-4 shadow-sm border border-[#232a3b]">
-      <p className="text-xs text-gray-400 mb-1">{label}</p>
+    <div className="bg-liv-surface rounded-xl p-4 shadow-sm border border-liv-line">
+      <p className="text-xs text-liv-muted mb-1">{label}</p>
       {formattedValue !== null ? (
         <p className={`text-lg font-bold ${c.text}`}>{formattedValue}</p>
       ) : (
-        <p className="text-lg font-bold text-gray-600">&mdash;</p>
+        <p className="text-lg font-bold text-liv-faint">&mdash;</p>
       )}
     </div>
   );
