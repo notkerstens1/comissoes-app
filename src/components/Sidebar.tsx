@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { isAdmin as checkAdmin, isDiretor as checkDiretor, isSDR as checkSDR, isPosVenda as checkPosVenda, isFinanceiro as checkFinanceiro, isTecnico as checkTecnico, canAccessTecnico as checkCanAccessTecnico, canManageTeam as checkCanManageTeam, canViewSupervisorCommission as checkCanViewSupervisor } from "@/lib/roles";
 
 export function Sidebar() {
@@ -95,23 +96,23 @@ export function Sidebar() {
     { href: "/diretor/previsoes", label: "Previsões", icon: CalendarDays },
   ];
 
-  const getRoleBadge = () => {
-    if (diretor) return { bg: "bg-amber-400/10 text-amber-400", label: "Diretor" };
-    if (admin) return { bg: "bg-purple-400/10 text-purple-400", label: "Admin" };
-    if (isSupervisorRole) return { bg: "bg-fuchsia-400/10 text-fuchsia-400", label: "Supervisor" };
-    if (sdr) return { bg: "bg-sky-400/10 text-sky-400", label: "SDR" };
-    if (posVenda) return { bg: "bg-orange-400/10 text-orange-400", label: "Pós Venda" };
-    if (tecnico) return { bg: "bg-teal-400/10 text-teal-400", label: "Técnico" };
-    if (financeiro) return { bg: "bg-emerald-400/10 text-emerald-400", label: "Financeiro" };
-    return { bg: "bg-lime-400/10 text-lime-400", label: "Vendedor" };
+  type BadgeTone = "gold" | "violet" | "info" | "orange" | "teal" | "sage";
+
+  const getRoleBadge = (): { tone: BadgeTone; label: string } => {
+    if (diretor) return { tone: "gold", label: "Diretor" };
+    if (admin) return { tone: "violet", label: "Admin" };
+    if (isSupervisorRole) return { tone: "violet", label: "Supervisor" };
+    if (sdr) return { tone: "info", label: "SDR" };
+    if (posVenda) return { tone: "orange", label: "Pós Venda" };
+    if (tecnico) return { tone: "teal", label: "Técnico" };
+    if (financeiro) return { tone: "sage", label: "Financeiro" };
+    return { tone: "sage", label: "Vendedor" };
   };
 
-  const badge = getRoleBadge();
+  const roleBadge = getRoleBadge();
 
   const renderMenuSection = (
-    items: { href: string; label: string; icon: any }[],
-    activeColor: string,
-    activeBg: string
+    items: { href: string; label: string; icon: any }[]
   ) => (
     <>
       {items.map((item) => (
@@ -122,8 +123,8 @@ export function Sidebar() {
           className={cn(
             "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition",
             pathname === item.href
-              ? `${activeBg} ${activeColor}`
-              : "text-gray-400 hover:bg-[#1a1f2e] hover:text-gray-100"
+              ? "bg-liv-sage/14 text-liv-sage"
+              : "text-liv-muted hover:bg-liv-surface-2 hover:text-liv-ink"
           )}
         >
           <item.icon className="w-4 h-4" />
@@ -138,7 +139,7 @@ export function Sidebar() {
       {/* Mobile toggle */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 bg-[#141820] border border-[#232a3b] rounded-lg shadow-md p-2 text-gray-300"
+        className="lg:hidden fixed top-4 left-4 z-50 bg-liv-surface border border-liv-line rounded-lg shadow-md p-2 text-liv-muted"
       >
         {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
@@ -154,31 +155,28 @@ export function Sidebar() {
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed left-0 top-0 h-full w-64 bg-[#141820] border-r border-[#232a3b] z-40 transition-transform lg:translate-x-0",
+          "fixed left-0 top-0 h-full w-64 bg-liv-surface border-r border-liv-line z-40 transition-transform lg:translate-x-0",
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-5 border-b border-[#232a3b]">
-          <div className="w-10 h-10 bg-lime-400 rounded-xl flex items-center justify-center">
-            <Sun className="w-5 h-5 text-gray-900" />
+        <div className="flex items-center gap-3 px-6 py-5 border-b border-liv-line">
+          <div className="w-10 h-10 bg-liv-sage rounded-xl flex items-center justify-center">
+            <Sun className="w-5 h-5 text-liv-bg" />
           </div>
           <div>
-            <h1 className="font-bold text-gray-100">LIV Energia</h1>
-            <p className="text-xs text-gray-400">Energia Solar</p>
+            <h1 className="font-bold text-liv-ink">LIV Energia</h1>
+            <p className="text-xs text-liv-faint">Energia Solar</p>
           </div>
         </div>
 
         {/* User info */}
-        <div className="px-6 py-4 border-b border-[#232a3b]">
-          <p className="font-medium text-sm text-gray-100">{session?.user?.name}</p>
-          <p className="text-xs text-gray-400">{session?.user?.email}</p>
-          <span className={cn(
-            "inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium",
-            badge.bg
-          )}>
-            {badge.label}
-          </span>
+        <div className="px-6 py-4 border-b border-liv-line">
+          <p className="font-medium text-sm text-liv-ink">{session?.user?.name}</p>
+          <p className="text-xs text-liv-faint">{session?.user?.email}</p>
+          <Badge variant={roleBadge.tone} className="mt-1">
+            {roleBadge.label}
+          </Badge>
         </div>
 
         {/* Menu */}
@@ -187,16 +185,14 @@ export function Sidebar() {
           {!sdr && !posVenda && !financeiro && !tecnico && (
             <>
               {admin && (
-                <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                <p className="px-3 text-xs font-semibold text-liv-faint uppercase tracking-wider mb-2">
                   Vendedor
                 </p>
               )}
               {renderMenuSection(
                 admin
                   ? menuVendedor.filter(item => item.href !== "/comissoes")
-                  : menuVendedor,
-                "text-lime-400",
-                "bg-lime-400/10"
+                  : menuVendedor
               )}
             </>
           )}
@@ -205,26 +201,20 @@ export function Sidebar() {
               Ambos veem todas as abas; cada um trabalha na sua. */}
           {canTecnico && (
             <>
-              {!tecnico && !posVenda && <div className="my-3 border-t border-[#232a3b]" />}
-              <p className="px-3 text-xs font-semibold text-teal-400 uppercase tracking-wider mb-2">
+              {!tecnico && !posVenda && <div className="my-3 border-t border-liv-line" />}
+              <p className="px-3 text-xs font-semibold text-liv-faint uppercase tracking-wider mb-2">
                 Setor Técnico
               </p>
-              {renderMenuSection(
-                [
-                  { href: "/pos-venda", label: "Pós-Venda (Yuri)", icon: ClipboardCheck },
-                  { href: "/tecnico", label: "Engenharia (Pedro)", icon: Wrench },
-                  { href: "/tecnico/margem", label: "Margem Instalação", icon: Activity },
-                ],
-                "text-teal-400",
-                "bg-teal-400/10"
-              )}
+              {renderMenuSection([
+                { href: "/pos-venda", label: "Pós-Venda (Yuri)", icon: ClipboardCheck },
+                { href: "/tecnico", label: "Engenharia (Pedro)", icon: Wrench },
+                { href: "/tecnico/margem", label: "Margem Instalação", icon: Activity },
+              ])}
               {admin && (
                 <div className="ml-3 mt-1">
-                  {renderMenuSection(
-                    [{ href: "/admin/pos-venda", label: "Visão Admin Pós-Venda", icon: ClipboardCheck }],
-                    "text-orange-400",
-                    "bg-orange-400/10"
-                  )}
+                  {renderMenuSection([
+                    { href: "/admin/pos-venda", label: "Visão Admin Pós-Venda", icon: ClipboardCheck },
+                  ])}
                 </div>
               )}
             </>
@@ -233,110 +223,104 @@ export function Sidebar() {
           {/* Menu SDR — SDR ve seus menus, Admin/Diretor ve admin SDR */}
           {(sdr || admin) && (
             <>
-              {!sdr && <div className="my-3 border-t border-[#232a3b]" />}
-              <p className="px-3 text-xs font-semibold text-sky-400 uppercase tracking-wider mb-2">
+              {!sdr && <div className="my-3 border-t border-liv-line" />}
+              <p className="px-3 text-xs font-semibold text-liv-faint uppercase tracking-wider mb-2">
                 SDR
               </p>
-              {sdr && renderMenuSection(menuSDR, "text-sky-400", "bg-sky-400/10")}
-              {admin && renderMenuSection(menuAdminSDR, "text-sky-400", "bg-sky-400/10")}
+              {sdr && renderMenuSection(menuSDR)}
+              {admin && renderMenuSection(menuAdminSDR)}
             </>
           )}
 
           {/* Menu Financeiro */}
           {(financeiro || admin) && (
             <>
-              {!financeiro && <div className="my-3 border-t border-[#232a3b]" />}
-              <p className="px-3 text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">
+              {!financeiro && <div className="my-3 border-t border-liv-line" />}
+              <p className="px-3 text-xs font-semibold text-liv-faint uppercase tracking-wider mb-2">
                 Financeiro
               </p>
-              {renderMenuSection(menuFinanceiro, "text-emerald-400", "bg-emerald-400/10")}
+              {renderMenuSection(menuFinanceiro)}
             </>
           )}
 
           {/* Revenue Analytics */}
           {admin && (
             <>
-              <div className="my-3 border-t border-[#232a3b]" />
-              <p className="px-3 text-xs font-semibold text-lime-400 uppercase tracking-wider mb-2">
+              <div className="my-3 border-t border-liv-line" />
+              <p className="px-3 text-xs font-semibold text-liv-faint uppercase tracking-wider mb-2">
                 Revenue Analytics
               </p>
-              {renderMenuSection(
-                [{ href: "/revenue", label: "Dashboard CRO", icon: TrendingUp }],
-                "text-lime-400",
-                "bg-lime-400/10"
-              )}
+              {renderMenuSection([
+                { href: "/revenue", label: "Dashboard CRO", icon: TrendingUp },
+              ])}
             </>
           )}
 
           {/* Menu Performance */}
           {admin && (
             <>
-              <div className="my-3 border-t border-[#232a3b]" />
-              <p className="px-3 text-xs font-semibold text-teal-400 uppercase tracking-wider mb-2">
+              <div className="my-3 border-t border-liv-line" />
+              <p className="px-3 text-xs font-semibold text-liv-faint uppercase tracking-wider mb-2">
                 Performance
               </p>
-              {renderMenuSection(menuPerformance, "text-teal-400", "bg-teal-400/10")}
+              {renderMenuSection(menuPerformance)}
             </>
           )}
 
           {/* Menu Diretor */}
           {diretor && (
             <>
-              <div className="my-3 border-t border-[#232a3b]" />
-              <p className="px-3 text-xs font-semibold text-amber-400 uppercase tracking-wider mb-2">
+              <div className="my-3 border-t border-liv-line" />
+              <p className="px-3 text-xs font-semibold text-liv-faint uppercase tracking-wider mb-2">
                 Diretor
               </p>
-              {renderMenuSection(menuDiretor, "text-amber-400", "bg-amber-400/10")}
+              {renderMenuSection(menuDiretor)}
             </>
           )}
 
           {/* Menu Time — ADMIN, DIRETOR, POS_VENDA */}
           {canTeam && (
             <>
-              <div className="my-3 border-t border-[#232a3b]" />
-              <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              <div className="my-3 border-t border-liv-line" />
+              <p className="px-3 text-xs font-semibold text-liv-faint uppercase tracking-wider mb-2">
                 Gestão
               </p>
-              {renderMenuSection(
-                [{ href: "/admin/vendedores", label: "Time", icon: Users }],
-                "text-purple-400",
-                "bg-purple-400/10"
-              )}
+              {renderMenuSection([
+                { href: "/admin/vendedores", label: "Time", icon: Users },
+              ])}
             </>
           )}
 
           {/* Menu Admin */}
           {admin && (
             <>
-              {!canTeam && <div className="my-3 border-t border-[#232a3b]" />}
-              <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+              {!canTeam && <div className="my-3 border-t border-liv-line" />}
+              <p className="px-3 text-xs font-semibold text-liv-faint uppercase tracking-wider mb-2">
                 Admin
               </p>
-              {renderMenuSection(menuAdmin, "text-purple-400", "bg-purple-400/10")}
+              {renderMenuSection(menuAdmin)}
             </>
           )}
 
           {/* Menu Supervisor — comissao propria (SUPERVISOR e DIRETOR enxergam) */}
           {canSupervisorCommission && (
             <>
-              <div className="my-3 border-t border-[#232a3b]" />
-              <p className="px-3 text-xs font-semibold text-fuchsia-400 uppercase tracking-wider mb-2">
+              <div className="my-3 border-t border-liv-line" />
+              <p className="px-3 text-xs font-semibold text-liv-faint uppercase tracking-wider mb-2">
                 Supervisor
               </p>
-              {renderMenuSection(
-                [{ href: "/supervisor", label: "Minha Comissao", icon: DollarSign }],
-                "text-fuchsia-400",
-                "bg-fuchsia-400/10"
-              )}
+              {renderMenuSection([
+                { href: "/supervisor", label: "Minha Comissao", icon: DollarSign },
+              ])}
             </>
           )}
         </nav>
 
         {/* Logout */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-[#232a3b]">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-liv-line">
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-400/10 transition w-full"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-liv-danger hover:bg-liv-danger/10 transition w-full"
           >
             <LogOut className="w-4 h-4" />
             Sair
