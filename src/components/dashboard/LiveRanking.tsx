@@ -54,11 +54,28 @@ export function LiveRanking({ inicio, fim, telao, demo, onOpenTelao }: LiveRanki
     return () => clearTimeout(id);
   }, [burst]);
 
+  const demoStep = React.useRef(0);
+  const [demoAuto, setDemoAuto] = React.useState(false);
+
   function simular() {
-    const alvo = ranking[Math.min(1, ranking.length - 1)] ?? { id: "demo", nome: "Demo", totalVendido: 0 };
-    const ev: LiveEvent = { kind: "sale", id: alvo.id, nome: alvo.nome, delta: 12000 };
+    const alvo = ranking[Math.min(1, ranking.length - 1)] ?? ({ id: "demo", nome: "Demo" } as { id: string; nome: string });
+    // ciclo: venda, venda, meta, líder
+    const kinds = ["sale", "sale", "meta", "lead"] as const;
+    const kind = kinds[demoStep.current % kinds.length];
+    demoStep.current += 1;
+    const ev: LiveEvent = { kind, id: alvo.id, nome: alvo.nome, delta: kind === "sale" ? 12000 : 0 };
     setToasts((q) => [...q.slice(-2), { ...ev, toastId: ++toastSeq }]);
+    if (kind === "meta" || kind === "lead") { setBanner(ev); setBurst((b) => b + 1); }
   }
+
+  // demo-only: dispara simular() em intervalo enquanto "Auto" estiver ligado
+  React.useEffect(() => {
+    if (!demo || !demoAuto) return;
+    const id = setInterval(simular, 2500);
+    return () => clearInterval(id);
+    // simular lê refs/state-setters estáveis; deps intencionalmente enxutas
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demo, demoAuto]);
 
   const top3 = ranking.slice(0, 3);
   const rest = ranking.slice(3);
@@ -97,9 +114,17 @@ export function LiveRanking({ inicio, fim, telao, demo, onOpenTelao }: LiveRanki
       <Confetti burstKey={burst} />
 
       {demo && (
-        <div className="pt-2">
+        <div className="flex items-center gap-2 pt-2">
           <Button variant="default" size="sm" onClick={simular}>
             <ShoppingCart className="mr-1.5 h-4 w-4" /> Simular venda
+          </Button>
+          <Button
+            variant={demoAuto ? "secondary" : "outline"}
+            size="sm"
+            onClick={() => setDemoAuto((v) => !v)}
+            aria-pressed={demoAuto}
+          >
+            {demoAuto ? "Auto ligado" : "Auto"}
           </Button>
         </div>
       )}

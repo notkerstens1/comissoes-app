@@ -29,4 +29,14 @@ describe("LiveRanking demo", () => {
     fireEvent.click(screen.getByText("Simular venda"));
     await waitFor(() => expect(screen.getByText(/registrou|bateu a meta|novo líder/i)).toBeInTheDocument());
   });
+
+  it("3 cliques (venda, venda, meta) mostram o banner de celebração", async () => {
+    render(<LiveRanking inicio="x" fim="y" demo />);
+    await waitFor(() => expect(screen.getByText("Ana")).toBeInTheDocument());
+    const btn = screen.getByText("Simular venda");
+    fireEvent.click(btn); // sale
+    fireEvent.click(btn); // sale
+    fireEvent.click(btn); // meta → banner
+    await waitFor(() => expect(screen.getAllByText(/bateu a meta/i).length).toBeGreaterThan(0));
+  });
 });
