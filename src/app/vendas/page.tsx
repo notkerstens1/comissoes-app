@@ -23,6 +23,7 @@ import {
   Clock,
 } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
+import { PageHeader } from "@/components/ui/page-header";
 
 function buildPeriodoLabel(preset: DatePreset, start: string, end: string): string {
   if (preset === "custom") return formatCustomRangeLabel(start, end);
@@ -340,18 +341,18 @@ export default function VendasPage() {
       {/* MODAL DE CONFIRMACAO - MARGEM BAIXA */}
       {showModalMargem && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1a1f2e] rounded-2xl max-w-md w-full shadow-lg">
+          <div className="bg-liv-surface rounded-2xl max-w-md w-full shadow-lg">
             {/* Header do modal */}
-            <div className="flex items-center justify-between p-6 border-b border-[#232a3b]">
+            <div className="flex items-center justify-between p-6 border-b border-liv-line">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-400/10 rounded-full flex items-center justify-center">
-                  <ShieldAlert className="w-5 h-5 text-amber-400" />
+                <div className="w-10 h-10 bg-liv-gold/10 rounded-full flex items-center justify-center">
+                  <ShieldAlert className="w-5 h-5 text-liv-gold" />
                 </div>
-                <h3 className="font-bold text-lg text-gray-100">Margem Abaixo de 1.8x</h3>
+                <h3 className="font-bold text-lg text-liv-ink">Margem Abaixo de 1.8x</h3>
               </div>
               <button
                 onClick={() => setShowModalMargem(false)}
-                className="text-gray-500 hover:text-gray-400 transition"
+                className="text-liv-faint hover:text-liv-muted transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -359,49 +360,49 @@ export default function VendasPage() {
 
             {/* Corpo do modal */}
             <div className="p-6 space-y-4">
-              <div className="bg-amber-400/10 border border-amber-400/20 rounded-lg p-4">
+              <div className="bg-liv-gold/10 border border-liv-gold/20 rounded-lg p-4">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-amber-400">Cliente</span>
-                  <span className="font-medium text-amber-400">{cliente}</span>
+                  <span className="text-sm text-liv-gold">Cliente</span>
+                  <span className="font-medium text-liv-gold">{cliente}</span>
                 </div>
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm text-amber-400">Valor da Venda</span>
-                  <span className="font-medium text-amber-400">{formatCurrency(valor)}</span>
+                  <span className="text-sm text-liv-gold">Valor da Venda</span>
+                  <span className="font-medium text-liv-gold tabular-nums">{formatCurrency(valor)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-amber-400">Margem</span>
-                  <span className="font-bold text-red-400">{formatNumber(margem)}x</span>
+                  <span className="text-sm text-liv-gold">Margem</span>
+                  <span className="font-bold text-liv-danger tabular-nums">{formatNumber(margem)}x</span>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm text-gray-300">
-                  Esta venda esta com margem de <strong className="text-red-400">{formatNumber(margem)}x</strong>, abaixo do minimo de <strong>1.8x</strong>.
+                <p className="text-sm text-liv-muted">
+                  Esta venda esta com margem de <strong className="text-liv-danger">{formatNumber(margem)}x</strong>, abaixo do minimo de <strong>1.8x</strong>.
                 </p>
-                <p className="text-sm text-gray-300">
-                  Voce <strong>nao recebera comissao sobre o over</strong> desta venda, apenas a comissao de 2,5% ({formatCurrency(comissaoVenda)}).
+                <p className="text-sm text-liv-muted">
+                  Voce <strong>nao recebera comissao sobre o over</strong> desta venda, apenas a comissao de 2,5% (<span className="tabular-nums">{formatCurrency(comissaoVenda)}</span>).
                 </p>
-                <p className="text-sm font-medium text-amber-400 mt-3">
+                <p className="text-sm font-medium text-liv-gold mt-3">
                   Voce confirmou esta margem com seu supervisor?
                 </p>
               </div>
             </div>
 
             {/* Botoes do modal */}
-            <div className="p-6 border-t border-[#232a3b] flex gap-3">
+            <div className="p-6 border-t border-liv-line flex gap-3">
               <button
                 onClick={() => setShowModalMargem(false)}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-[#232a3b] text-gray-400 font-medium hover:bg-[#232a3b] transition"
+                className="flex-1 px-4 py-2.5 rounded-lg border border-liv-line text-liv-muted font-medium hover:bg-liv-line transition"
               >
                 Cancelar
               </button>
               <button
                 onClick={salvarVenda}
                 disabled={formLoading}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-amber-500 text-white font-medium hover:bg-amber-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 rounded-lg bg-liv-sage text-liv-bg font-medium hover:bg-liv-sage-deep transition disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {formLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-liv-bg"></div>
                 ) : (
                   <>
                     <ShieldAlert className="w-4 h-4" />
@@ -415,53 +416,44 @@ export default function VendasPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-100">
-              {admin ? "Todas as Vendas" : "Minhas Vendas"}
-            </h1>
-            <p className="text-gray-400">{periodoLabel}</p>
-          </div>
-          {!admin && <NotificationBell />}
-        </div>
-        <div className="flex gap-3 flex-wrap">
-          {admin && vendedores.length > 0 && (
-            <select
-              value={vendedorFiltro}
-              onChange={(e) => setVendedorFiltro(e.target.value)}
-              className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
-            >
-              <option value="">Todos os vendedores</option>
-              {vendedores.map((v) => (
-                <option key={v.id} value={v.id}>{v.nome}</option>
-              ))}
-            </select>
-          )}
-          {!admin && (
-            <button
-              onClick={() => {
-                if (formAberto) {
-                  resetForm();
-                }
-                setFormAberto(!formAberto);
-              }}
-              className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm ${
-                formAberto
-                  ? "bg-[#232a3b] text-gray-300 hover:bg-[#2a3142]"
-                  : "bg-lime-400 text-gray-900 hover:bg-lime-500"
-              }`}
-            >
-              <Plus
-                className={`w-4 h-4 transition-transform duration-300 ${
-                  formAberto ? "rotate-45" : ""
+      <PageHeader
+        eyebrow="Vendas"
+        title={admin ? "Todas as Vendas" : "Minhas Vendas"}
+        subtitle={periodoLabel}
+        actions={
+          <div className="flex gap-3 flex-wrap items-center">
+            {!admin && <NotificationBell />}
+            {admin && vendedores.length > 0 && (
+              <select
+                value={vendedorFiltro}
+                onChange={(e) => setVendedorFiltro(e.target.value)}
+                className="px-3 py-2 rounded-lg border border-liv-line text-sm bg-liv-surface-2 text-liv-ink"
+              >
+                <option value="">Todos os vendedores</option>
+                {vendedores.map((v) => (
+                  <option key={v.id} value={v.id}>{v.nome}</option>
+                ))}
+              </select>
+            )}
+            {!admin && (
+              <button
+                onClick={() => {
+                  if (formAberto) { resetForm(); }
+                  setFormAberto(!formAberto);
+                }}
+                className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm ${
+                  formAberto
+                    ? "bg-liv-surface-2 text-liv-muted hover:bg-liv-line"
+                    : "bg-liv-sage text-liv-bg hover:bg-liv-sage-deep"
                 }`}
-              />
-              Nova Venda
-            </button>
-          )}
-        </div>
-      </div>
+              >
+                <Plus className={`w-4 h-4 transition-transform duration-300 ${formAberto ? "rotate-45" : ""}`} />
+                Nova Venda
+              </button>
+            )}
+          </div>
+        }
+      />
 
       {/* Filtro de periodo (presets + range customizado) */}
       <DateRangeFilter
@@ -486,13 +478,13 @@ export default function VendasPage() {
 
       {/* Tabs */}
       {!admin && (
-        <div className="flex gap-1 bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-1 w-fit">
+        <div className="flex gap-1 bg-liv-surface border border-liv-line rounded-xl p-1 w-fit">
           <button
             onClick={() => setAbaAtiva("vendas")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
               abaAtiva === "vendas"
-                ? "bg-lime-400 text-gray-900"
-                : "text-gray-400 hover:text-gray-200"
+                ? "bg-liv-sage text-liv-bg"
+                : "text-liv-muted hover:text-liv-ink"
             }`}
           >
             Minhas Vendas
@@ -501,8 +493,8 @@ export default function VendasPage() {
             onClick={() => setAbaAtiva("extrato")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
               abaAtiva === "extrato"
-                ? "bg-lime-400 text-gray-900"
-                : "text-gray-400 hover:text-gray-200"
+                ? "bg-liv-sage text-liv-bg"
+                : "text-liv-muted hover:text-liv-ink"
             }`}
           >
             Extrato de Comissões
@@ -520,33 +512,33 @@ export default function VendasPage() {
           <div className="space-y-4">
             {/* Cards resumo */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-[#1a1f2e] rounded-xl p-5 border border-[#232a3b]">
-                <p className="text-sm text-gray-400">Total do periodo</p>
-                <p className="text-xl font-bold text-lime-400 mt-1">{formatCurrency(totalComissao)}</p>
-                <p className="text-xs text-gray-500 mt-1">{vendas.length} vendas</p>
+              <div className="bg-liv-surface rounded-xl p-5 border border-liv-line">
+                <p className="text-sm text-liv-muted">Total do periodo</p>
+                <p className="text-xl font-bold text-liv-sage mt-1 tabular-nums">{formatCurrency(totalComissao)}</p>
+                <p className="text-xs text-liv-faint mt-1">{vendas.length} vendas</p>
               </div>
-              <div className="bg-[#1a1f2e] rounded-xl p-5 border border-[#232a3b]">
-                <p className="text-sm text-gray-400">Recebido</p>
-                <p className="text-xl font-bold text-emerald-400 mt-1">{formatCurrency(recebido)}</p>
-                <p className="text-xs text-gray-500 mt-1">pago pelo financeiro</p>
+              <div className="bg-liv-surface rounded-xl p-5 border border-liv-line">
+                <p className="text-sm text-liv-muted">Recebido</p>
+                <p className="text-xl font-bold text-liv-sage mt-1 tabular-nums">{formatCurrency(recebido)}</p>
+                <p className="text-xs text-liv-faint mt-1">pago pelo financeiro</p>
               </div>
-              <div className="bg-[#1a1f2e] rounded-xl p-5 border border-[#232a3b]">
-                <p className="text-sm text-gray-400">Pendente</p>
-                <p className="text-xl font-bold text-yellow-400 mt-1">{formatCurrency(pendente)}</p>
-                <p className="text-xs text-gray-500 mt-1">aguardando pagamento</p>
+              <div className="bg-liv-surface rounded-xl p-5 border border-liv-line">
+                <p className="text-sm text-liv-muted">Pendente</p>
+                <p className="text-xl font-bold text-liv-gold mt-1 tabular-nums">{formatCurrency(pendente)}</p>
+                <p className="text-xs text-liv-faint mt-1">aguardando pagamento</p>
               </div>
             </div>
 
             {/* Tabela extrato */}
             {vendas.length === 0 ? (
-              <div className="bg-[#1a1f2e] rounded-xl p-12 border border-[#232a3b] text-center">
-                <p className="text-gray-400">Nenhuma venda neste periodo.</p>
+              <div className="bg-liv-surface rounded-xl p-12 border border-liv-line text-center">
+                <p className="text-liv-muted">Nenhuma venda neste periodo.</p>
               </div>
             ) : (
-              <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] overflow-hidden">
+              <div className="bg-liv-surface rounded-xl border border-liv-line overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-[#141820] text-gray-400">
+                    <thead className="bg-liv-surface-2 text-liv-muted">
                       <tr>
                         <th className="text-left px-4 py-3 font-medium">Cliente</th>
                         <th className="text-center px-4 py-3 font-medium">Data</th>
@@ -557,47 +549,47 @@ export default function VendasPage() {
                         <th className="text-center px-4 py-3 font-medium">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#232a3b]">
+                    <tbody className="divide-y divide-liv-line">
                       {vendas.map((v) => (
-                        <tr key={v.id} className="hover:bg-[#232a3b]">
-                          <td className="px-4 py-3 font-medium text-gray-100">{v.cliente}</td>
-                          <td className="px-4 py-3 text-center text-gray-400">
+                        <tr key={v.id} className="hover:bg-liv-surface-2">
+                          <td className="px-4 py-3 font-medium text-liv-ink">{v.cliente}</td>
+                          <td className="px-4 py-3 text-center text-liv-muted">
                             {new Date(v.dataConversao).toLocaleDateString("pt-BR")}
                           </td>
-                          <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(v.valorVenda)}</td>
-                          <td className="px-4 py-3 text-right text-gray-400">
+                          <td className="px-4 py-3 text-right text-liv-muted tabular-nums">{formatCurrency(v.valorVenda)}</td>
+                          <td className="px-4 py-3 text-right text-liv-muted tabular-nums">
                             {formatCurrency(v.comissaoVenda)}
                             {v.comissaoVendaPaga && (
-                              <span className="ml-1 text-xs text-emerald-400">✓</span>
+                              <span className="ml-1 text-xs text-liv-sage">✓</span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-right text-yellow-400">
+                          <td className="px-4 py-3 text-right text-liv-gold tabular-nums">
                             {formatCurrency(v.comissaoOver)}
                             {v.comissaoOverPaga && (
-                              <span className="ml-1 text-xs text-emerald-400">✓</span>
+                              <span className="ml-1 text-xs text-liv-sage">✓</span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-right font-semibold text-lime-400">
+                          <td className="px-4 py-3 text-right font-semibold text-liv-sage tabular-nums">
                             {formatCurrency(v.comissaoTotal)}
                           </td>
                           <td className="px-4 py-3 text-center">
                             {v.status === "PAGO" ? (
-                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-emerald-400/10 text-emerald-400">Recebido</span>
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-liv-sage/10 text-liv-sage">Recebido</span>
                             ) : v.comissaoVendaPaga || v.comissaoOverPaga ? (
-                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-400/10 text-blue-400">Parcial</span>
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-liv-info/10 text-liv-info">Parcial</span>
                             ) : (
-                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-400/10 text-yellow-400">Pendente</span>
+                              <span className="px-2 py-1 rounded-full text-xs font-medium bg-liv-gold/10 text-liv-gold">Pendente</span>
                             )}
                           </td>
                         </tr>
                       ))}
                     </tbody>
-                    <tfoot className="bg-lime-400/10 font-semibold">
+                    <tfoot className="bg-liv-sage/10 font-semibold">
                       <tr>
-                        <td className="px-4 py-3 text-lime-400" colSpan={3}>TOTAIS DO PERIODO</td>
-                        <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(totalComissaoVenda)}</td>
-                        <td className="px-4 py-3 text-right text-yellow-400">{formatCurrency(totalComissaoOver)}</td>
-                        <td className="px-4 py-3 text-right text-lime-400">{formatCurrency(totalComissao)}</td>
+                        <td className="px-4 py-3 text-liv-sage" colSpan={3}>TOTAIS DO PERIODO</td>
+                        <td className="px-4 py-3 text-right text-liv-muted tabular-nums">{formatCurrency(totalComissaoVenda)}</td>
+                        <td className="px-4 py-3 text-right text-liv-gold tabular-nums">{formatCurrency(totalComissaoOver)}</td>
+                        <td className="px-4 py-3 text-right text-liv-sage tabular-nums">{formatCurrency(totalComissao)}</td>
                         <td></td>
                       </tr>
                     </tfoot>
@@ -624,16 +616,16 @@ export default function VendasPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Formulario */}
             <div className="lg:col-span-2">
-              <form onSubmit={handleFormSubmit} className="bg-[#1a1f2e] rounded-xl p-6 shadow-sm border border-[#232a3b] space-y-5">
+              <form onSubmit={handleFormSubmit} className="bg-liv-surface rounded-xl p-6 shadow-sm border border-liv-line space-y-5">
                 <div className="flex items-center justify-between mb-1">
-                  <h2 className="text-lg font-semibold text-gray-100">Registrar Nova Venda</h2>
+                  <h2 className="text-lg font-semibold text-liv-ink">Registrar Nova Venda</h2>
                   <button
                     type="button"
                     onClick={() => {
                       resetForm();
                       setFormAberto(false);
                     }}
-                    className="text-gray-500 hover:text-gray-400 transition"
+                    className="text-liv-faint hover:text-liv-muted transition"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -641,14 +633,14 @@ export default function VendasPage() {
 
                 {/* Cliente */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-medium text-liv-muted mb-1">
                     Nome do Cliente *
                   </label>
                   <input
                     type="text"
                     value={cliente}
                     onChange={(e) => setCliente(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none bg-[#141820] text-gray-100"
+                    className="w-full px-4 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none bg-liv-surface-2 text-liv-ink"
                     placeholder="Nome completo do cliente"
                     required
                   />
@@ -657,13 +649,13 @@ export default function VendasPage() {
                 {/* Forma Pagamento + Distribuidora */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-liv-muted mb-1">
                       Forma de Pagamento
                     </label>
                     <select
                       value={formaPagamento}
                       onChange={(e) => setFormaPagamento(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none bg-[#141820] text-gray-100"
+                      className="w-full px-4 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none bg-liv-surface-2 text-liv-ink"
                     >
                       <option value="">Selecione...</option>
                       <option value="SANTANDER">Santander</option>
@@ -675,13 +667,13 @@ export default function VendasPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-liv-muted mb-1">
                       Distribuidora
                     </label>
                     <select
                       value={distribuidora}
                       onChange={(e) => setDistribuidora(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none bg-[#141820] text-gray-100"
+                      className="w-full px-4 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none bg-liv-surface-2 text-liv-ink"
                     >
                       <option value="">Selecione...</option>
                       <option value="BELENERGY">Belenergy</option>
@@ -696,7 +688,7 @@ export default function VendasPage() {
                 {/* Valores */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-liv-muted mb-1">
                       Valor da Venda (R$) *
                     </label>
                     <CurrencyInput
@@ -704,11 +696,11 @@ export default function VendasPage() {
                       onValueChange={handleValorVenda}
                       placeholder="Ex: 12.890,00"
                       required
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none bg-[#141820] text-gray-100"
+                      className="w-full px-4 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none bg-liv-surface-2 text-liv-ink"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-liv-muted mb-1">
                       Custo Equipamentos (R$) *
                     </label>
                     <CurrencyInput
@@ -716,22 +708,22 @@ export default function VendasPage() {
                       onValueChange={handleCustoEquip}
                       placeholder="Ex: 6.043,00"
                       required
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none bg-[#141820] text-gray-100"
+                      className="w-full px-4 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none bg-liv-surface-2 text-liv-ink"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-liv-muted mb-1">
                       kWp
                     </label>
                     <CurrencyInput
                       value={kwpDisplay}
                       onValueChange={handleKwp}
                       placeholder="Ex: 5,40"
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none bg-[#141820] text-gray-100"
+                      className="w-full px-4 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none bg-liv-surface-2 text-liv-ink"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-liv-muted mb-1">
                       Qtd. Placas *
                     </label>
                     <input
@@ -740,7 +732,7 @@ export default function VendasPage() {
                       step="1"
                       value={quantidadePlacas}
                       onChange={(e) => setQuantidadePlacas(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none bg-[#141820] text-gray-100"
+                      className="w-full px-4 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none bg-liv-surface-2 text-liv-ink"
                       placeholder="Ex: 8"
                       required
                     />
@@ -749,9 +741,9 @@ export default function VendasPage() {
 
                 {/* Origem da venda (apenas vendedor hibrido) */}
                 {isHibrido && (
-                  <div className="rounded-lg border border-[#B7C1AC]/40 bg-[#141820] p-3">
-                    <label className="block text-xs font-medium text-gray-300 mb-2">
-                      Origem da venda <span className="text-[#B7C1AC]">*</span>
+                  <div className="rounded-lg border border-liv-sage/40 bg-liv-surface-2 p-3">
+                    <label className="block text-xs font-medium text-liv-muted mb-2">
+                      Origem da venda <span className="text-liv-sage">*</span>
                     </label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
@@ -759,12 +751,12 @@ export default function VendasPage() {
                         onClick={() => setTipoVenda("INBOUND")}
                         className={`px-3 py-2 rounded-lg text-sm font-medium transition border ${
                           tipoVenda === "INBOUND"
-                            ? "border-[#B7C1AC] bg-[#B7C1AC]/15 text-[#B7C1AC]"
-                            : "border-[#232a3b] bg-transparent text-gray-400 hover:text-gray-200"
+                            ? "border-liv-sage bg-liv-sage/15 text-liv-sage"
+                            : "border-liv-line bg-transparent text-liv-muted hover:text-liv-ink"
                         }`}
                       >
                         Inbound
-                        <span className="block text-[10px] font-normal text-gray-500 mt-0.5">
+                        <span className="block text-[10px] font-normal text-liv-faint mt-0.5">
                           Lead da empresa · over progressivo
                         </span>
                       </button>
@@ -773,12 +765,12 @@ export default function VendasPage() {
                         onClick={() => setTipoVenda("EXTERNA")}
                         className={`px-3 py-2 rounded-lg text-sm font-medium transition border ${
                           tipoVenda === "EXTERNA"
-                            ? "border-[#B7C1AC] bg-[#B7C1AC]/15 text-[#B7C1AC]"
-                            : "border-[#232a3b] bg-transparent text-gray-400 hover:text-gray-200"
+                            ? "border-liv-sage bg-liv-sage/15 text-liv-sage"
+                            : "border-liv-line bg-transparent text-liv-muted hover:text-liv-ink"
                         }`}
                       >
                         Externa
-                        <span className="block text-[10px] font-normal text-gray-500 mt-0.5">
+                        <span className="block text-[10px] font-normal text-liv-faint mt-0.5">
                           Captação própria · over 50% flat
                         </span>
                       </button>
@@ -787,9 +779,9 @@ export default function VendasPage() {
                 )}
 
                 {/* Status do contrato */}
-                <div className="rounded-lg border border-[#232a3b] bg-[#141820] p-3">
-                  <label className="block text-xs font-medium text-gray-300 mb-2">
-                    Status do contrato <span className="text-[#B7C1AC]">*</span>
+                <div className="rounded-lg border border-liv-line bg-liv-surface-2 p-3">
+                  <label className="block text-xs font-medium text-liv-muted mb-2">
+                    Status do contrato <span className="text-liv-sage">*</span>
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
@@ -797,12 +789,12 @@ export default function VendasPage() {
                       onClick={() => setStatusContrato("COMPLETO")}
                       className={`px-3 py-2 rounded-lg text-sm font-medium transition border text-left ${
                         statusContrato === "COMPLETO"
-                          ? "border-emerald-400 bg-emerald-400/15 text-emerald-400"
-                          : "border-[#232a3b] bg-transparent text-gray-400 hover:text-gray-200"
+                          ? "border-liv-sage bg-liv-sage/15 text-liv-sage"
+                          : "border-liv-line bg-transparent text-liv-muted hover:text-liv-ink"
                       }`}
                     >
                       Fechado por completo
-                      <span className="block text-[10px] font-normal text-gray-500 mt-0.5">
+                      <span className="block text-[10px] font-normal text-liv-faint mt-0.5">
                         Empresa + banco aprovado
                       </span>
                     </button>
@@ -811,12 +803,12 @@ export default function VendasPage() {
                       onClick={() => setStatusContrato("A_FINALIZAR")}
                       className={`px-3 py-2 rounded-lg text-sm font-medium transition border text-left ${
                         statusContrato === "A_FINALIZAR"
-                          ? "border-amber-400 bg-amber-400/15 text-amber-400"
-                          : "border-[#232a3b] bg-transparent text-gray-400 hover:text-gray-200"
+                          ? "border-liv-gold bg-liv-gold/15 text-liv-gold"
+                          : "border-liv-line bg-transparent text-liv-muted hover:text-liv-ink"
                       }`}
                     >
                       A finalizar
-                      <span className="block text-[10px] font-normal text-gray-500 mt-0.5">
+                      <span className="block text-[10px] font-normal text-liv-faint mt-0.5">
                         Só assinou com a empresa
                       </span>
                     </button>
@@ -826,35 +818,35 @@ export default function VendasPage() {
                 {/* Data + Fonte */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">
+                    <label className="block text-sm font-medium text-liv-muted mb-1">
                       Data de Conversao *
                     </label>
                     <input
                       type="date"
                       value={dataConversao}
                       onChange={(e) => setDataConversao(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none bg-[#141820] text-gray-100"
+                      className="w-full px-4 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none bg-liv-surface-2 text-liv-ink"
                       required
                     />
                   </div>
                   {isHibrido && tipoVenda === "EXTERNA" ? (
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                      <label className="block text-sm font-medium text-liv-muted mb-1">
                         Fonte do Lead
                       </label>
-                      <div className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] bg-[#141820]/60 text-gray-500 text-sm">
+                      <div className="w-full px-4 py-2.5 rounded-lg border border-liv-line bg-liv-surface-2/60 text-liv-faint text-sm">
                         Captação externa (preenchido automatico)
                       </div>
                     </div>
                   ) : (
                     <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-1">
-                        Fonte do Lead {isHibrido && <span className="text-[#B7C1AC]">*</span>}
+                      <label className="block text-sm font-medium text-liv-muted mb-1">
+                        Fonte do Lead {isHibrido && <span className="text-liv-sage">*</span>}
                       </label>
                       <select
                         value={fonte}
                         onChange={(e) => setFonte(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-lg border border-[#232a3b] focus:ring-2 focus:ring-lime-400 focus:border-transparent outline-none bg-[#141820] text-gray-100"
+                        className="w-full px-4 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none bg-liv-surface-2 text-liv-ink"
                       >
                         <option value="">Selecione...</option>
                         <option value="TRAFEGO">Trafego</option>
@@ -867,12 +859,12 @@ export default function VendasPage() {
 
                 {/* Alerta de Margem inline */}
                 {alertaMargem && (
-                  <div className="bg-amber-400/10 border border-amber-400/20 rounded-lg p-4 flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div className="bg-liv-gold/10 border border-liv-gold/20 rounded-lg p-4 flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-liv-gold flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-medium text-amber-400">Margem abaixo de 1.8x</p>
-                      <p className="text-sm text-amber-400 mt-1">
-                        Esta venda esta com margem de {formatNumber(margem)}x. Voce nao recebera
+                      <p className="font-medium text-liv-gold">Margem abaixo de 1.8x</p>
+                      <p className="text-sm text-liv-gold mt-1">
+                        Esta venda esta com margem de <span className="tabular-nums">{formatNumber(margem)}x</span>. Voce nao recebera
                         comissao sobre o <strong>over</strong> desta venda. A comissao de 2,5% sobre a venda continua valida.
                       </p>
                     </div>
@@ -881,12 +873,12 @@ export default function VendasPage() {
 
                 {/* Erros e Sucesso */}
                 {formErro && (
-                  <div className="bg-red-400/10 text-red-400 px-4 py-3 rounded-lg text-sm">
+                  <div className="bg-liv-danger/10 text-liv-danger px-4 py-3 rounded-lg text-sm">
                     {formErro}
                   </div>
                 )}
                 {formSucesso && (
-                  <div className="bg-lime-400/10 text-lime-400 px-4 py-3 rounded-lg text-sm">
+                  <div className="bg-liv-sage/10 text-liv-sage px-4 py-3 rounded-lg text-sm">
                     Venda registrada com sucesso!
                   </div>
                 )}
@@ -895,10 +887,10 @@ export default function VendasPage() {
                 <button
                   type="submit"
                   disabled={formLoading || formSucesso}
-                  className="w-full bg-lime-400 text-gray-900 py-3 rounded-lg font-semibold hover:bg-lime-500 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full bg-liv-sage text-liv-bg py-3 rounded-lg font-semibold hover:bg-liv-sage-deep transition disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {formLoading ? (
-                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-liv-bg"></div>
                   ) : (
                     <>
                       <Save className="w-4 h-4" />
@@ -911,67 +903,67 @@ export default function VendasPage() {
 
             {/* Painel de Calculos em Tempo Real */}
             <div className="lg:col-span-1">
-              <div className="bg-[#1a1f2e] rounded-xl p-6 shadow-sm border border-[#232a3b]">
+              <div className="bg-liv-surface rounded-xl p-6 shadow-sm border border-liv-line">
                 <div className="flex items-center gap-2 mb-4">
-                  <Calculator className="w-5 h-5 text-lime-400" />
-                  <h3 className="font-semibold text-gray-100">Calculo em Tempo Real</h3>
+                  <Calculator className="w-5 h-5 text-liv-sage" />
+                  <h3 className="font-semibold text-liv-ink">Calculo em Tempo Real</h3>
                 </div>
 
                 <div className="space-y-4">
-                  <div className="flex justify-between py-2 border-b border-[#232a3b]">
-                    <span className="text-sm text-gray-400">Margem</span>
-                    <span className={`font-semibold ${alertaMargem ? "text-red-400" : "text-lime-400"}`}>
+                  <div className="flex justify-between py-2 border-b border-liv-line">
+                    <span className="text-sm text-liv-muted">Margem</span>
+                    <span className={`font-semibold tabular-nums ${alertaMargem ? "text-liv-danger" : "text-liv-sage"}`}>
                       {margem > 0 ? `${formatNumber(margem)}x` : "-"}
                     </span>
                   </div>
 
-                  <div className="flex justify-between py-2 border-b border-[#232a3b]">
-                    <span className="text-sm text-gray-400">Over</span>
-                    <span className={`font-semibold ${over > 0 ? "text-lime-400" : "text-gray-500"}`}>
+                  <div className="flex justify-between py-2 border-b border-liv-line">
+                    <span className="text-sm text-liv-muted">Over</span>
+                    <span className={`font-semibold tabular-nums ${over > 0 ? "text-liv-sage" : "text-liv-faint"}`}>
                       {formatCurrency(over)}
-                      {alertaMargem && <span className="text-xs text-red-400 ml-1">(sem over)</span>}
+                      {alertaMargem && <span className="text-xs text-liv-danger ml-1">(sem over)</span>}
                     </span>
                   </div>
 
-                  <div className="flex justify-between py-2 border-b border-[#232a3b]">
-                    <span className="text-sm text-gray-400">Geracao kWh</span>
-                    <span className="font-semibold text-gray-100">
+                  <div className="flex justify-between py-2 border-b border-liv-line">
+                    <span className="text-sm text-liv-muted">Geracao kWh</span>
+                    <span className="font-semibold text-liv-ink tabular-nums">
                       {geracaoKwh > 0 ? `${formatNumber(geracaoKwh, 0)} kWh` : "-"}
                     </span>
                   </div>
 
-                  <div className="flex justify-between py-2 border-b border-[#232a3b]">
-                    <span className="text-sm text-gray-400">Comissao Venda (2,5%)</span>
-                    <span className="font-semibold text-lime-400">
+                  <div className="flex justify-between py-2 border-b border-liv-line">
+                    <span className="text-sm text-liv-muted">Comissao Venda (2,5%)</span>
+                    <span className="font-semibold text-liv-sage tabular-nums">
                       {formatCurrency(comissaoVenda)}
                     </span>
                   </div>
 
                   {over > 0 && (
-                    <div className="flex justify-between py-2 border-b border-[#232a3b]">
-                      <span className="text-sm text-gray-400">Comissao Over*</span>
-                      <span className="font-semibold text-emerald-400">
+                    <div className="flex justify-between py-2 border-b border-liv-line">
+                      <span className="text-sm text-liv-muted">Comissao Over*</span>
+                      <span className="font-semibold text-liv-sage tabular-nums">
                         {formatCurrency(over * 0.35)}
-                        <span className="text-xs text-gray-500 ml-1">(35%)</span>
+                        <span className="text-xs text-liv-faint ml-1">(35%)</span>
                       </span>
                     </div>
                   )}
 
-                  <div className="bg-lime-400/10 rounded-lg p-4 mt-4">
-                    <p className="text-xs text-lime-400 font-medium uppercase tracking-wider">
+                  <div className="bg-liv-sage/10 rounded-lg p-4 mt-4">
+                    <p className="text-xs text-liv-sage font-medium uppercase tracking-wider">
                       Comissao Estimada
                     </p>
-                    <p className="text-2xl font-bold text-lime-400 mt-1">
+                    <p className="text-2xl font-bold text-liv-sage mt-1 tabular-nums">
                       {formatCurrency(comissaoVenda + (over > 0 ? over * 0.35 : 0))}
                     </p>
-                    <p className="text-xs text-lime-400 mt-1">
+                    <p className="text-xs text-liv-sage mt-1 tabular-nums">
                       {over > 0
                         ? `${formatCurrency(comissaoVenda)} (venda) + ${formatCurrency(over * 0.35)} (over)`
                         : `2,5% sobre ${formatCurrency(valor)}`
                       }
                     </p>
                     {over > 0 && (
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-liv-faint mt-1">
                         * % over pode variar conforme faixa mensal
                       </p>
                     )}
@@ -985,44 +977,44 @@ export default function VendasPage() {
 
       {/* Resumo */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-[#1a1f2e] rounded-xl p-5 shadow-sm border border-[#232a3b]">
-          <p className="text-sm text-gray-400">Total Vendido</p>
-          <p className="text-xl font-bold text-gray-100 mt-1">{formatCurrency(totalVendido)}</p>
+        <div className="bg-liv-surface rounded-xl p-5 shadow-sm border border-liv-line">
+          <p className="text-sm text-liv-muted">Total Vendido</p>
+          <p className="text-xl font-bold text-liv-ink mt-1 tabular-nums">{formatCurrency(totalVendido)}</p>
         </div>
-        <div className="bg-[#1a1f2e] rounded-xl p-5 shadow-sm border border-[#232a3b]">
-          <p className="text-sm text-gray-400">Quantidade</p>
-          <p className="text-xl font-bold text-gray-100 mt-1">{vendas.length} vendas</p>
+        <div className="bg-liv-surface rounded-xl p-5 shadow-sm border border-liv-line">
+          <p className="text-sm text-liv-muted">Quantidade</p>
+          <p className="text-xl font-bold text-liv-ink mt-1">{vendas.length} vendas</p>
         </div>
-        <div className="bg-[#1a1f2e] rounded-xl p-5 shadow-sm border border-[#232a3b]">
-          <p className="text-sm text-gray-400">Comissao Total</p>
-          <p className="text-xl font-bold text-lime-400 mt-1">{formatCurrency(totalComissao)}</p>
+        <div className="bg-liv-surface rounded-xl p-5 shadow-sm border border-liv-line">
+          <p className="text-sm text-liv-muted">Comissao Total</p>
+          <p className="text-xl font-bold text-liv-sage mt-1 tabular-nums">{formatCurrency(totalComissao)}</p>
         </div>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center h-32">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-400"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-liv-sage"></div>
         </div>
       ) : vendas.length === 0 ? (
-        <div className="bg-[#1a1f2e] rounded-xl p-12 shadow-sm border border-[#232a3b] text-center">
-          <ShoppingCart className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-100 mb-2">Nenhuma venda neste mes</h3>
+        <div className="bg-liv-surface rounded-xl p-12 shadow-sm border border-liv-line text-center">
+          <ShoppingCart className="w-12 h-12 text-liv-faint mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-liv-ink mb-2">Nenhuma venda neste mes</h3>
           {!admin && (
             <button
               onClick={() => setFormAberto(true)}
-              className="inline-flex items-center gap-2 bg-lime-400 text-gray-900 px-6 py-3 rounded-lg font-medium hover:bg-lime-500 transition"
+              className="inline-flex items-center gap-2 bg-liv-sage text-liv-bg px-6 py-3 rounded-lg font-medium hover:bg-liv-sage-deep transition"
             >
               <Plus className="w-4 h-4" />
               Registrar Venda
             </button>
           )}
-          {admin && <p className="text-gray-400">Aguardando registro de vendas pelos vendedores.</p>}
+          {admin && <p className="text-liv-muted">Aguardando registro de vendas pelos vendedores.</p>}
         </div>
       ) : (
-        <div className="bg-[#1a1f2e] rounded-xl shadow-sm border border-[#232a3b] overflow-hidden">
+        <div className="bg-liv-surface rounded-xl shadow-sm border border-liv-line overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#141820] text-gray-400">
+              <thead className="bg-liv-surface-2 text-liv-muted">
                 <tr>
                   <th className="text-left px-4 py-3 font-medium">Cliente</th>
                   {admin && <th className="text-left px-4 py-3 font-medium">Vendedor</th>}
@@ -1041,36 +1033,36 @@ export default function VendasPage() {
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#232a3b]">
+              <tbody className="divide-y divide-liv-line">
                 {vendas.map((v) => (
-                  <tr key={v.id} className="hover:bg-[#232a3b]">
-                    <td className="px-4 py-3 font-medium text-gray-100">{v.cliente}</td>
-                    {admin && <td className="px-4 py-3 text-gray-400">{v.vendedor?.nome || "-"}</td>}
-                    <td className="px-4 py-3 text-gray-400">{v.distribuidora}</td>
-                    <td className="px-4 py-3 text-right">{formatCurrency(v.valorVenda)}</td>
-                    <td className="px-4 py-3 text-right">{formatCurrency(v.custoEquipamentos)}</td>
-                    <td className="px-4 py-3 text-right">{formatNumber(v.kwp)}</td>
+                  <tr key={v.id} className="hover:bg-liv-surface-2">
+                    <td className="px-4 py-3 font-medium text-liv-ink">{v.cliente}</td>
+                    {admin && <td className="px-4 py-3 text-liv-muted">{v.vendedor?.nome || "-"}</td>}
+                    <td className="px-4 py-3 text-liv-muted">{v.distribuidora}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(v.valorVenda)}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(v.custoEquipamentos)}</td>
+                    <td className="px-4 py-3 text-right tabular-nums">{formatNumber(v.kwp)}</td>
                     <td className="px-4 py-3 text-right">
-                      <span className={v.margem < 1.8 ? "text-red-400 font-medium" : "text-lime-400"}>
+                      <span className={`tabular-nums ${v.margem < 1.8 ? "text-liv-danger font-medium" : "text-liv-sage"}`}>
                         {formatNumber(v.margem)}x
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-right">{formatCurrency(v.over)}</td>
-                    <td className="px-4 py-3 text-right text-gray-400">
+                    <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(v.over)}</td>
+                    <td className="px-4 py-3 text-right text-liv-muted tabular-nums">
                       {formatCurrency(v.comissaoVenda)}
                     </td>
-                    <td className="px-4 py-3 text-right text-yellow-400">
+                    <td className="px-4 py-3 text-right text-liv-gold tabular-nums">
                       {formatCurrency(v.comissaoOver)}
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-lime-400">
+                    <td className="px-4 py-3 text-right font-medium text-liv-sage tabular-nums">
                       {formatCurrency(v.comissaoTotal)}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <span className="text-xs px-2 py-1 rounded-full bg-[#1a1f2e] text-gray-400">
+                      <span className="text-xs px-2 py-1 rounded-full bg-liv-surface-2 text-liv-muted">
                         {v.fonte}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center text-gray-400">
+                    <td className="px-4 py-3 text-center text-liv-muted">
                       {new Date(v.dataConversao).toLocaleDateString("pt-BR")}
                     </td>
                     <td className="px-4 py-3 text-center">
@@ -1079,8 +1071,8 @@ export default function VendasPage() {
                         title="Clique para alternar o status do contrato"
                         className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition ${
                           v.statusContrato === "A_FINALIZAR"
-                            ? "bg-amber-400/10 text-amber-400 hover:bg-amber-400/20"
-                            : "bg-emerald-400/10 text-emerald-400 hover:bg-emerald-400/20"
+                            ? "bg-liv-gold/10 text-liv-gold hover:bg-liv-gold/20"
+                            : "bg-liv-sage/10 text-liv-sage hover:bg-liv-sage/20"
                         }`}
                       >
                         {v.statusContrato === "A_FINALIZAR" ? (
@@ -1136,7 +1128,7 @@ export default function VendasPage() {
                             });
                             setEditPanelOpen(true);
                           }}
-                          className="p-1.5 rounded-lg hover:bg-amber-400/10 text-gray-500 hover:text-amber-400 transition"
+                          className="p-1.5 rounded-lg hover:bg-liv-gold/10 text-liv-faint hover:text-liv-gold transition"
                           title="Editar custos"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -1144,7 +1136,7 @@ export default function VendasPage() {
                       )}
                       <button
                         onClick={() => excluirVenda(v.id)}
-                        className="text-red-400 hover:text-red-300 transition"
+                        className="text-liv-danger hover:text-liv-danger transition"
                         title="Excluir"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -1153,26 +1145,26 @@ export default function VendasPage() {
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="bg-lime-400/10 font-semibold text-lime-400">
+              <tfoot className="bg-liv-sage/10 font-semibold text-liv-sage">
                 <tr>
                   {/* Cliente + Vendedor (admin) + Distribuidora */}
                   <td className="px-4 py-3" colSpan={admin ? 3 : 2}>TOTAIS</td>
                   {/* Valor */}
-                  <td className="px-4 py-3 text-right">{formatCurrency(totalVendido)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(totalVendido)}</td>
                   {/* Equip. */}
-                  <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(totalEquipamentos)}</td>
+                  <td className="px-4 py-3 text-right text-liv-muted tabular-nums">{formatCurrency(totalEquipamentos)}</td>
                   {/* kWp */}
                   <td className="px-4 py-3"></td>
                   {/* Margem (media ponderada) */}
-                  <td className="px-4 py-3 text-right text-gray-300">{margemMedia.toFixed(2)}x</td>
+                  <td className="px-4 py-3 text-right text-liv-muted tabular-nums">{margemMedia.toFixed(2)}x</td>
                   {/* Over */}
-                  <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(totalOver)}</td>
+                  <td className="px-4 py-3 text-right text-liv-muted tabular-nums">{formatCurrency(totalOver)}</td>
                   {/* Com. Venda */}
-                  <td className="px-4 py-3 text-right text-gray-300">{formatCurrency(totalComissaoVenda)}</td>
+                  <td className="px-4 py-3 text-right text-liv-muted tabular-nums">{formatCurrency(totalComissaoVenda)}</td>
                   {/* Com. Over */}
-                  <td className="px-4 py-3 text-right text-yellow-400">{formatCurrency(totalComissaoOver)}</td>
+                  <td className="px-4 py-3 text-right text-liv-gold tabular-nums">{formatCurrency(totalComissaoOver)}</td>
                   {/* Total */}
-                  <td className="px-4 py-3 text-right">{formatCurrency(totalComissao)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(totalComissao)}</td>
                   {/* Fonte + Data + Contrato + acoes */}
                   <td colSpan={4}></td>
                 </tr>
