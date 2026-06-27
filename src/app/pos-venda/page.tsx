@@ -31,8 +31,8 @@ import {
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { isAdmin as checkAdmin, isDiretor } from "@/lib/roles";
-import { Sidebar } from "@/components/Sidebar";
 import { OperacaoNav } from "@/components/OperacaoNav";
+import { PageHeader } from "@/components/ui/page-header";
 import {
   ETAPAS_POS_VENDA,
   ETAPA_CORES,
@@ -428,9 +428,9 @@ export default function PosVendaPage() {
   }
 
   const STATUS_CORES: Record<string, { bg: string; text: string; label: string }> = {
-    PENDENTE: { bg: "bg-amber-400/15", text: "text-amber-400", label: "#pendente" },
-    FAZENDO: { bg: "bg-sky-400/15", text: "text-sky-400", label: "#fazendo" },
-    FINALIZADO: { bg: "bg-emerald-400/15", text: "text-emerald-400", label: "#finalizado" },
+    PENDENTE:   { bg: "bg-liv-gold/12",  text: "text-liv-gold",   label: "#pendente"   },
+    FAZENDO:    { bg: "bg-liv-info/12",  text: "text-liv-info",   label: "#fazendo"    },
+    FINALIZADO: { bg: "bg-liv-sage/12",  text: "text-liv-sage",   label: "#finalizado" },
   };
 
   // Filtrar registros por etapa
@@ -459,995 +459,988 @@ export default function PosVendaPage() {
   });
 
   return (
-    <div className="flex min-h-screen bg-[#0b0f19]">
-      <Sidebar />
-      <main className="flex-1 lg:ml-64 p-6">
-        <div className="max-w-5xl mx-auto">
-          <OperacaoNav />
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-100 flex items-center gap-2">
-                <ClipboardCheck className="w-6 h-6 text-orange-400" />
-                Pós Venda
-              </h1>
-              <p className="text-gray-400 text-sm mt-1">
-                {clientesFiltrados.length} clientes
-                {filterEtapa && ` em "${getEtapaLabel(filterEtapa as EtapaPosVenda)}"`}
-              </p>
-            </div>
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className="flex items-center gap-2 px-4 py-2 bg-orange-400 text-gray-900 rounded-xl font-semibold text-sm hover:bg-orange-300 transition"
-            >
-              <Plus className="w-4 h-4" />
-              Novo Cliente
-            </button>
-          </div>
+    <div className="space-y-6">
+      <OperacaoNav />
 
-          {/* Tabs (supervisor vê as duas abas) */}
-          {isSupervisor && (
-            <div className="flex gap-1 bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-1 w-fit mb-6">
-              <button
-                onClick={() => setAbaAtiva("operacional")}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  abaAtiva === "operacional"
-                    ? "bg-orange-400 text-gray-900"
-                    : "text-gray-400 hover:text-gray-200"
-                }`}
-              >
-                Operacional
-              </button>
-              <button
-                onClick={() => setAbaAtiva("supervisao")}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  abaAtiva === "supervisao"
-                    ? "bg-orange-400 text-gray-900"
-                    : "text-gray-400 hover:text-gray-200"
-                }`}
-              >
-                Visão Supervisão
-              </button>
-            </div>
-          )}
+      {/* Header */}
+      <PageHeader
+        eyebrow="Operação · Pós-Venda"
+        title="Pós Venda"
+        subtitle={`${clientesFiltrados.length} clientes${filterEtapa ? ` em "${getEtapaLabel(filterEtapa as EtapaPosVenda)}"` : ""}`}
+        actions={
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-2 px-4 py-2 bg-liv-sage text-liv-bg rounded-xl font-semibold text-sm hover:bg-liv-sage-deep transition"
+          >
+            <Plus className="w-4 h-4" />
+            Novo Cliente
+          </button>
+        }
+      />
 
-          {/* Erro global */}
-          {erroMsg && (
-            <div className="mb-4 flex items-center gap-3 bg-red-400/10 border border-red-400/30 rounded-xl px-4 py-3">
-              <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-              <p className="text-sm text-red-300">{erroMsg}</p>
-              <button onClick={() => setErroMsg("")} className="ml-auto text-red-400 hover:text-red-300">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+      {/* Tabs (supervisor vê as duas abas) */}
+      {isSupervisor && (
+        <div className="flex gap-1 bg-liv-surface border border-liv-line rounded-xl p-1 w-fit">
+          <button
+            onClick={() => setAbaAtiva("operacional")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              abaAtiva === "operacional"
+                ? "bg-liv-sage text-liv-bg"
+                : "text-liv-muted hover:text-liv-ink"
+            }`}
+          >
+            Operacional
+          </button>
+          <button
+            onClick={() => setAbaAtiva("supervisao")}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              abaAtiva === "supervisao"
+                ? "bg-liv-sage text-liv-bg"
+                : "text-liv-muted hover:text-liv-ink"
+            }`}
+          >
+            Visão Supervisão
+          </button>
+        </div>
+      )}
 
-          {/* ── ABA VISÃO SUPERVISÃO ── */}
-          {isSupervisor && abaAtiva === "supervisao" && (() => {
-            const total = registros.length;
-            const conferidos = registros.filter(r => r.conferido).length;
-            const pendentes = total - conferidos;
-            const hoje = new Date().toISOString().split("T")[0];
-            const atrasados = registros.filter(r => !r.conferido && r.proximoContato && r.proximoContato < hoje).length;
+      {/* Erro global */}
+      {erroMsg && (
+        <div className="flex items-center gap-3 bg-liv-danger/10 border border-liv-danger/30 rounded-xl px-4 py-3">
+          <AlertCircle className="w-4 h-4 text-liv-danger shrink-0" />
+          <p className="text-sm text-liv-danger">{erroMsg}</p>
+          <button onClick={() => setErroMsg("")} className="ml-auto text-liv-danger hover:opacity-70">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
-            async function toggleConferido(r: PosVendaRegistro) {
-              setConferindoId(r.id);
-              const novoConferido = !r.conferido;
-              await fetch(`/api/pos-venda/${r.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  conferido: novoConferido,
-                  dataConferido: novoConferido ? hoje : null,
-                }),
-              });
-              await fetchRegistros();
-              setConferindoId(null);
-            }
+      {/* ── ABA VISÃO SUPERVISÃO ── */}
+      {isSupervisor && abaAtiva === "supervisao" && (() => {
+        const total = registros.length;
+        const conferidos = registros.filter(r => r.conferido).length;
+        const pendentes = total - conferidos;
+        const hoje = new Date().toISOString().split("T")[0];
+        const atrasados = registros.filter(r => !r.conferido && r.proximoContato && r.proximoContato < hoje).length;
 
-            return (
-              <div className="space-y-6">
-                {/* 4 cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="bg-[#1a1f2e] rounded-xl p-4 border border-[#232a3b]">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Total</p>
-                    <p className="text-2xl font-bold text-gray-100 mt-1">{total}</p>
-                    <p className="text-xs text-gray-500 mt-1">clientes ativos</p>
-                  </div>
-                  <div className="bg-[#1a1f2e] rounded-xl p-4 border border-[#232a3b]">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Conferidos</p>
-                    <p className="text-2xl font-bold text-emerald-400 mt-1">{conferidos}</p>
-                    <p className="text-xs text-gray-500 mt-1">{total > 0 ? Math.round(conferidos / total * 100) : 0}% do total</p>
-                  </div>
-                  <div className="bg-[#1a1f2e] rounded-xl p-4 border border-[#232a3b]">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Pendentes</p>
-                    <p className="text-2xl font-bold text-yellow-400 mt-1">{pendentes}</p>
-                    <p className="text-xs text-gray-500 mt-1">a conferir</p>
-                  </div>
-                  <div className="bg-[#1a1f2e] rounded-xl p-4 border border-[#232a3b]">
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Atrasados</p>
-                    <p className="text-2xl font-bold text-red-400 mt-1">{atrasados}</p>
-                    <p className="text-xs text-gray-500 mt-1">contato vencido</p>
-                  </div>
-                </div>
+        async function toggleConferido(r: PosVendaRegistro) {
+          setConferindoId(r.id);
+          const novoConferido = !r.conferido;
+          await fetch(`/api/pos-venda/${r.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              conferido: novoConferido,
+              dataConferido: novoConferido ? hoje : null,
+            }),
+          });
+          await fetchRegistros();
+          setConferindoId(null);
+        }
 
-                {/* Lista de clientes */}
-                <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] overflow-hidden">
-                  <div className="px-4 py-3 border-b border-[#232a3b] flex items-center justify-between">
-                    <p className="font-medium text-gray-100 text-sm">Lista de Acompanhamento</p>
-                    <p className="text-xs text-gray-500">{conferidos}/{total} conferidos</p>
-                  </div>
-                  {registros.length === 0 ? (
-                    <div className="p-8 text-center text-gray-500 text-sm">Nenhum cliente em pós-venda.</div>
-                  ) : (
-                    <div className="divide-y divide-[#232a3b]">
-                      {registros.map((r) => (
-                        <div key={r.id} className={`flex items-center gap-4 px-4 py-3 ${r.conferido ? "opacity-60" : ""}`}>
-                          <button
-                            onClick={() => toggleConferido(r)}
-                            disabled={conferindoId === r.id}
-                            className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition ${
-                              r.conferido
-                                ? "bg-emerald-400 border-emerald-400"
-                                : "border-gray-600 hover:border-orange-400"
-                            }`}
-                          >
-                            {r.conferido && <Check className="w-3 h-3 text-gray-900" />}
-                          </button>
-                          <div className="flex-1 min-w-0">
-                            <p className={`font-medium text-sm truncate ${r.conferido ? "line-through text-gray-500" : "text-gray-100"}`}>
-                              {r.nomeCliente}
-                            </p>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                              {getEtapaLabel(r.etapa as EtapaPosVenda)}
-                              {r.proximaAcao && ` · ${r.proximaAcao}`}
-                            </p>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            {r.proximoContato && (
-                              <p className={`text-xs font-medium ${r.proximoContato < hoje && !r.conferido ? "text-red-400" : "text-gray-500"}`}>
-                                {formatDate(r.proximoContato)}
-                              </p>
-                            )}
-                            {r.conferido && r.dataConferido && (
-                              <p className="text-xs text-emerald-400">✓ {formatDate(r.dataConferido)}</p>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
+        return (
+          <div className="space-y-6">
+            {/* 4 cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="bg-liv-surface rounded-xl p-4 border border-liv-line">
+                <p className="text-xs text-liv-faint uppercase tracking-wider">Total</p>
+                <p className="text-2xl font-bold text-liv-ink mt-1 tabular-nums">{total}</p>
+                <p className="text-xs text-liv-faint mt-1">clientes ativos</p>
               </div>
-            );
-          })()}
-
-          {/* ── ABA OPERACIONAL (conteúdo existente) ── */}
-          {(!isSupervisor || abaAtiva === "operacional") && <>
-
-          {/* Formulário novo cliente */}
-          {showForm && (
-            <div className="bg-[#1a1f2e] border border-orange-400/30 rounded-xl p-5 mb-6">
-              <h2 className="text-sm font-semibold text-orange-400 uppercase tracking-wider mb-4">
-                Novo Cliente
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Nome do Cliente *</label>
-                  <input
-                    value={form.nomeCliente}
-                    onChange={(e) => setForm((p) => ({ ...p, nomeCliente: e.target.value }))}
-                    className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                    placeholder="Nome completo"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Telefone</label>
-                  <input
-                    value={form.telefone}
-                    onChange={(e) => setForm((p) => ({ ...p, telefone: e.target.value }))}
-                    className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                    placeholder="(84) 99999-9999"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Etapa Inicial</label>
-                  <select
-                    value={form.etapa}
-                    onChange={(e) => setForm((p) => ({ ...p, etapa: e.target.value }))}
-                    className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                  >
-                    {ETAPAS_POS_VENDA.map((et) => (
-                      <option key={et.key} value={et.key}>{et.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Última Ação</label>
-                  <input
-                    value={form.ultimaAcao}
-                    onChange={(e) => setForm((p) => ({ ...p, ultimaAcao: e.target.value }))}
-                    className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                    placeholder="Ex: Confirmei instalação"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Próxima Ação</label>
-                  <input
-                    value={form.proximaAcao}
-                    onChange={(e) => setForm((p) => ({ ...p, proximaAcao: e.target.value }))}
-                    className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                    placeholder="Ex: Enviar relatório"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Observações</label>
-                  <input
-                    value={form.observacoes}
-                    onChange={(e) => setForm((p) => ({ ...p, observacoes: e.target.value }))}
-                    className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                    placeholder="Notas adicionais"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Último Contato</label>
-                  <input
-                    type="date"
-                    value={form.ultimoContato}
-                    onChange={(e) => setForm((p) => ({ ...p, ultimoContato: e.target.value }))}
-                    className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Próximo Contato</label>
-                  <input
-                    type="date"
-                    value={form.proximoContato}
-                    onChange={(e) => setForm((p) => ({ ...p, proximoContato: e.target.value }))}
-                    className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                  />
-                </div>
+              <div className="bg-liv-surface rounded-xl p-4 border border-liv-line">
+                <p className="text-xs text-liv-faint uppercase tracking-wider">Conferidos</p>
+                <p className="text-2xl font-bold text-liv-sage mt-1 tabular-nums">{conferidos}</p>
+                <p className="text-xs text-liv-faint mt-1 tabular-nums">{total > 0 ? Math.round(conferidos / total * 100) : 0}% do total</p>
               </div>
-              <div className="flex gap-2 mt-4">
-                <button
-                  onClick={handleCreate}
-                  disabled={saving || !form.nomeCliente.trim()}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-orange-400 text-gray-900 rounded-lg text-sm font-medium hover:bg-orange-300 disabled:opacity-50 transition"
-                >
-                  <Check className="w-3.5 h-3.5" />
-                  {saving ? "Salvando..." : "Cadastrar"}
-                </button>
-                <button
-                  onClick={() => { setShowForm(false); setForm(FORM_INICIAL); }}
-                  className="flex items-center gap-1.5 px-4 py-2 bg-[#232a3b] text-gray-300 rounded-lg text-sm font-medium hover:bg-[#2a3040] transition"
-                >
-                  <X className="w-3.5 h-3.5" />
-                  Cancelar
-                </button>
+              <div className="bg-liv-surface rounded-xl p-4 border border-liv-line">
+                <p className="text-xs text-liv-faint uppercase tracking-wider">Pendentes</p>
+                <p className="text-2xl font-bold text-liv-gold mt-1 tabular-nums">{pendentes}</p>
+                <p className="text-xs text-liv-faint mt-1">a conferir</p>
+              </div>
+              <div className="bg-liv-surface rounded-xl p-4 border border-liv-line">
+                <p className="text-xs text-liv-faint uppercase tracking-wider">Atrasados</p>
+                <p className="text-2xl font-bold text-liv-danger mt-1 tabular-nums">{atrasados}</p>
+                <p className="text-xs text-liv-faint mt-1">contato vencido</p>
               </div>
             </div>
-          )}
 
-          {/* Busca por nome */}
-          <div className="mb-4 relative max-w-md">
-            <Search className="w-4 h-4 text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              value={buscaNome}
-              onChange={(e) => setBuscaNome(e.target.value)}
-              className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg pl-9 pr-9 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-              placeholder="Buscar cliente por nome..."
-            />
-            {buscaNome && (
-              <button
-                onClick={() => setBuscaNome("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Filtros por etapa */}
-          <div className="mb-6 flex gap-2 flex-wrap">
-            <button
-              onClick={() => setFilterEtapa(null)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                !filterEtapa
-                  ? "bg-orange-400 text-gray-900"
-                  : "bg-[#232a3b] text-gray-300 hover:bg-[#2a3040]"
-              }`}
-            >
-              <Filter className="w-3.5 h-3.5" />
-              Todos ({clientesFiltrados.length})
-            </button>
-            {ETAPAS_POS_VENDA.map((et) => {
-              const count = registros.filter((r) => r.etapa === et.key).length;
-              const cores = ETAPA_CORES[et.key];
-              return (
-                <button
-                  key={et.key}
-                  onClick={() => setFilterEtapa(et.key)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                    filterEtapa === et.key
-                      ? `${cores.bg} ${cores.text}`
-                      : count > 0
-                        ? "bg-[#232a3b] text-gray-300 hover:bg-[#2a3040]"
-                        : "bg-[#141820] text-gray-600 cursor-pointer hover:bg-[#1a1f2e]"
-                  }`}
-                >
-                  {et.label} ({count})
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Lista de cards */}
-          {loading ? (
-            <div className="text-center text-gray-500 py-12">Carregando clientes...</div>
-          ) : clientesFiltrados.length === 0 ? (
-            <div className="text-center text-gray-500 py-12 bg-[#1a1f2e] rounded-xl border border-[#232a3b]">
-              Nenhum cliente encontrado
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {clientesFiltrados.map((r) => {
-                const isEditing = editingId === r.id;
-                const vencido = r.proximoContato && r.proximoContato < hoje;
-                const cores = ETAPA_CORES[r.etapa];
-                const isExpanded = expandedId === r.id;
-                // Prefere count do servidor (lista enxuta); fallback para parse local quando detalhes ja carregados
-                const anexosCount = r.anexosCount ?? (r.anexos ? safeJsonArrayLen(r.anexos) : 0);
-                const tarefasCount = r.tarefasCount ?? (r.tarefas ? safeJsonArrayLen(r.tarefas) : 0);
-
-                return (
-                  <div key={r.id}>
-                    {/* Card */}
-                    {!isEditing && (
-                      <div
-                        className={`bg-[#1a1f2e] border-2 rounded-xl transition ${
-                          vencido
-                            ? "border-rose-500/50 shadow-lg shadow-rose-500/10"
-                            : "border-[#232a3b] hover:border-[#2a3050]"
+            {/* Lista de clientes */}
+            <div className="bg-liv-surface rounded-xl border border-liv-line overflow-hidden">
+              <div className="px-4 py-3 border-b border-liv-line flex items-center justify-between">
+                <p className="font-medium text-liv-ink text-sm">Lista de Acompanhamento</p>
+                <p className="text-xs text-liv-faint tabular-nums">{conferidos}/{total} conferidos</p>
+              </div>
+              {registros.length === 0 ? (
+                <div className="p-8 text-center text-liv-faint text-sm">Nenhum cliente em pós-venda.</div>
+              ) : (
+                <div className="divide-y divide-liv-line">
+                  {registros.map((r) => (
+                    <div key={r.id} className={`flex items-center gap-4 px-4 py-3 ${r.conferido ? "opacity-60" : ""}`}>
+                      <button
+                        onClick={() => toggleConferido(r)}
+                        disabled={conferindoId === r.id}
+                        className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition ${
+                          r.conferido
+                            ? "bg-liv-sage border-liv-sage"
+                            : "border-liv-line hover:border-liv-sage"
                         }`}
                       >
-                        {/* === CABEÇALHO CLICÁVEL (sempre visível) === */}
-                        <button
-                          onClick={() => toggleExpand(r.id)}
-                          className="w-full text-left p-5 flex items-center gap-4"
-                        >
-                          {/* Seta de expansão */}
-                          <ChevronDown
-                            className={`w-5 h-5 text-gray-500 shrink-0 transition-transform duration-200 ${
-                              isExpanded ? "rotate-0" : "-rotate-90"
-                            }`}
-                          />
-
-                          {/* Info principal */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3">
-                              <h3 className="text-lg font-bold text-gray-100 truncate">
-                                {r.nomeCliente}
-                              </h3>
-                              {r.telefone && (
-                                <span className="hidden sm:flex items-center gap-1.5 text-sm text-gray-500">
-                                  <Phone className="w-3.5 h-3.5" />
-                                  {r.telefone}
-                                </span>
-                              )}
-                            </div>
-                            {/* Resumo compacto */}
-                            <div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-                              {r.proximaAcao && (
-                                <span className="truncate max-w-[200px]">
-                                  <span className="text-gray-600">Próxima:</span>{" "}
-                                  <span className="text-orange-300/80">{r.proximaAcao}</span>
-                                </span>
-                              )}
-                              {r.proximoContato && (
-                                <span className={`flex items-center gap-1 shrink-0 font-semibold ${
-                                  vencido ? "text-rose-400" : "text-emerald-400/80"
-                                }`}>
-                                  <Calendar className="w-3 h-3" />
-                                  {formatDate(r.proximoContato)}
-                                </span>
-                              )}
-                              {r.previsaoMaterial && (
-                                <span className="flex items-center gap-1 text-yellow-400/70 shrink-0">
-                                  <Package className="w-3 h-3" />
-                                  {formatDate(r.previsaoMaterial)}
-                                </span>
-                              )}
-                              {r.previsaoInstalacao && (
-                                <span className="flex items-center gap-1 text-violet-400/70 shrink-0">
-                                  <Hammer className="w-3 h-3" />
-                                  {formatDate(r.previsaoInstalacao)}
-                                </span>
-                              )}
-                              {anexosCount > 0 && (
-                                <span className="flex items-center gap-1 text-gray-500 shrink-0">
-                                  <Paperclip className="w-3 h-3" />
-                                  {anexosCount}
-                                </span>
-                              )}
-                              {tarefasCount > 0 && (
-                                <span className="flex items-center gap-1 text-gray-500 shrink-0">
-                                  <ListTodo className="w-3 h-3" />
-                                  {tarefasCount}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Badges */}
-                          <div className="flex gap-2 shrink-0">
-                            <span
-                              className={`px-3 py-1.5 rounded-lg text-xs font-bold ${cores.bg} ${cores.text}`}
-                            >
-                              {getEtapaLabel(r.etapa as EtapaPosVenda)}
-                            </span>
-                            {vencido && (
-                              <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">
-                                <AlertCircle className="w-3.5 h-3.5" />
-                                Vencido
-                              </span>
-                            )}
-                          </div>
-                        </button>
-
-                        {/* === CONTEÚDO EXPANDIDO === */}
-                        {isExpanded && (
-                          <div className="px-5 pb-5 pt-0 border-t border-[#232a3b]">
-                        {/* Conteúdo */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-4">
-                          {/* Coluna 1 */}
-                          <div className="space-y-3">
-                            {r.ultimaAcao && (
-                              <div>
-                                <p className="text-xs text-gray-500 font-semibold uppercase mb-1">
-                                  Última ação
-                                </p>
-                                <p className="text-sm text-gray-300">{r.ultimaAcao}</p>
-                              </div>
-                            )}
-                            {r.ultimoContato && (
-                              <div>
-                                <p className="text-xs text-gray-500 font-semibold uppercase mb-1">
-                                  Último contato
-                                </p>
-                                <div className="flex items-center gap-2 text-sm text-gray-300">
-                                  <Calendar className="w-4 h-4 text-gray-500" />
-                                  {formatDate(r.ultimoContato)}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Coluna 2 */}
-                          <div className="space-y-3">
-                            {r.proximaAcao && (
-                              <div>
-                                <p className="text-xs text-gray-500 font-semibold uppercase mb-1">
-                                  Próxima ação
-                                </p>
-                                <p className="text-sm text-orange-300 font-medium">{r.proximaAcao}</p>
-                              </div>
-                            )}
-                            {r.proximoContato && (
-                              <div>
-                                <p className="text-xs text-gray-500 font-semibold uppercase mb-1">
-                                  Próximo contato
-                                </p>
-                                <div
-                                  className={`flex items-center gap-2 text-sm font-bold ${
-                                    vencido ? "text-rose-400" : "text-emerald-400"
-                                  }`}
-                                >
-                                  <Calendar className="w-4 h-4" />
-                                  {formatDate(r.proximoContato)}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Previsões de Material e Instalação */}
-                        <div className="mb-4 p-3 bg-[#141820] rounded-lg border border-[#232a3b]">
-                          <p className="text-xs text-gray-500 font-semibold uppercase mb-3 flex items-center gap-1.5">
-                            <Calendar className="w-3.5 h-3.5" />
-                            Previsões
+                        {r.conferido && <Check className="w-3 h-3 text-liv-bg" />}
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className={`font-medium text-sm truncate ${r.conferido ? "line-through text-liv-faint" : "text-liv-ink"}`}>
+                          {r.nomeCliente}
+                        </p>
+                        <p className="text-xs text-liv-faint mt-0.5">
+                          {getEtapaLabel(r.etapa as EtapaPosVenda)}
+                          {r.proximaAcao && ` · ${r.proximaAcao}`}
+                        </p>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        {r.proximoContato && (
+                          <p className={`text-xs font-medium tabular-nums ${r.proximoContato < hoje && !r.conferido ? "text-liv-danger" : "text-liv-faint"}`}>
+                            {formatDate(r.proximoContato)}
                           </p>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                              <label className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
-                                <Package className="w-3 h-3" />
-                                Chegada do Material
-                              </label>
-                              <input
-                                type="date"
-                                value={r.previsaoMaterial || ""}
-                                onChange={async (e) => {
-                                  await fetch(`/api/pos-venda/${r.id}`, {
-                                    method: "PUT",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ previsaoMaterial: e.target.value }),
-                                  });
-                                  fetchRegistros();
-                                }}
-                                className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                              />
-                            </div>
-                            <div>
-                              <label className="flex items-center gap-1.5 text-xs text-gray-500 mb-1">
-                                <Hammer className="w-3 h-3" />
-                                Instalação Prevista
-                              </label>
-                              <input
-                                type="date"
-                                value={r.previsaoInstalacao || ""}
-                                onChange={async (e) => {
-                                  await fetch(`/api/pos-venda/${r.id}`, {
-                                    method: "PUT",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ previsaoInstalacao: e.target.value }),
-                                  });
-                                  fetchRegistros();
-                                }}
-                                className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                              />
-                            </div>
-                          </div>
-                        </div>
+                        )}
+                        {r.conferido && r.dataConferido && (
+                          <p className="text-xs text-liv-sage tabular-nums">✓ {formatDate(r.dataConferido)}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
-                        {/* Observações */}
-                        {r.observacoes && (
-                          <div className="mb-4 p-3 bg-[#141820] rounded-lg border border-[#232a3b]">
-                            <p className="text-xs text-gray-500 font-semibold uppercase mb-1">
-                              Observações
+      {/* ── ABA OPERACIONAL (conteúdo existente) ── */}
+      {(!isSupervisor || abaAtiva === "operacional") && <>
+
+      {/* Formulário novo cliente */}
+      {showForm && (
+        <div className="bg-liv-surface border border-liv-orange/30 rounded-xl p-5">
+          <h2 className="text-sm font-semibold text-liv-orange uppercase tracking-wider mb-4">
+            Novo Cliente
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs text-liv-faint mb-1">Nome do Cliente *</label>
+              <input
+                value={form.nomeCliente}
+                onChange={(e) => setForm((p) => ({ ...p, nomeCliente: e.target.value }))}
+                className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                placeholder="Nome completo"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-liv-faint mb-1">Telefone</label>
+              <input
+                value={form.telefone}
+                onChange={(e) => setForm((p) => ({ ...p, telefone: e.target.value }))}
+                className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                placeholder="(84) 99999-9999"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-liv-faint mb-1">Etapa Inicial</label>
+              <select
+                value={form.etapa}
+                onChange={(e) => setForm((p) => ({ ...p, etapa: e.target.value }))}
+                className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+              >
+                {ETAPAS_POS_VENDA.map((et) => (
+                  <option key={et.key} value={et.key}>{et.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-liv-faint mb-1">Última Ação</label>
+              <input
+                value={form.ultimaAcao}
+                onChange={(e) => setForm((p) => ({ ...p, ultimaAcao: e.target.value }))}
+                className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                placeholder="Ex: Confirmei instalação"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-liv-faint mb-1">Próxima Ação</label>
+              <input
+                value={form.proximaAcao}
+                onChange={(e) => setForm((p) => ({ ...p, proximaAcao: e.target.value }))}
+                className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                placeholder="Ex: Enviar relatório"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-liv-faint mb-1">Observações</label>
+              <input
+                value={form.observacoes}
+                onChange={(e) => setForm((p) => ({ ...p, observacoes: e.target.value }))}
+                className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                placeholder="Notas adicionais"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-liv-faint mb-1">Último Contato</label>
+              <input
+                type="date"
+                value={form.ultimoContato}
+                onChange={(e) => setForm((p) => ({ ...p, ultimoContato: e.target.value }))}
+                className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-liv-faint mb-1">Próximo Contato</label>
+              <input
+                type="date"
+                value={form.proximoContato}
+                onChange={(e) => setForm((p) => ({ ...p, proximoContato: e.target.value }))}
+                className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={handleCreate}
+              disabled={saving || !form.nomeCliente.trim()}
+              className="flex items-center gap-1.5 px-4 py-2 bg-liv-sage text-liv-bg rounded-lg text-sm font-medium hover:bg-liv-sage-deep disabled:opacity-50 transition"
+            >
+              <Check className="w-3.5 h-3.5" />
+              {saving ? "Salvando..." : "Cadastrar"}
+            </button>
+            <button
+              onClick={() => { setShowForm(false); setForm(FORM_INICIAL); }}
+              className="flex items-center gap-1.5 px-4 py-2 bg-liv-surface-2 text-liv-muted rounded-lg text-sm font-medium hover:opacity-80 transition"
+            >
+              <X className="w-3.5 h-3.5" />
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Busca por nome */}
+      <div className="relative max-w-md">
+        <Search className="w-4 h-4 text-liv-faint absolute left-3 top-1/2 -translate-y-1/2" />
+        <input
+          value={buscaNome}
+          onChange={(e) => setBuscaNome(e.target.value)}
+          className="w-full bg-liv-surface-2 border border-liv-line rounded-lg pl-9 pr-9 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+          placeholder="Buscar cliente por nome..."
+        />
+        {buscaNome && (
+          <button
+            onClick={() => setBuscaNome("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-liv-faint hover:text-liv-muted"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Filtros por etapa */}
+      <div className="flex gap-2 flex-wrap">
+        <button
+          onClick={() => setFilterEtapa(null)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+            !filterEtapa
+              ? "bg-liv-sage text-liv-bg"
+              : "bg-liv-surface-2 text-liv-muted hover:opacity-80"
+          }`}
+        >
+          <Filter className="w-3.5 h-3.5" />
+          Todos ({clientesFiltrados.length})
+        </button>
+        {ETAPAS_POS_VENDA.map((et) => {
+          const count = registros.filter((r) => r.etapa === et.key).length;
+          const cores = ETAPA_CORES[et.key];
+          return (
+            <button
+              key={et.key}
+              onClick={() => setFilterEtapa(et.key)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                filterEtapa === et.key
+                  ? `${cores.bg} ${cores.text}`
+                  : count > 0
+                    ? "bg-liv-surface-2 text-liv-muted hover:opacity-80"
+                    : "bg-liv-surface text-liv-faint cursor-pointer hover:opacity-80"
+              }`}
+            >
+              {et.label} ({count})
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Lista de cards */}
+      {loading ? (
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-liv-sage" />
+        </div>
+      ) : clientesFiltrados.length === 0 ? (
+        <div className="text-center text-liv-faint py-12 bg-liv-surface rounded-xl border border-liv-line">
+          Nenhum cliente encontrado
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {clientesFiltrados.map((r) => {
+            const isEditing = editingId === r.id;
+            const vencido = r.proximoContato && r.proximoContato < hoje;
+            const cores = ETAPA_CORES[r.etapa];
+            const isExpanded = expandedId === r.id;
+            // Prefere count do servidor (lista enxuta); fallback para parse local quando detalhes ja carregados
+            const anexosCount = r.anexosCount ?? (r.anexos ? safeJsonArrayLen(r.anexos) : 0);
+            const tarefasCount = r.tarefasCount ?? (r.tarefas ? safeJsonArrayLen(r.tarefas) : 0);
+
+            return (
+              <div key={r.id}>
+                {/* Card */}
+                {!isEditing && (
+                  <div
+                    className={`bg-liv-surface border-2 rounded-xl transition ${
+                      vencido
+                        ? "border-liv-danger/50 shadow-lg shadow-liv-danger/10"
+                        : "border-liv-line hover:border-liv-surface-2"
+                    }`}
+                  >
+                    {/* === CABEÇALHO CLICÁVEL (sempre visível) === */}
+                    <button
+                      onClick={() => toggleExpand(r.id)}
+                      className="w-full text-left p-5 flex items-center gap-4"
+                    >
+                      {/* Seta de expansão */}
+                      <ChevronDown
+                        className={`w-5 h-5 text-liv-faint shrink-0 transition-transform duration-200 ${
+                          isExpanded ? "rotate-0" : "-rotate-90"
+                        }`}
+                      />
+
+                      {/* Info principal */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-lg font-bold text-liv-ink truncate">
+                            {r.nomeCliente}
+                          </h3>
+                          {r.telefone && (
+                            <span className="hidden sm:flex items-center gap-1.5 text-sm text-liv-faint">
+                              <Phone className="w-3.5 h-3.5" />
+                              {r.telefone}
+                            </span>
+                          )}
+                        </div>
+                        {/* Resumo compacto */}
+                        <div className="flex items-center gap-4 mt-1 text-xs text-liv-faint">
+                          {r.proximaAcao && (
+                            <span className="truncate max-w-[200px]">
+                              <span className="text-liv-faint">Próxima:</span>{" "}
+                              <span className="text-liv-orange/80">{r.proximaAcao}</span>
+                            </span>
+                          )}
+                          {r.proximoContato && (
+                            <span className={`flex items-center gap-1 shrink-0 font-semibold tabular-nums ${
+                              vencido ? "text-liv-danger" : "text-liv-sage/80"
+                            }`}>
+                              <Calendar className="w-3 h-3" />
+                              {formatDate(r.proximoContato)}
+                            </span>
+                          )}
+                          {r.previsaoMaterial && (
+                            <span className="flex items-center gap-1 text-liv-gold/70 shrink-0 tabular-nums">
+                              <Package className="w-3 h-3" />
+                              {formatDate(r.previsaoMaterial)}
+                            </span>
+                          )}
+                          {r.previsaoInstalacao && (
+                            <span className="flex items-center gap-1 text-liv-violet/70 shrink-0 tabular-nums">
+                              <Hammer className="w-3 h-3" />
+                              {formatDate(r.previsaoInstalacao)}
+                            </span>
+                          )}
+                          {anexosCount > 0 && (
+                            <span className="flex items-center gap-1 text-liv-faint shrink-0 tabular-nums">
+                              <Paperclip className="w-3 h-3" />
+                              {anexosCount}
+                            </span>
+                          )}
+                          {tarefasCount > 0 && (
+                            <span className="flex items-center gap-1 text-liv-faint shrink-0 tabular-nums">
+                              <ListTodo className="w-3 h-3" />
+                              {tarefasCount}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Badges */}
+                      <div className="flex gap-2 shrink-0">
+                        <span
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold ${cores.bg} ${cores.text}`}
+                        >
+                          {getEtapaLabel(r.etapa as EtapaPosVenda)}
+                        </span>
+                        {vencido && (
+                          <span className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-liv-danger/10 text-liv-danger border border-liv-danger/30">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            Vencido
+                          </span>
+                        )}
+                      </div>
+                    </button>
+
+                    {/* === CONTEÚDO EXPANDIDO === */}
+                    {isExpanded && (
+                      <div className="px-5 pb-5 pt-0 border-t border-liv-line">
+                    {/* Conteúdo */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-4">
+                      {/* Coluna 1 */}
+                      <div className="space-y-3">
+                        {r.ultimaAcao && (
+                          <div>
+                            <p className="text-xs text-liv-faint font-semibold uppercase mb-1">
+                              Última ação
                             </p>
-                            <p className="text-sm text-gray-300">{r.observacoes}</p>
+                            <p className="text-sm text-liv-muted">{r.ultimaAcao}</p>
                           </div>
                         )}
-
-                        {/* Tarefas */}
-                        {(() => {
-                          const tarefas = getTarefas(r);
-                          const filtroAtual = filtroTarefa[r.id] || "TODOS";
-                          const tarefasFiltradas = filtroAtual === "TODOS"
-                            ? tarefas
-                            : tarefas.filter((t) => t.status === filtroAtual);
-                          const countPendente = tarefas.filter((t) => t.status === "PENDENTE").length;
-                          const countFazendo = tarefas.filter((t) => t.status === "FAZENDO").length;
-                          const countFinalizado = tarefas.filter((t) => t.status === "FINALIZADO").length;
-
-                          return (
-                            <div className="mb-4 p-3 bg-[#141820] rounded-lg border border-[#232a3b]">
-                              <p className="text-xs text-gray-500 font-semibold uppercase mb-3 flex items-center gap-1.5">
-                                <ListTodo className="w-3.5 h-3.5" />
-                                Tarefas
-                              </p>
-
-                              {/* Filtros de status */}
-                              <div className="flex gap-1.5 mb-3 flex-wrap">
-                                <button
-                                  onClick={() => setFiltroTarefa((p) => ({ ...p, [r.id]: "TODOS" }))}
-                                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                                    filtroAtual === "TODOS"
-                                      ? "bg-orange-400/20 text-orange-400"
-                                      : "bg-[#232a3b] text-gray-400 hover:bg-[#2a3040]"
-                                  }`}
-                                >
-                                  Todos ({tarefas.length})
-                                </button>
-                                <button
-                                  onClick={() => setFiltroTarefa((p) => ({ ...p, [r.id]: "PENDENTE" }))}
-                                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                                    filtroAtual === "PENDENTE"
-                                      ? "bg-amber-400/20 text-amber-400"
-                                      : "bg-[#232a3b] text-gray-400 hover:bg-[#2a3040]"
-                                  }`}
-                                >
-                                  #pendente ({countPendente})
-                                </button>
-                                <button
-                                  onClick={() => setFiltroTarefa((p) => ({ ...p, [r.id]: "FAZENDO" }))}
-                                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                                    filtroAtual === "FAZENDO"
-                                      ? "bg-sky-400/20 text-sky-400"
-                                      : "bg-[#232a3b] text-gray-400 hover:bg-[#2a3040]"
-                                  }`}
-                                >
-                                  #fazendo ({countFazendo})
-                                </button>
-                                <button
-                                  onClick={() => setFiltroTarefa((p) => ({ ...p, [r.id]: "FINALIZADO" }))}
-                                  className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
-                                    filtroAtual === "FINALIZADO"
-                                      ? "bg-emerald-400/20 text-emerald-400"
-                                      : "bg-[#232a3b] text-gray-400 hover:bg-[#2a3040]"
-                                  }`}
-                                >
-                                  #finalizado ({countFinalizado})
-                                </button>
-                              </div>
-
-                              {/* Lista de tarefas */}
-                              {tarefasFiltradas.length > 0 ? (
-                                <div className="space-y-2 mb-3 max-h-48 overflow-y-auto pr-1">
-                                  {tarefasFiltradas.map((t) => {
-                                    const cor = STATUS_CORES[t.status] || STATUS_CORES.PENDENTE;
-                                    return (
-                                      <div
-                                        key={t.id}
-                                        className="flex items-center gap-2 bg-[#0b0f19] rounded-lg px-3 py-2 border border-[#232a3b]"
-                                      >
-                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cor.bg} ${cor.text} shrink-0`}>
-                                          {cor.label}
-                                        </span>
-                                        <span className={`text-sm flex-1 ${t.status === "FINALIZADO" ? "text-gray-500 line-through" : "text-gray-300"}`}>
-                                          {t.descricao}
-                                        </span>
-                                        <select
-                                          value={t.status}
-                                          onChange={(e) => alterarStatusTarefa(r, t.id, e.target.value)}
-                                          disabled={salvandoTarefa === r.id}
-                                          className="bg-[#141820] border border-[#232a3b] rounded-md px-1.5 py-1 text-xs text-gray-300 outline-none cursor-pointer"
-                                        >
-                                          <option value="PENDENTE">Pendente</option>
-                                          <option value="FAZENDO">Fazendo</option>
-                                          <option value="FINALIZADO">Finalizado</option>
-                                        </select>
-                                        <button
-                                          onClick={() => removerTarefa(r, t.id)}
-                                          disabled={salvandoTarefa === r.id}
-                                          className="text-gray-600 hover:text-red-400 transition"
-                                          title="Remover tarefa"
-                                        >
-                                          <X className="w-3.5 h-3.5" />
-                                        </button>
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              ) : (
-                                <p className="text-xs text-gray-600 mb-3">
-                                  {tarefas.length === 0 ? "Nenhuma tarefa criada" : "Nenhuma tarefa neste filtro"}
-                                </p>
-                              )}
-
-                              {/* Adicionar nova tarefa */}
-                              <div className="flex gap-2">
-                                <input
-                                  value={novaTarefaTexto[r.id] || ""}
-                                  onChange={(e) => setNovaTarefaTexto((p) => ({ ...p, [r.id]: e.target.value }))}
-                                  onKeyDown={(e) => { if (e.key === "Enter") adicionarTarefa(r); }}
-                                  placeholder="Nova tarefa..."
-                                  className="flex-1 bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-1.5 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                                />
-                                <button
-                                  onClick={() => adicionarTarefa(r)}
-                                  disabled={salvandoTarefa === r.id || !(novaTarefaTexto[r.id] || "").trim()}
-                                  className="flex items-center gap-1 px-3 py-1.5 bg-orange-400/10 text-orange-400 border border-orange-400/30 rounded-lg text-xs font-semibold hover:bg-orange-400/20 disabled:opacity-40 transition"
-                                >
-                                  <PlusCircle className="w-3.5 h-3.5" />
-                                  Adicionar
-                                </button>
-                              </div>
+                        {r.ultimoContato && (
+                          <div>
+                            <p className="text-xs text-liv-faint font-semibold uppercase mb-1">
+                              Último contato
+                            </p>
+                            <div className="flex items-center gap-2 text-sm text-liv-muted">
+                              <Calendar className="w-4 h-4 text-liv-faint" />
+                              {formatDate(r.ultimoContato)}
                             </div>
-                          );
-                        })()}
-
-                        {/* Anotações */}
-                        <div className="mb-4 p-3 bg-[#141820] rounded-lg border border-[#232a3b]">
-                          <p className="text-xs text-gray-500 font-semibold uppercase mb-2 flex items-center gap-1.5">
-                            <MessageSquare className="w-3.5 h-3.5" />
-                            Anotações
-                          </p>
-                          <textarea
-                            value={anotacoesEdit[r.id] !== undefined ? anotacoesEdit[r.id] : (r.anotacoes || "")}
-                            onChange={(e) => setAnotacoesEdit((p) => ({ ...p, [r.id]: e.target.value }))}
-                            placeholder="Anotações pertinentes sobre este cliente..."
-                            rows={3}
-                            className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none resize-none"
-                          />
-                          {(anotacoesEdit[r.id] !== undefined && anotacoesEdit[r.id] !== (r.anotacoes || "")) && (
-                            <button
-                              onClick={() => salvarAnotacoes(r)}
-                              disabled={salvandoAnotacao === r.id}
-                              className="mt-2 flex items-center gap-1.5 px-3 py-1.5 bg-orange-400 text-gray-900 rounded-lg text-xs font-semibold hover:bg-orange-300 disabled:opacity-50 transition"
-                            >
-                              <Save className="w-3.5 h-3.5" />
-                              {salvandoAnotacao === r.id ? "Salvando..." : "Salvar Anotações"}
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Anexos */}
-                        <div className="mb-4 p-3 bg-[#141820] rounded-lg border border-[#232a3b]">
-                          <p className="text-xs text-gray-500 font-semibold uppercase mb-2 flex items-center gap-1.5">
-                            <Paperclip className="w-3.5 h-3.5" />
-                            Anexos
-                          </p>
-                          {/* Lista de anexos existentes */}
-                          {(() => {
-                            const anexos: { nome: string; url: string; data: string }[] = r.anexos
-                              ? JSON.parse(r.anexos)
-                              : [];
-                            return anexos.length > 0 ? (
-                              <div className="space-y-1.5 mb-3">
-                                {anexos.map((a, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="flex items-center gap-2 text-sm"
-                                  >
-                                    <FileText className="w-3.5 h-3.5 text-orange-400 shrink-0" />
-                                    <span className="text-orange-400 truncate flex-1" title={a.nome}>
-                                      {a.nome}
-                                    </span>
-                                    <span className="text-gray-500 text-xs shrink-0">
-                                      {formatDate(a.data)}
-                                    </span>
-                                    <button
-                                      onClick={() => {
-                                        const w = window.open("", "_blank");
-                                        if (w) {
-                                          if (a.url.startsWith("data:application/pdf") || a.nome.toLowerCase().endsWith(".pdf")) {
-                                            w.document.write(`<iframe src="${a.url}" style="width:100%;height:100%;border:none;position:fixed;top:0;left:0;" />`);
-                                          } else {
-                                            w.document.write(`<img src="${a.url}" style="max-width:100%;height:auto;margin:auto;display:block;" />`);
-                                          }
-                                          w.document.title = a.nome;
-                                        }
-                                      }}
-                                      className="flex items-center gap-1 px-2 py-1 rounded text-xs text-sky-400 hover:bg-sky-400/10 border border-sky-400/30 transition shrink-0"
-                                      title="Visualizar"
-                                    >
-                                      <Eye className="w-3.5 h-3.5" />
-                                    </button>
-                                    <a
-                                      href={a.url}
-                                      download={a.nome}
-                                      className="flex items-center gap-1 px-2 py-1 rounded text-xs text-orange-400 hover:bg-orange-400/10 border border-orange-400/30 transition shrink-0"
-                                      title="Baixar"
-                                    >
-                                      <Download className="w-3.5 h-3.5" />
-                                    </a>
-                                    <button
-                                      onClick={() => handleRemoveAnexo(r, idx)}
-                                      className="flex items-center gap-1 px-2 py-1 rounded text-xs text-red-400 hover:bg-red-400/10 border border-red-400/30 transition shrink-0"
-                                      title="Excluir"
-                                    >
-                                      <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-xs text-gray-600 mb-3">Nenhum anexo</p>
-                            );
-                          })()}
-                          {/* Upload button */}
-                          <input
-                            type="file"
-                            id={`anexo-upload-${r.id}`}
-                            className="hidden"
-                            accept=".pdf,.png,.jpg,.jpeg"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) handleAnexoUpload(r, file);
-                              e.target.value = "";
-                            }}
-                          />
-                          <label
-                            htmlFor={`anexo-upload-${r.id}`}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${
-                              uploadingAnexoId === r.id
-                                ? "bg-orange-400/20 text-orange-300 cursor-wait"
-                                : "bg-orange-400/10 text-orange-400 border border-orange-400/30 hover:bg-orange-400/20"
-                            }`}
-                          >
-                            <Upload className="w-3.5 h-3.5" />
-                            {uploadingAnexoId === r.id ? "Enviando..." : "Anexar Arquivo"}
-                          </label>
-                        </div>
-
-                        {/* Botões */}
-                        <div className="flex flex-wrap gap-2">
-                          {r.etapa !== "CLIENTE_FINALIZADO" && r.etapa !== "MANUTENCOES" && trocandoEtapaId !== r.id && (
-                            <button
-                              onClick={() => handleAvancar(r)}
-                              className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-400/10 text-orange-400 text-sm font-semibold rounded-lg border border-orange-400/30 hover:bg-orange-400/20 transition"
-                            >
-                              <ChevronRight className="w-4 h-4" />
-                              Avançar para {getEtapaLabel(getProximaEtapa(r.etapa as EtapaPosVenda) ?? "")}
-                            </button>
-                          )}
-
-                          {/* Troca rápida de etapa */}
-                          {trocandoEtapaId === r.id ? (
-                            <div className="flex items-center gap-2 flex-1 flex-wrap">
-                              <select
-                                value={novaEtapaSel}
-                                onChange={(e) => setNovaEtapaSel(e.target.value)}
-                                className="flex-1 bg-[#0b0f19] border border-orange-400/50 rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                              >
-                                {ETAPAS_POS_VENDA.map((et) => (
-                                  <option key={et.key} value={et.key}>{et.label}</option>
-                                ))}
-                              </select>
-                              <button
-                                onClick={() => salvarTrocaEtapa(r.id)}
-                                disabled={saving}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-orange-400 text-gray-900 rounded-lg text-sm font-medium hover:bg-orange-300 disabled:opacity-50 transition"
-                              >
-                                <Check className="w-3.5 h-3.5" />
-                                {saving ? "..." : "Salvar"}
-                              </button>
-                              <button
-                                onClick={() => setTrocandoEtapaId(null)}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-[#232a3b] text-gray-300 rounded-lg text-sm font-medium hover:bg-[#2a3040] transition"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => iniciarTrocaEtapa(r)}
-                              className="flex items-center gap-2 px-4 py-2.5 text-sky-400 bg-sky-400/10 rounded-lg hover:bg-sky-400/20 border border-sky-400/30 transition text-sm font-semibold"
-                            >
-                              <RefreshCw className="w-4 h-4" />
-                              Alterar Etapa
-                            </button>
-                          )}
-
-                          {trocandoEtapaId !== r.id && (
-                            <button
-                              onClick={() => startEdit(r)}
-                              className="flex items-center gap-2 px-4 py-2.5 text-gray-300 bg-[#232a3b] rounded-lg hover:bg-[#2a3040] transition text-sm font-semibold"
-                            >
-                              <Pencil className="w-4 h-4" />
-                              Editar
-                            </button>
-                          )}
-
-                          {trocandoEtapaId !== r.id && (
-                            <button
-                              onClick={() => handleRemover(r.id)}
-                              className="flex items-center gap-2 px-4 py-2.5 text-red-400 bg-red-400/10 rounded-lg hover:bg-red-400/20 border border-red-400/20 transition text-sm font-semibold"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Remover
-                            </button>
-                          )}
-                        </div>
                           </div>
                         )}
                       </div>
+
+                      {/* Coluna 2 */}
+                      <div className="space-y-3">
+                        {r.proximaAcao && (
+                          <div>
+                            <p className="text-xs text-liv-faint font-semibold uppercase mb-1">
+                              Próxima ação
+                            </p>
+                            <p className="text-sm text-liv-orange font-medium">{r.proximaAcao}</p>
+                          </div>
+                        )}
+                        {r.proximoContato && (
+                          <div>
+                            <p className="text-xs text-liv-faint font-semibold uppercase mb-1">
+                              Próximo contato
+                            </p>
+                            <div
+                              className={`flex items-center gap-2 text-sm font-bold tabular-nums ${
+                                vencido ? "text-liv-danger" : "text-liv-sage"
+                              }`}
+                            >
+                              <Calendar className="w-4 h-4" />
+                              {formatDate(r.proximoContato)}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Previsões de Material e Instalação */}
+                    <div className="mb-4 p-3 bg-liv-surface-2 rounded-lg border border-liv-line">
+                      <p className="text-xs text-liv-faint font-semibold uppercase mb-3 flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5" />
+                        Previsões
+                      </p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="flex items-center gap-1.5 text-xs text-liv-faint mb-1">
+                            <Package className="w-3 h-3" />
+                            Chegada do Material
+                          </label>
+                          <input
+                            type="date"
+                            value={r.previsaoMaterial || ""}
+                            onChange={async (e) => {
+                              await fetch(`/api/pos-venda/${r.id}`, {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ previsaoMaterial: e.target.value }),
+                              });
+                              fetchRegistros();
+                            }}
+                            className="w-full bg-liv-bg border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="flex items-center gap-1.5 text-xs text-liv-faint mb-1">
+                            <Hammer className="w-3 h-3" />
+                            Instalação Prevista
+                          </label>
+                          <input
+                            type="date"
+                            value={r.previsaoInstalacao || ""}
+                            onChange={async (e) => {
+                              await fetch(`/api/pos-venda/${r.id}`, {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ previsaoInstalacao: e.target.value }),
+                              });
+                              fetchRegistros();
+                            }}
+                            className="w-full bg-liv-bg border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Observações */}
+                    {r.observacoes && (
+                      <div className="mb-4 p-3 bg-liv-surface-2 rounded-lg border border-liv-line">
+                        <p className="text-xs text-liv-faint font-semibold uppercase mb-1">
+                          Observações
+                        </p>
+                        <p className="text-sm text-liv-muted">{r.observacoes}</p>
+                      </div>
                     )}
 
-                    {/* Edição inline */}
-                    {isEditing && (
-                      <div className="bg-[#1a1f2e] border border-orange-400/30 rounded-xl p-5 space-y-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">Nome</label>
-                            <input
-                              value={editForm.nomeCliente}
-                              onChange={(e) =>
-                                setEditForm((p) => ({ ...p, nomeCliente: e.target.value }))
-                              }
-                              className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">Telefone</label>
-                            <input
-                              value={editForm.telefone}
-                              onChange={(e) =>
-                                setEditForm((p) => ({ ...p, telefone: e.target.value }))
-                              }
-                              className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">Etapa</label>
-                            <select
-                              value={editForm.etapa}
-                              onChange={(e) =>
-                                setEditForm((p) => ({ ...p, etapa: e.target.value }))
-                              }
-                              className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
+                    {/* Tarefas */}
+                    {(() => {
+                      const tarefas = getTarefas(r);
+                      const filtroAtual = filtroTarefa[r.id] || "TODOS";
+                      const tarefasFiltradas = filtroAtual === "TODOS"
+                        ? tarefas
+                        : tarefas.filter((t) => t.status === filtroAtual);
+                      const countPendente = tarefas.filter((t) => t.status === "PENDENTE").length;
+                      const countFazendo = tarefas.filter((t) => t.status === "FAZENDO").length;
+                      const countFinalizado = tarefas.filter((t) => t.status === "FINALIZADO").length;
+
+                      return (
+                        <div className="mb-4 p-3 bg-liv-surface-2 rounded-lg border border-liv-line">
+                          <p className="text-xs text-liv-faint font-semibold uppercase mb-3 flex items-center gap-1.5">
+                            <ListTodo className="w-3.5 h-3.5" />
+                            Tarefas
+                          </p>
+
+                          {/* Filtros de status */}
+                          <div className="flex gap-1.5 mb-3 flex-wrap">
+                            <button
+                              onClick={() => setFiltroTarefa((p) => ({ ...p, [r.id]: "TODOS" }))}
+                              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                                filtroAtual === "TODOS"
+                                  ? "bg-liv-sage/20 text-liv-sage"
+                                  : "bg-liv-surface text-liv-muted hover:opacity-80"
+                              }`}
                             >
-                              {ETAPAS_POS_VENDA.map((et) => (
-                                <option key={et.key} value={et.key}>
-                                  {et.label}
-                                </option>
-                              ))}
-                            </select>
+                              Todos ({tarefas.length})
+                            </button>
+                            <button
+                              onClick={() => setFiltroTarefa((p) => ({ ...p, [r.id]: "PENDENTE" }))}
+                              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                                filtroAtual === "PENDENTE"
+                                  ? "bg-liv-gold/20 text-liv-gold"
+                                  : "bg-liv-surface text-liv-muted hover:opacity-80"
+                              }`}
+                            >
+                              #pendente ({countPendente})
+                            </button>
+                            <button
+                              onClick={() => setFiltroTarefa((p) => ({ ...p, [r.id]: "FAZENDO" }))}
+                              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                                filtroAtual === "FAZENDO"
+                                  ? "bg-liv-info/20 text-liv-info"
+                                  : "bg-liv-surface text-liv-muted hover:opacity-80"
+                              }`}
+                            >
+                              #fazendo ({countFazendo})
+                            </button>
+                            <button
+                              onClick={() => setFiltroTarefa((p) => ({ ...p, [r.id]: "FINALIZADO" }))}
+                              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition ${
+                                filtroAtual === "FINALIZADO"
+                                  ? "bg-liv-sage/20 text-liv-sage"
+                                  : "bg-liv-surface text-liv-muted hover:opacity-80"
+                              }`}
+                            >
+                              #finalizado ({countFinalizado})
+                            </button>
                           </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">Última Ação</label>
+
+                          {/* Lista de tarefas */}
+                          {tarefasFiltradas.length > 0 ? (
+                            <div className="space-y-2 mb-3 max-h-48 overflow-y-auto pr-1">
+                              {tarefasFiltradas.map((t) => {
+                                const cor = STATUS_CORES[t.status] || STATUS_CORES.PENDENTE;
+                                return (
+                                  <div
+                                    key={t.id}
+                                    className="flex items-center gap-2 bg-liv-bg rounded-lg px-3 py-2 border border-liv-line"
+                                  >
+                                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cor.bg} ${cor.text} shrink-0`}>
+                                      {cor.label}
+                                    </span>
+                                    <span className={`text-sm flex-1 ${t.status === "FINALIZADO" ? "text-liv-faint line-through" : "text-liv-muted"}`}>
+                                      {t.descricao}
+                                    </span>
+                                    <select
+                                      value={t.status}
+                                      onChange={(e) => alterarStatusTarefa(r, t.id, e.target.value)}
+                                      disabled={salvandoTarefa === r.id}
+                                      className="bg-liv-surface-2 border border-liv-line rounded-md px-1.5 py-1 text-xs text-liv-muted outline-none cursor-pointer"
+                                    >
+                                      <option value="PENDENTE">Pendente</option>
+                                      <option value="FAZENDO">Fazendo</option>
+                                      <option value="FINALIZADO">Finalizado</option>
+                                    </select>
+                                    <button
+                                      onClick={() => removerTarefa(r, t.id)}
+                                      disabled={salvandoTarefa === r.id}
+                                      className="text-liv-faint hover:text-liv-danger transition"
+                                      title="Remover tarefa"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-liv-faint mb-3">
+                              {tarefas.length === 0 ? "Nenhuma tarefa criada" : "Nenhuma tarefa neste filtro"}
+                            </p>
+                          )}
+
+                          {/* Adicionar nova tarefa */}
+                          <div className="flex gap-2">
                             <input
-                              value={editForm.ultimaAcao}
-                              onChange={(e) =>
-                                setEditForm((p) => ({ ...p, ultimaAcao: e.target.value }))
-                              }
-                              className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
+                              value={novaTarefaTexto[r.id] || ""}
+                              onChange={(e) => setNovaTarefaTexto((p) => ({ ...p, [r.id]: e.target.value }))}
+                              onKeyDown={(e) => { if (e.key === "Enter") adicionarTarefa(r); }}
+                              placeholder="Nova tarefa..."
+                              className="flex-1 bg-liv-bg border border-liv-line rounded-lg px-3 py-1.5 text-sm text-liv-ink focus:border-liv-sage outline-none"
                             />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">Próxima Ação</label>
-                            <input
-                              value={editForm.proximaAcao}
-                              onChange={(e) =>
-                                setEditForm((p) => ({ ...p, proximaAcao: e.target.value }))
-                              }
-                              className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">Observações</label>
-                            <input
-                              value={editForm.observacoes}
-                              onChange={(e) =>
-                                setEditForm((p) => ({ ...p, observacoes: e.target.value }))
-                              }
-                              className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">
-                              Último Contato
-                            </label>
-                            <input
-                              type="date"
-                              value={editForm.ultimoContato}
-                              onChange={(e) =>
-                                setEditForm((p) => ({ ...p, ultimoContato: e.target.value }))
-                              }
-                              className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-gray-500 mb-1">
-                              Próximo Contato
-                            </label>
-                            <input
-                              type="date"
-                              value={editForm.proximoContato}
-                              onChange={(e) =>
-                                setEditForm((p) => ({ ...p, proximoContato: e.target.value }))
-                              }
-                              className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-orange-400 outline-none"
-                            />
+                            <button
+                              onClick={() => adicionarTarefa(r)}
+                              disabled={salvandoTarefa === r.id || !(novaTarefaTexto[r.id] || "").trim()}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-liv-sage/10 text-liv-sage border border-liv-sage/30 rounded-lg text-xs font-semibold hover:bg-liv-sage/20 disabled:opacity-40 transition"
+                            >
+                              <PlusCircle className="w-3.5 h-3.5" />
+                              Adicionar
+                            </button>
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                      );
+                    })()}
+
+                    {/* Anotações */}
+                    <div className="mb-4 p-3 bg-liv-surface-2 rounded-lg border border-liv-line">
+                      <p className="text-xs text-liv-faint font-semibold uppercase mb-2 flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        Anotações
+                      </p>
+                      <textarea
+                        value={anotacoesEdit[r.id] !== undefined ? anotacoesEdit[r.id] : (r.anotacoes || "")}
+                        onChange={(e) => setAnotacoesEdit((p) => ({ ...p, [r.id]: e.target.value }))}
+                        placeholder="Anotações pertinentes sobre este cliente..."
+                        rows={3}
+                        className="w-full bg-liv-bg border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none resize-none"
+                      />
+                      {(anotacoesEdit[r.id] !== undefined && anotacoesEdit[r.id] !== (r.anotacoes || "")) && (
+                        <button
+                          onClick={() => salvarAnotacoes(r)}
+                          disabled={salvandoAnotacao === r.id}
+                          className="mt-2 flex items-center gap-1.5 px-3 py-1.5 bg-liv-sage text-liv-bg rounded-lg text-xs font-semibold hover:bg-liv-sage-deep disabled:opacity-50 transition"
+                        >
+                          <Save className="w-3.5 h-3.5" />
+                          {salvandoAnotacao === r.id ? "Salvando..." : "Salvar Anotações"}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Anexos */}
+                    <div className="mb-4 p-3 bg-liv-surface-2 rounded-lg border border-liv-line">
+                      <p className="text-xs text-liv-faint font-semibold uppercase mb-2 flex items-center gap-1.5">
+                        <Paperclip className="w-3.5 h-3.5" />
+                        Anexos
+                      </p>
+                      {/* Lista de anexos existentes */}
+                      {(() => {
+                        const anexos: { nome: string; url: string; data: string }[] = r.anexos
+                          ? JSON.parse(r.anexos)
+                          : [];
+                        return anexos.length > 0 ? (
+                          <div className="space-y-1.5 mb-3">
+                            {anexos.map((a, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-2 text-sm"
+                              >
+                                <FileText className="w-3.5 h-3.5 text-liv-orange shrink-0" />
+                                <span className="text-liv-orange truncate flex-1" title={a.nome}>
+                                  {a.nome}
+                                </span>
+                                <span className="text-liv-faint text-xs shrink-0 tabular-nums">
+                                  {formatDate(a.data)}
+                                </span>
+                                <button
+                                  onClick={() => {
+                                    const w = window.open("", "_blank");
+                                    if (w) {
+                                      if (a.url.startsWith("data:application/pdf") || a.nome.toLowerCase().endsWith(".pdf")) {
+                                        w.document.write(`<iframe src="${a.url}" style="width:100%;height:100%;border:none;position:fixed;top:0;left:0;" />`);
+                                      } else {
+                                        w.document.write(`<img src="${a.url}" style="max-width:100%;height:auto;margin:auto;display:block;" />`);
+                                      }
+                                      w.document.title = a.nome;
+                                    }
+                                  }}
+                                  className="flex items-center gap-1 px-2 py-1 rounded text-xs text-liv-info hover:bg-liv-info/10 border border-liv-info/30 transition shrink-0"
+                                  title="Visualizar"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
+                                <a
+                                  href={a.url}
+                                  download={a.nome}
+                                  className="flex items-center gap-1 px-2 py-1 rounded text-xs text-liv-orange hover:bg-liv-orange/10 border border-liv-orange/30 transition shrink-0"
+                                  title="Baixar"
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                </a>
+                                <button
+                                  onClick={() => handleRemoveAnexo(r, idx)}
+                                  className="flex items-center gap-1 px-2 py-1 rounded text-xs text-liv-danger hover:bg-liv-danger/10 border border-liv-danger/30 transition shrink-0"
+                                  title="Excluir"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-liv-faint mb-3">Nenhum anexo</p>
+                        );
+                      })()}
+                      {/* Upload button */}
+                      <input
+                        type="file"
+                        id={`anexo-upload-${r.id}`}
+                        className="hidden"
+                        accept=".pdf,.png,.jpg,.jpeg"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleAnexoUpload(r, file);
+                          e.target.value = "";
+                        }}
+                      />
+                      <label
+                        htmlFor={`anexo-upload-${r.id}`}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition ${
+                          uploadingAnexoId === r.id
+                            ? "bg-liv-orange/20 text-liv-orange cursor-wait"
+                            : "bg-liv-orange/10 text-liv-orange border border-liv-orange/30 hover:bg-liv-orange/20"
+                        }`}
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        {uploadingAnexoId === r.id ? "Enviando..." : "Anexar Arquivo"}
+                      </label>
+                    </div>
+
+                    {/* Botões */}
+                    <div className="flex flex-wrap gap-2">
+                      {r.etapa !== "CLIENTE_FINALIZADO" && r.etapa !== "MANUTENCOES" && trocandoEtapaId !== r.id && (
+                        <button
+                          onClick={() => handleAvancar(r)}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-liv-sage/10 text-liv-sage text-sm font-semibold rounded-lg border border-liv-sage/30 hover:bg-liv-sage/20 transition"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                          Avançar para {getEtapaLabel(getProximaEtapa(r.etapa as EtapaPosVenda) ?? "")}
+                        </button>
+                      )}
+
+                      {/* Troca rápida de etapa */}
+                      {trocandoEtapaId === r.id ? (
+                        <div className="flex items-center gap-2 flex-1 flex-wrap">
+                          <select
+                            value={novaEtapaSel}
+                            onChange={(e) => setNovaEtapaSel(e.target.value)}
+                            className="flex-1 bg-liv-bg border border-liv-sage/50 rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                          >
+                            {ETAPAS_POS_VENDA.map((et) => (
+                              <option key={et.key} value={et.key}>{et.label}</option>
+                            ))}
+                          </select>
                           <button
-                            onClick={() => handleSaveEdit(r.id)}
+                            onClick={() => salvarTrocaEtapa(r.id)}
                             disabled={saving}
-                            className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-orange-400 text-gray-900 rounded-lg text-sm font-medium hover:bg-orange-300 disabled:opacity-50 transition"
+                            className="flex items-center gap-1.5 px-3 py-2 bg-liv-sage text-liv-bg rounded-lg text-sm font-medium hover:bg-liv-sage-deep disabled:opacity-50 transition"
                           >
-                            <Check className="w-4 h-4" />
-                            {saving ? "Salvando..." : "Salvar"}
+                            <Check className="w-3.5 h-3.5" />
+                            {saving ? "..." : "Salvar"}
                           </button>
                           <button
-                            onClick={() => setEditingId(null)}
-                            className="flex items-center justify-center gap-1.5 px-4 py-2 bg-[#232a3b] text-gray-300 rounded-lg text-sm font-medium hover:bg-[#2a3040] transition"
+                            onClick={() => setTrocandoEtapaId(null)}
+                            className="flex items-center gap-1.5 px-3 py-2 bg-liv-surface-2 text-liv-muted rounded-lg text-sm font-medium hover:opacity-80 transition"
                           >
-                            <X className="w-4 h-4" />
-                            Cancelar
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         </div>
+                      ) : (
+                        <button
+                          onClick={() => iniciarTrocaEtapa(r)}
+                          className="flex items-center gap-2 px-4 py-2.5 text-liv-info bg-liv-info/10 rounded-lg hover:bg-liv-info/20 border border-liv-info/30 transition text-sm font-semibold"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                          Alterar Etapa
+                        </button>
+                      )}
+
+                      {trocandoEtapaId !== r.id && (
+                        <button
+                          onClick={() => startEdit(r)}
+                          className="flex items-center gap-2 px-4 py-2.5 text-liv-muted bg-liv-surface-2 rounded-lg hover:opacity-80 transition text-sm font-semibold"
+                        >
+                          <Pencil className="w-4 h-4" />
+                          Editar
+                        </button>
+                      )}
+
+                      {trocandoEtapaId !== r.id && (
+                        <button
+                          onClick={() => handleRemover(r.id)}
+                          className="flex items-center gap-2 px-4 py-2.5 text-liv-danger bg-liv-danger/10 rounded-lg hover:bg-liv-danger/20 border border-liv-danger/20 transition text-sm font-semibold"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Remover
+                        </button>
+                      )}
+                    </div>
                       </div>
                     )}
                   </div>
-                );
-              })}
-            </div>
-          )}
-          </>}
+                )}
+
+                {/* Edição inline */}
+                {isEditing && (
+                  <div className="bg-liv-surface border border-liv-orange/30 rounded-xl p-5 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs text-liv-faint mb-1">Nome</label>
+                        <input
+                          value={editForm.nomeCliente}
+                          onChange={(e) =>
+                            setEditForm((p) => ({ ...p, nomeCliente: e.target.value }))
+                          }
+                          className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-liv-faint mb-1">Telefone</label>
+                        <input
+                          value={editForm.telefone}
+                          onChange={(e) =>
+                            setEditForm((p) => ({ ...p, telefone: e.target.value }))
+                          }
+                          className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-liv-faint mb-1">Etapa</label>
+                        <select
+                          value={editForm.etapa}
+                          onChange={(e) =>
+                            setEditForm((p) => ({ ...p, etapa: e.target.value }))
+                          }
+                          className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                        >
+                          {ETAPAS_POS_VENDA.map((et) => (
+                            <option key={et.key} value={et.key}>
+                              {et.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs text-liv-faint mb-1">Última Ação</label>
+                        <input
+                          value={editForm.ultimaAcao}
+                          onChange={(e) =>
+                            setEditForm((p) => ({ ...p, ultimaAcao: e.target.value }))
+                          }
+                          className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-liv-faint mb-1">Próxima Ação</label>
+                        <input
+                          value={editForm.proximaAcao}
+                          onChange={(e) =>
+                            setEditForm((p) => ({ ...p, proximaAcao: e.target.value }))
+                          }
+                          className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-liv-faint mb-1">Observações</label>
+                        <input
+                          value={editForm.observacoes}
+                          onChange={(e) =>
+                            setEditForm((p) => ({ ...p, observacoes: e.target.value }))
+                          }
+                          className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-liv-faint mb-1">
+                          Último Contato
+                        </label>
+                        <input
+                          type="date"
+                          value={editForm.ultimoContato}
+                          onChange={(e) =>
+                            setEditForm((p) => ({ ...p, ultimoContato: e.target.value }))
+                          }
+                          className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-liv-faint mb-1">
+                          Próximo Contato
+                        </label>
+                        <input
+                          type="date"
+                          value={editForm.proximoContato}
+                          onChange={(e) =>
+                            setEditForm((p) => ({ ...p, proximoContato: e.target.value }))
+                          }
+                          className="w-full bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleSaveEdit(r.id)}
+                        disabled={saving}
+                        className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-liv-sage text-liv-bg rounded-lg text-sm font-medium hover:bg-liv-sage-deep disabled:opacity-50 transition"
+                      >
+                        <Check className="w-4 h-4" />
+                        {saving ? "Salvando..." : "Salvar"}
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="flex items-center justify-center gap-1.5 px-4 py-2 bg-liv-surface-2 text-liv-muted rounded-lg text-sm font-medium hover:opacity-80 transition"
+                      >
+                        <X className="w-4 h-4" />
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      </main>
+      )}
+      </>}
     </div>
   );
 }

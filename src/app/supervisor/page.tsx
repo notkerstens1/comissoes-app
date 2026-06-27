@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { Target, TrendingUp, DollarSign, Calendar, Users } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 interface Resultado {
   mesReferencia: string;
@@ -31,15 +32,15 @@ const faixaLabel: Record<Resultado["faixa"], string> = {
 };
 
 const faixaColor: Record<Resultado["faixa"], string> = {
-  ate_80: "text-red-400",
-  "80_a_100": "text-amber-400",
-  acima_100: "text-lime-400",
+  ate_80: "text-liv-danger",
+  "80_a_100": "text-liv-gold",
+  acima_100: "text-liv-sage",
 };
 
 const faixaBgColor: Record<Resultado["faixa"], string> = {
-  ate_80: "bg-red-400/10 border-red-400/30",
-  "80_a_100": "bg-amber-400/10 border-amber-400/30",
-  acima_100: "bg-lime-400/10 border-lime-400/30",
+  ate_80: "bg-liv-danger/10 border-liv-danger/30",
+  "80_a_100": "bg-liv-gold/10 border-liv-gold/30",
+  acima_100: "bg-liv-sage/10 border-liv-sage/30",
 };
 
 function getMesAtual(): string {
@@ -68,35 +69,36 @@ export default function SupervisorPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-100">Comissao do Supervisor</h1>
-          <p className="text-gray-400">{getNomeMes(mes)}</p>
-        </div>
-        <input
-          type="month"
-          value={mes}
-          onChange={(e) => setMes(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
-        />
-      </div>
+      <PageHeader
+        eyebrow="Operação · Supervisor"
+        title="Comissão do Supervisor"
+        subtitle={getNomeMes(mes)}
+        actions={
+          <input
+            type="month"
+            value={mes}
+            onChange={(e) => setMes(e.target.value)}
+            className="rounded-lg border border-liv-line bg-liv-surface-2 px-3 py-2 text-sm text-liv-ink"
+          />
+        }
+      />
 
       {loading || !dados ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-lime-400"></div>
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-liv-sage"></div>
         </div>
       ) : (
         <>
           {/* Cards principais */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card
-              icon={<Target className="w-5 h-5 text-purple-400" />}
+              icon={<Target className="w-5 h-5 text-liv-violet" />}
               label="Meta de receita"
               value={formatCurrency(dados.metaReceita)}
               hint="meta mensal da empresa"
             />
             <Card
-              icon={<DollarSign className="w-5 h-5 text-lime-400" />}
+              icon={<DollarSign className="w-5 h-5 text-liv-sage" />}
               label="Receita realizada"
               value={formatCurrency(dados.totalVendido)}
               hint={`${dados.quantidadeVendas} venda${dados.quantidadeVendas === 1 ? "" : "s"}`}
@@ -109,33 +111,33 @@ export default function SupervisorPage() {
               valueClass={faixaColor[dados.faixa]}
             />
             <Card
-              icon={<DollarSign className="w-5 h-5 text-amber-400" />}
+              icon={<DollarSign className="w-5 h-5 text-liv-gold" />}
               label="Comissao calculada"
               value={formatCurrency(dados.comissaoCalculada)}
               hint={`${(dados.percentualAplicavel * 100).toFixed(2)}% sobre receita`}
-              valueClass="text-amber-400"
+              valueClass="text-liv-gold"
             />
           </div>
 
           {/* Faixa de progresso */}
-          <div className={`rounded-xl border p-6 ${faixaBgColor[dados.faixa]}`}>
+          <div className={`rounded-2xl border p-6 ${faixaBgColor[dados.faixa]}`}>
             <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-medium text-gray-300">Progresso da meta</p>
-              <p className={`text-sm font-bold ${faixaColor[dados.faixa]}`}>
+              <p className="text-sm font-medium text-liv-muted">Progresso da meta</p>
+              <p className={`text-sm font-bold tabular-nums ${faixaColor[dados.faixa]}`}>
                 {(dados.percentualAtingido * 100).toFixed(1)}%
               </p>
             </div>
-            <div className="w-full bg-[#0b0f19] rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-liv-surface-2 rounded-full h-3 overflow-hidden">
               <div
                 className={`h-full transition-all ${
-                  dados.faixa === "acima_100" ? "bg-lime-400"
-                    : dados.faixa === "80_a_100" ? "bg-amber-400"
-                    : "bg-red-400"
+                  dados.faixa === "acima_100" ? "bg-liv-sage"
+                    : dados.faixa === "80_a_100" ? "bg-liv-gold"
+                    : "bg-liv-danger"
                 }`}
                 style={{ width: `${Math.min(dados.percentualAtingido * 100, 100)}%` }}
               />
             </div>
-            <div className="flex justify-between text-xs text-gray-500 mt-2">
+            <div className="flex justify-between text-xs text-liv-faint mt-2 tabular-nums">
               <span>R$ 0</span>
               <span>80%: {formatCurrency(dados.metaReceita * 0.8)}</span>
               <span>{formatCurrency(dados.metaReceita)}</span>
@@ -144,30 +146,30 @@ export default function SupervisorPage() {
 
           {/* Projecao (mes corrente) */}
           {dados.projecao && (
-            <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] p-6">
+            <div className="bg-liv-surface rounded-2xl border border-liv-line p-6">
               <div className="flex items-center gap-2 mb-4">
-                <Calendar className="w-5 h-5 text-blue-400" />
-                <h2 className="font-semibold text-gray-100">Projecao para o fim do mes</h2>
-                <span className="text-xs text-gray-500 ml-auto">
+                <Calendar className="w-5 h-5 text-liv-info" />
+                <h2 className="font-semibold text-liv-ink">Projecao para o fim do mes</h2>
+                <span className="text-xs text-liv-faint ml-auto tabular-nums">
                   {dados.projecao.diasDecorridos} de {dados.projecao.diasTotal} dias decorridos
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <p className="text-xs text-gray-400">Receita projetada</p>
-                  <p className="text-xl font-bold text-gray-100 mt-1">
+                  <p className="text-xs text-liv-muted">Receita projetada</p>
+                  <p className="text-xl font-bold tabular-nums text-liv-ink mt-1">
                     {formatCurrency(dados.projecao.receitaProjetada)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400">% projetado da meta</p>
-                  <p className={`text-xl font-bold mt-1 ${faixaColor[dados.projecao.faixaProjetada]}`}>
+                  <p className="text-xs text-liv-muted">% projetado da meta</p>
+                  <p className={`text-xl font-bold mt-1 tabular-nums ${faixaColor[dados.projecao.faixaProjetada]}`}>
                     {(dados.projecao.percentualProjetado * 100).toFixed(1)}%
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400">Comissao projetada</p>
-                  <p className="text-xl font-bold text-amber-400 mt-1">
+                  <p className="text-xs text-liv-muted">Comissao projetada</p>
+                  <p className="text-xl font-bold tabular-nums text-liv-gold mt-1">
                     {formatCurrency(dados.projecao.comissaoProjetada)}
                   </p>
                 </div>
@@ -176,29 +178,29 @@ export default function SupervisorPage() {
           )}
 
           {/* Breakdown por vendedor */}
-          <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] overflow-hidden">
-            <div className="px-6 py-4 border-b border-[#232a3b] flex items-center gap-2">
-              <Users className="w-5 h-5 text-gray-400" />
-              <h2 className="font-semibold text-gray-100">Receita por vendedor</h2>
+          <div className="bg-liv-surface rounded-2xl border border-liv-line overflow-hidden">
+            <div className="px-6 py-4 border-b border-liv-line flex items-center gap-2">
+              <Users className="w-5 h-5 text-liv-muted" />
+              <h2 className="font-semibold text-liv-ink">Receita por vendedor</h2>
             </div>
             {dados.breakdownVendedores.length === 0 ? (
-              <p className="p-6 text-gray-400 text-center">Nenhuma venda neste mes.</p>
+              <p className="p-6 text-liv-muted text-center">Nenhuma venda neste mes.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-[#141820] text-gray-400">
+                  <thead className="bg-liv-surface-2 text-liv-faint">
                     <tr>
-                      <th className="text-left px-6 py-3 font-medium">Vendedor</th>
-                      <th className="text-right px-6 py-3 font-medium">Receita</th>
-                      <th className="text-right px-6 py-3 font-medium">% do total</th>
+                      <th className="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Vendedor</th>
+                      <th className="text-right px-6 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Receita</th>
+                      <th className="text-right px-6 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">% do total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#232a3b]">
+                  <tbody className="divide-y divide-liv-line">
                     {dados.breakdownVendedores.map((v) => (
-                      <tr key={v.nome} className="hover:bg-[#232a3b]">
-                        <td className="px-6 py-3 font-medium text-gray-100">{v.nome}</td>
-                        <td className="px-6 py-3 text-right text-gray-300">{formatCurrency(v.total)}</td>
-                        <td className="px-6 py-3 text-right text-gray-500">
+                      <tr key={v.nome} className="hover:bg-liv-surface-2">
+                        <td className="px-6 py-3 font-medium text-liv-ink">{v.nome}</td>
+                        <td className="px-6 py-3 text-right tabular-nums text-liv-muted">{formatCurrency(v.total)}</td>
+                        <td className="px-6 py-3 text-right tabular-nums text-liv-faint">
                           {dados.totalVendido > 0
                             ? ((v.total / dados.totalVendido) * 100).toFixed(1)
                             : "0.0"}%
@@ -206,13 +208,13 @@ export default function SupervisorPage() {
                       </tr>
                     ))}
                   </tbody>
-                  <tfoot className="bg-lime-400/5 font-semibold">
+                  <tfoot className="bg-liv-sage/5 font-semibold">
                     <tr>
-                      <td className="px-6 py-3 text-lime-400">Total</td>
-                      <td className="px-6 py-3 text-right text-lime-400">
+                      <td className="px-6 py-3 text-liv-sage">Total</td>
+                      <td className="px-6 py-3 text-right tabular-nums text-liv-sage">
                         {formatCurrency(dados.totalVendido)}
                       </td>
-                      <td className="px-6 py-3 text-right text-lime-400">100%</td>
+                      <td className="px-6 py-3 text-right tabular-nums text-liv-sage">100%</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -229,13 +231,13 @@ function Card({
   icon, label, value, hint, valueClass,
 }: { icon: React.ReactNode; label: string; value: string; hint: string; valueClass?: string }) {
   return (
-    <div className="bg-[#1a1f2e] rounded-xl p-5 border border-[#232a3b]">
+    <div className="bg-liv-surface rounded-2xl p-5 border border-liv-line">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-sm text-gray-400">{label}</p>
+        <p className="text-sm text-liv-muted">{label}</p>
         {icon}
       </div>
-      <p className={`text-2xl font-bold ${valueClass ?? "text-gray-100"}`}>{value}</p>
-      <p className="text-xs text-gray-500 mt-1">{hint}</p>
+      <p className={`text-2xl font-bold tabular-nums ${valueClass ?? "text-liv-ink"}`}>{value}</p>
+      <p className="text-xs text-liv-faint mt-1">{hint}</p>
     </div>
   );
 }
