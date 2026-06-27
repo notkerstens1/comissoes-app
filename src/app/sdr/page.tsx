@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { ClipboardList, Users, DollarSign, CheckCircle, Edit2, X, Save, Phone } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 interface DashboardData {
   totalRegistros: number;
@@ -171,18 +172,18 @@ export default function SDRDashboardPage() {
 
   const getStatusBadge = (status: string) => {
     const map: Record<string, string> = {
-      AGENDADO: "bg-blue-400/10 text-blue-400",
-      COMPARECEU: "bg-lime-400/10 text-lime-400",
-      VENDIDO: "bg-emerald-400/10 text-emerald-400",
-      FINALIZADO: "bg-gray-500/10 text-gray-400",
+      AGENDADO: "bg-liv-gold/12 text-liv-gold",
+      COMPARECEU: "bg-liv-info/12 text-liv-info",
+      VENDIDO: "bg-liv-sage/14 text-liv-sage",
+      FINALIZADO: "bg-liv-faint/12 text-liv-muted",
     };
-    return map[status] || "bg-gray-500/10 text-gray-400";
+    return map[status] || "bg-liv-faint/12 text-liv-muted";
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-liv-sage"></div>
       </div>
     );
   }
@@ -204,28 +205,28 @@ export default function SDRDashboardPage() {
       {/* Modal de Edicao */}
       {editando && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1a1f2e] rounded-2xl max-w-md w-full shadow-lg">
-            <div className="flex items-center justify-between p-5 border-b border-[#232a3b]">
-              <h3 className="font-bold text-gray-100">Editar Registro</h3>
-              <button onClick={() => setEditando(null)} className="text-gray-500 hover:text-gray-400">
+          <div className="bg-liv-surface rounded-2xl max-w-md w-full border border-liv-line shadow-xl">
+            <div className="flex items-center justify-between p-5 border-b border-liv-line">
+              <h3 className="font-bold text-liv-ink">Editar Registro</h3>
+              <button onClick={() => setEditando(null)} className="text-liv-faint hover:text-liv-ink">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="p-5 space-y-4">
-              <div className="bg-[#141820] rounded-lg p-3">
-                <p className="text-sm text-gray-400">Cliente</p>
-                <p className="font-medium text-gray-100">{editando.nomeCliente}</p>
-                <p className="text-xs text-gray-500 mt-1">Vendedora: {editando.vendedora.nome}</p>
+              <div className="bg-liv-surface-2 rounded-lg p-3">
+                <p className="text-sm text-liv-muted">Cliente</p>
+                <p className="font-medium text-liv-ink">{editando.nomeCliente}</p>
+                <p className="text-xs text-liv-faint mt-1">Vendedora: {editando.vendedora.nome}</p>
               </div>
 
               {/* Compareceu */}
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-2">Compareceu?</label>
+                <label className="block text-xs font-medium text-liv-muted mb-2">Compareceu?</label>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setEditCompareceu(true)}
                     className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
-                      editCompareceu ? "bg-lime-400/20 text-lime-400 border border-lime-400/30" : "bg-[#141820] text-gray-400 border border-[#232a3b]"
+                      editCompareceu ? "bg-liv-sage/20 text-liv-sage border border-liv-sage/30" : "bg-liv-surface-2 text-liv-muted border border-liv-line"
                     }`}
                   >
                     Sim
@@ -233,7 +234,7 @@ export default function SDRDashboardPage() {
                   <button
                     onClick={() => setEditCompareceu(false)}
                     className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
-                      !editCompareceu ? "bg-red-400/20 text-red-400 border border-red-400/30" : "bg-[#141820] text-gray-400 border border-[#232a3b]"
+                      !editCompareceu ? "bg-liv-danger/20 text-liv-danger border border-liv-danger/30" : "bg-liv-surface-2 text-liv-muted border border-liv-line"
                     }`}
                   >
                     Nao
@@ -244,11 +245,11 @@ export default function SDRDashboardPage() {
               {/* Motivo nao compareceu */}
               {!editCompareceu && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1">Motivo</label>
+                  <label className="block text-xs font-medium text-liv-muted mb-1">Motivo</label>
                   <select
                     value={editMotivoNaoCompareceu}
                     onChange={(e) => setEditMotivoNaoCompareceu(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                    className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm"
                   >
                     <option value="">Selecione...</option>
                     {MOTIVOS_NAO_COMPARECEU.map((m) => (
@@ -260,11 +261,11 @@ export default function SDRDashboardPage() {
 
               {/* Status Lead */}
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Status do Lead</label>
+                <label className="block text-xs font-medium text-liv-muted mb-1">Status do Lead</label>
                 <select
                   value={editStatusLead}
                   onChange={(e) => setEditStatusLead(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                  className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm"
                 >
                   <option value="AGENDADO">Agendado</option>
                   <option value="COMPARECEU">Compareceu</option>
@@ -275,11 +276,11 @@ export default function SDRDashboardPage() {
               {/* Motivo Finalizacao */}
               {editStatusLead === "FINALIZADO" && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-400 mb-1">Motivo Finalizacao</label>
+                  <label className="block text-xs font-medium text-liv-muted mb-1">Motivo Finalizacao</label>
                   <select
                     value={editMotivoFinalizacao}
                     onChange={(e) => setEditMotivoFinalizacao(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                    className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm"
                   >
                     <option value="">Selecione...</option>
                     {MOTIVOS_FINALIZACAO.map((m) => (
@@ -291,30 +292,30 @@ export default function SDRDashboardPage() {
 
               {/* Consideracoes */}
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Consideracoes</label>
+                <label className="block text-xs font-medium text-liv-muted mb-1">Consideracoes</label>
                 <textarea
                   value={editConsideracoes}
                   onChange={(e) => setEditConsideracoes(e.target.value)}
                   rows={2}
-                  className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm resize-none"
+                  className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm resize-none"
                   placeholder="Observacoes..."
                 />
               </div>
             </div>
-            <div className="p-5 border-t border-[#232a3b] flex gap-3">
+            <div className="p-5 border-t border-liv-line flex gap-3">
               <button
                 onClick={() => setEditando(null)}
-                className="flex-1 px-4 py-2 rounded-lg border border-[#232a3b] text-gray-400 font-medium hover:bg-[#232a3b] transition"
+                className="flex-1 px-4 py-2 rounded-lg border border-liv-line text-liv-muted font-medium hover:bg-liv-surface-2 transition"
               >
                 Cancelar
               </button>
               <button
                 onClick={salvarEdicao}
                 disabled={salvandoEdit}
-                className="flex-1 px-4 py-2 rounded-lg bg-sky-500 text-white font-medium hover:bg-sky-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2 rounded-lg bg-liv-sage text-liv-bg font-medium hover:bg-liv-sage-deep transition disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {salvandoEdit ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-liv-bg" />
                 ) : (
                   <><Save className="w-4 h-4" /> Salvar</>
                 )}
@@ -324,29 +325,29 @@ export default function SDRDashboardPage() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-100">Dashboard SDR</h1>
-          <p className="text-gray-400">{getNomeMes(mesAtual)}</p>
-        </div>
-        <input
-          type="month"
-          value={mesAtual}
-          onChange={(e) => setMesAtual(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
-        />
-      </div>
+      <PageHeader
+        eyebrow="Pré-venda · SDR"
+        title="Dashboard SDR"
+        subtitle={getNomeMes(mesAtual)}
+        actions={
+          <input
+            type="month"
+            value={mesAtual}
+            onChange={(e) => setMesAtual(e.target.value)}
+            className="rounded-lg border border-liv-line bg-liv-surface-2 px-3 py-2 text-sm text-liv-ink"
+          />
+        }
+      />
 
       {/* Ligacoes do dia */}
-      <div className="bg-gradient-to-r from-sky-500/20 to-cyan-500/20 rounded-2xl p-5 border border-sky-400/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="bg-liv-sage/10 rounded-2xl p-5 border border-liv-sage/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-sky-400/20 rounded-xl flex items-center justify-center">
-            <Phone className="w-6 h-6 text-sky-400" />
+          <div className="w-12 h-12 bg-liv-sage/20 rounded-xl flex items-center justify-center">
+            <Phone className="w-6 h-6 text-liv-sage" />
           </div>
           <div>
-            <p className="text-sky-300 text-sm font-medium">Ligacoes de Hoje</p>
-            <p className="text-3xl font-bold text-gray-100">{ligacoesHoje}</p>
+            <p className="text-liv-sage text-sm font-medium">Ligacoes de Hoje</p>
+            <p className="text-3xl font-bold tabular-nums text-liv-ink">{ligacoesHoje}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -356,16 +357,16 @@ export default function SDRDashboardPage() {
             value={ligacoesInput}
             onChange={(e) => setLigacoesInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && salvarLigacoes()}
-            className="w-24 px-3 py-2 rounded-lg border border-sky-400/30 bg-[#141820] text-gray-100 text-sm text-center focus:border-sky-400 outline-none"
+            className="w-24 px-3 py-2 rounded-lg border border-liv-sage/30 bg-liv-surface-2 text-liv-ink text-sm text-center focus:border-liv-sage outline-none"
             placeholder="0"
           />
           <button
             onClick={salvarLigacoes}
             disabled={salvandoLigacoes}
-            className="px-4 py-2 rounded-lg bg-sky-500 text-white text-sm font-medium hover:bg-sky-600 transition disabled:opacity-50 flex items-center gap-1.5"
+            className="px-4 py-2 rounded-lg bg-liv-sage text-liv-bg text-sm font-medium hover:bg-liv-sage-deep transition disabled:opacity-50 flex items-center gap-1.5"
           >
             {salvandoLigacoes ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-liv-bg" />
             ) : (
               <><Save className="w-4 h-4" /> Salvar</>
             )}
@@ -376,14 +377,14 @@ export default function SDRDashboardPage() {
       {/* Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card) => (
-          <div key={card.label} className="bg-[#1a1f2e] rounded-xl p-5 shadow-sm border border-[#232a3b]">
+          <div key={card.label} className="bg-liv-surface rounded-2xl p-5 border border-liv-line">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-sky-400/10 rounded-lg flex items-center justify-center">
-                <card.icon className="w-5 h-5 text-sky-400" />
+              <div className="w-10 h-10 bg-liv-sage/10 rounded-lg flex items-center justify-center">
+                <card.icon className="w-5 h-5 text-liv-sage" />
               </div>
-              <p className="text-sm text-gray-400">{card.label}</p>
+              <p className="text-sm text-liv-muted">{card.label}</p>
             </div>
-            <p className="text-2xl font-bold text-gray-100">
+            <p className="text-2xl font-bold tabular-nums text-liv-ink">
               {card.format === "currency" ? formatCurrency(card.value as number) : card.value}
             </p>
           </div>
@@ -391,64 +392,64 @@ export default function SDRDashboardPage() {
       </div>
 
       {/* Breakdown */}
-      <div className="bg-gradient-to-r from-sky-500/20 to-cyan-500/20 rounded-2xl p-8 border border-sky-400/20">
-        <p className="text-sky-300 text-sm font-medium">Comissao Total do Mes</p>
-        <p className="text-4xl font-bold mt-2 text-gray-100">
+      <div className="bg-liv-sage/10 rounded-2xl p-8 border border-liv-sage/30">
+        <p className="text-liv-sage text-sm font-medium">Comissao Total do Mes</p>
+        <p className="text-4xl font-bold mt-2 tabular-nums text-liv-ink">
           {formatCurrency(dados?.comissaoTotal ?? 0)}
         </p>
         <div className="grid grid-cols-3 gap-4 mt-6">
           <div>
-            <p className="text-sky-300/70 text-xs">Total Registros</p>
-            <p className="text-lg font-semibold mt-1 text-gray-100">{dados?.totalRegistros ?? 0}</p>
+            <p className="text-liv-sage/70 text-xs">Total Registros</p>
+            <p className="text-lg font-semibold mt-1 tabular-nums text-liv-ink">{dados?.totalRegistros ?? 0}</p>
           </div>
           <div>
-            <p className="text-sky-300/70 text-xs">Comissao Reunioes</p>
-            <p className="text-lg font-semibold mt-1 text-gray-100">{formatCurrency(dados?.comissaoReuniao ?? 0)}</p>
+            <p className="text-liv-sage/70 text-xs">Comissao Reunioes</p>
+            <p className="text-lg font-semibold mt-1 tabular-nums text-liv-ink">{formatCurrency(dados?.comissaoReuniao ?? 0)}</p>
           </div>
           <div>
-            <p className="text-sky-300/70 text-xs">Comissao Vendas</p>
-            <p className="text-lg font-semibold mt-1 text-gray-100">{formatCurrency(dados?.comissaoVenda ?? 0)}</p>
+            <p className="text-liv-sage/70 text-xs">Comissao Vendas</p>
+            <p className="text-lg font-semibold mt-1 tabular-nums text-liv-ink">{formatCurrency(dados?.comissaoVenda ?? 0)}</p>
           </div>
         </div>
       </div>
 
       {/* Lista de Registros com Edicao */}
       <div>
-        <h2 className="text-lg font-semibold text-gray-100 mb-3 flex items-center gap-2">
-          <ClipboardList className="w-5 h-5 text-sky-400" />
+        <h2 className="text-lg font-semibold text-liv-ink mb-3 flex items-center gap-2">
+          <ClipboardList className="w-5 h-5 text-liv-sage" />
           Meus Registros
         </h2>
         {registros.length === 0 ? (
-          <div className="bg-[#1a1f2e] rounded-xl p-8 border border-[#232a3b] text-center">
-            <p className="text-gray-400">Nenhum registro neste mes.</p>
+          <div className="bg-liv-surface rounded-2xl p-8 border border-liv-line text-center">
+            <p className="text-liv-muted">Nenhum registro neste mes.</p>
           </div>
         ) : (
           <div className="space-y-2">
             {registros.map((reg) => (
               <div
                 key={reg.id}
-                className="bg-[#1a1f2e] rounded-xl p-4 border border-[#232a3b] flex items-center gap-4 hover:bg-[#1e2433] transition"
+                className="bg-liv-surface rounded-2xl p-4 border border-liv-line flex items-center gap-4 hover:bg-liv-surface-2 transition"
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="font-medium text-gray-100 truncate">{reg.nomeCliente}</p>
+                    <p className="font-medium text-liv-ink truncate">{reg.nomeCliente}</p>
                     <span className={`text-xs px-2 py-0.5 rounded-full ${getStatusBadge(reg.statusLead)}`}>
                       {reg.statusLead}
                     </span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
+                  <div className="flex items-center gap-3 text-xs text-liv-muted flex-wrap">
                     <span>Vendedora: {reg.vendedora.nome}</span>
                     <span>Reuniao: {reg.dataReuniao}</span>
-                    {reg.compareceu && <span className="text-lime-400">Compareceu</span>}
-                    {!reg.compareceu && <span className="text-red-400">Nao compareceu</span>}
+                    {reg.compareceu && <span className="text-liv-sage">Compareceu</span>}
+                    {!reg.compareceu && <span className="text-liv-danger">Nao compareceu</span>}
                     {reg.vendaVinculada && (
-                      <span className="text-emerald-400">Venda: {formatCurrency(reg.vendaVinculada.valorVenda)}</span>
+                      <span className="text-liv-sage tabular-nums">Venda: {formatCurrency(reg.vendaVinculada.valorVenda)}</span>
                     )}
                   </div>
                 </div>
                 <button
                   onClick={() => abrirEdicao(reg)}
-                  className="p-2 rounded-lg hover:bg-sky-400/10 text-gray-500 hover:text-sky-400 transition flex-shrink-0"
+                  className="p-2 rounded-lg hover:bg-liv-sage/10 text-liv-faint hover:text-liv-sage transition flex-shrink-0"
                   title="Editar registro"
                 >
                   <Edit2 className="w-4 h-4" />

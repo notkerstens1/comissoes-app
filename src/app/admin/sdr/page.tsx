@@ -149,15 +149,15 @@ function getNomeMes(mesStr: string) {
 function statusConfig(status: string) {
   switch (status) {
     case "AGENDADO":
-      return { label: "Agendado", color: "text-amber-400", bg: "bg-amber-400/15", icon: <CalendarClock className="w-3 h-3" /> };
+      return { label: "Agendado", color: "text-liv-gold", bg: "bg-liv-gold/12", icon: <CalendarClock className="w-3 h-3" /> };
     case "COMPARECEU":
-      return { label: "Compareceu", color: "text-sky-400", bg: "bg-sky-400/15", icon: <CheckCircle className="w-3 h-3" /> };
+      return { label: "Compareceu", color: "text-liv-info", bg: "bg-liv-info/12", icon: <CheckCircle className="w-3 h-3" /> };
     case "VENDIDO":
-      return { label: "Vendido", color: "text-emerald-400", bg: "bg-emerald-400/15", icon: <ShoppingCart className="w-3 h-3" /> };
+      return { label: "Vendido", color: "text-liv-sage", bg: "bg-liv-sage/14", icon: <ShoppingCart className="w-3 h-3" /> };
     case "FINALIZADO":
-      return { label: "Finalizado", color: "text-gray-400", bg: "bg-gray-500/15", icon: <Ban className="w-3 h-3" /> };
+      return { label: "Finalizado", color: "text-liv-muted", bg: "bg-liv-faint/12", icon: <Ban className="w-3 h-3" /> };
     default:
-      return { label: status, color: "text-gray-400", bg: "bg-gray-500/15", icon: null };
+      return { label: status, color: "text-liv-muted", bg: "bg-liv-faint/12", icon: null };
   }
 }
 
@@ -165,11 +165,11 @@ function BarRow({ label, count, max, color }: { label: string; count: number; ma
   const pct = max > 0 ? Math.round((count / max) * 100) : 0;
   return (
     <div className="flex items-center gap-3 py-1.5">
-      <span className="text-sm text-gray-300 w-44 truncate flex-shrink-0">{label}</span>
-      <div className="flex-1 bg-[#0b0f19] rounded-full h-2 overflow-hidden">
+      <span className="text-sm text-liv-muted w-44 truncate flex-shrink-0">{label}</span>
+      <div className="flex-1 bg-liv-surface-2 rounded-full h-2 overflow-hidden">
         <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-sm font-semibold text-gray-100 w-6 text-right flex-shrink-0">{count}</span>
+      <span className="text-sm font-semibold tabular-nums text-liv-ink w-6 text-right flex-shrink-0">{count}</span>
     </div>
   );
 }
@@ -220,12 +220,12 @@ function EditableMetricCard({
   };
 
   return (
-    <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4 relative group">
+    <div className="bg-liv-surface border border-liv-line rounded-2xl p-4 relative group">
       <div className="flex items-center gap-2 mb-2">
         <div className={`w-8 h-8 ${iconBg} rounded-lg flex items-center justify-center flex-shrink-0`}>{icon}</div>
-        <p className="text-xs text-gray-400">{label}</p>
+        <p className="text-xs text-liv-muted">{label}</p>
         {!editing && canEdit && (
-          <button onClick={startEdit} className="ml-auto opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-[#232a3b] text-gray-500 hover:text-gray-300 transition" title="Editar">
+          <button onClick={startEdit} className="ml-auto opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-liv-surface-2 text-liv-faint hover:text-liv-ink transition" title="Editar">
             <Pencil className="w-3 h-3" />
           </button>
         )}
@@ -239,19 +239,19 @@ function EditableMetricCard({
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") save(); if (e.key === "Escape") setEditing(false); }}
-            className="w-24 text-2xl font-bold bg-[#0b0f19] border border-[#232a3b] rounded-lg px-2 py-1 text-gray-100 focus:border-sky-400 outline-none"
+            className="w-24 text-2xl font-bold tabular-nums bg-liv-surface-2 border border-liv-line rounded-lg px-2 py-1 text-liv-ink focus:border-liv-sage outline-none"
           />
-          <button onClick={save} disabled={saving} className="p-1.5 rounded-lg bg-sky-500 text-white hover:bg-sky-600 transition disabled:opacity-50">
+          <button onClick={save} disabled={saving} className="p-1.5 rounded-lg bg-liv-sage text-liv-bg hover:bg-liv-sage-deep transition disabled:opacity-50">
             <Check className="w-4 h-4" />
           </button>
-          <button onClick={() => setEditing(false)} className="p-1.5 rounded-lg bg-[#232a3b] text-gray-400 hover:text-gray-200 transition text-xs">
+          <button onClick={() => setEditing(false)} className="p-1.5 rounded-lg bg-liv-surface-2 text-liv-muted hover:text-liv-ink transition text-xs">
             ✕
           </button>
         </div>
       ) : (
-        <p className={`text-3xl font-bold ${color}`}>{value}</p>
+        <p className={`text-3xl font-bold tabular-nums ${color}`}>{value}</p>
       )}
-      <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
+      <p className="text-xs text-liv-faint mt-1">{subtitle}</p>
     </div>
   );
 }
@@ -317,7 +317,7 @@ export default function VisaoGeralSDRPage() {
   if (loading || !data) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-liv-sage" />
       </div>
     );
   }
@@ -327,28 +327,29 @@ export default function VisaoGeralSDRPage() {
   const maxLig = Math.max(...data.ligacoesPorDia.map((l) => l.count), 1);
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6">
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-100 flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-sky-400" />
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.12em] text-liv-faint">Pré-venda · SDR</p>
+          <h1 className="text-[1.75rem] font-bold leading-tight tracking-tight text-liv-ink flex items-center gap-2">
+            <BarChart3 className="w-6 h-6 text-liv-sage" />
             Visão Geral SDR
           </h1>
-          <p className="text-gray-400 text-sm mt-1">{labelPeriodo()}</p>
+          <p className="text-liv-muted text-sm mt-1">{labelPeriodo()}</p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex rounded-lg overflow-hidden border border-[#232a3b]">
+          <div className="flex rounded-lg overflow-hidden border border-liv-line">
             {(["dia", "semana", "mes"] as TipoFiltro[]).map((t) => (
               <button
                 key={t}
                 onClick={() => setTipo(t)}
                 className={`px-4 py-2 text-sm font-semibold capitalize transition ${
                   tipo === t
-                    ? "bg-sky-500 text-white"
-                    : "bg-[#141820] text-gray-400 hover:text-gray-200"
+                    ? "bg-liv-sage text-liv-bg"
+                    : "bg-liv-surface-2 text-liv-muted hover:text-liv-ink"
                 }`}
               >
                 {t === "dia" ? "Dia" : t === "semana" ? "Semana" : "Mês"}
@@ -357,23 +358,23 @@ export default function VisaoGeralSDRPage() {
           </div>
 
           <div className="flex items-center gap-1">
-            <button onClick={anterior} className="p-2 rounded-lg bg-[#141820] border border-[#232a3b] text-gray-400 hover:text-gray-200 transition">
+            <button onClick={anterior} className="p-2 rounded-lg bg-liv-surface-2 border border-liv-line text-liv-muted hover:text-liv-ink transition">
               <ChevronLeft className="w-4 h-4" />
             </button>
             {tipo === "dia" && (
               <input type="date" value={diaAtual} onChange={(e) => setDiaAtual(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100" />
+                className="px-3 py-2 rounded-lg border border-liv-line text-sm bg-liv-surface-2 text-liv-ink" />
             )}
             {tipo === "semana" && (
               <input type="date" value={domingoAtual} onChange={(e) => setDomingoAtual(domingoSemana(e.target.value))}
-                className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
+                className="px-3 py-2 rounded-lg border border-liv-line text-sm bg-liv-surface-2 text-liv-ink"
                 title="Selecione qualquer dia da semana" />
             )}
             {tipo === "mes" && (
               <input type="month" value={mesAtual} onChange={(e) => setMesAtual(e.target.value)}
-                className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100" />
+                className="px-3 py-2 rounded-lg border border-liv-line text-sm bg-liv-surface-2 text-liv-ink" />
             )}
-            <button onClick={proximo} className="p-2 rounded-lg bg-[#141820] border border-[#232a3b] text-gray-400 hover:text-gray-200 transition">
+            <button onClick={proximo} className="p-2 rounded-lg bg-liv-surface-2 border border-liv-line text-liv-muted hover:text-liv-ink transition">
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
@@ -383,66 +384,66 @@ export default function VisaoGeralSDRPage() {
       {/* Cards de métricas (editáveis pelo supervisor) */}
       <div className="grid grid-cols-2 lg:grid-cols-6 gap-3">
         <EditableMetricCard
-          icon={<Phone className="w-4 h-4 text-sky-400" />}
-          iconBg="bg-sky-400/10"
+          icon={<Phone className="w-4 h-4 text-liv-info" />}
+          iconBg="bg-liv-info/12"
           label="Ligações"
           value={data.totalLigacoes}
           subtitle="contatos no período"
-          color="text-gray-100"
+          color="text-liv-ink"
           campo="ligacoes"
           periodoKey={data.periodoKey}
           onSaved={fetchData}
         />
         <EditableMetricCard
-          icon={<CalendarPlus className="w-4 h-4 text-violet-400" />}
-          iconBg="bg-violet-400/10"
+          icon={<CalendarPlus className="w-4 h-4 text-liv-violet" />}
+          iconBg="bg-liv-violet/12"
           label="R. Agendadas"
           value={data.totalReunioesAgendadas}
           subtitle="reuniões marcadas"
-          color="text-violet-400"
+          color="text-liv-violet"
           campo="reunioesAgendadas"
           periodoKey={data.periodoKey}
           onSaved={fetchData}
         />
-        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-4">
+        <div className="bg-liv-surface border border-liv-line rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-emerald-400/10 rounded-lg flex items-center justify-center flex-shrink-0"><CalendarCheck className="w-4 h-4 text-emerald-400" /></div>
-            <p className="text-xs text-gray-400">R. Efetivadas</p>
+            <div className="w-8 h-8 bg-liv-sage/12 rounded-lg flex items-center justify-center flex-shrink-0"><CalendarCheck className="w-4 h-4 text-liv-sage" /></div>
+            <p className="text-xs text-liv-muted">R. Efetivadas</p>
           </div>
-          <p className="text-3xl font-bold text-emerald-400">{data.totalReunioes}</p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-3xl font-bold tabular-nums text-liv-sage">{data.totalReunioes}</p>
+          <p className="text-xs text-liv-faint mt-1">
             {data.totalReunioesAgendadas > 0 ? `${Math.round((data.totalReunioes / data.totalReunioesAgendadas) * 100)}% efetividade` : "—"}
           </p>
         </div>
         <EditableMetricCard
-          icon={<XCircle className="w-4 h-4 text-rose-400" />}
-          iconBg="bg-rose-400/10"
+          icon={<XCircle className="w-4 h-4 text-liv-danger" />}
+          iconBg="bg-liv-danger/12"
           label="CPF Negado"
           value={data.totalCpfNegado}
           subtitle="leads por CPF"
-          color="text-rose-400"
+          color="text-liv-danger"
           campo="cpfNegado"
           periodoKey={data.periodoKey}
           onSaved={fetchData}
         />
         <EditableMetricCard
-          icon={<UserX className="w-4 h-4 text-orange-400" />}
-          iconBg="bg-orange-400/10"
+          icon={<UserX className="w-4 h-4 text-liv-orange" />}
+          iconBg="bg-liv-orange/12"
           label="Desqualificados"
           value={data.totalDesqualificados}
           subtitle="leads finalizados"
-          color="text-orange-400"
+          color="text-liv-orange"
           campo="desqualificados"
           periodoKey={data.periodoKey}
           onSaved={fetchData}
         />
         <EditableMetricCard
-          icon={<AlertTriangle className="w-4 h-4 text-amber-400" />}
-          iconBg="bg-amber-400/10"
+          icon={<AlertTriangle className="w-4 h-4 text-liv-gold" />}
+          iconBg="bg-liv-gold/12"
           label="No-shows"
           value={data.totalNoShow}
           subtitle="não compareceram"
-          color="text-amber-400"
+          color="text-liv-gold"
           campo="noShow"
           periodoKey={data.periodoKey}
           onSaved={fetchData}
@@ -451,14 +452,14 @@ export default function VisaoGeralSDRPage() {
 
       {/* Ligações por dia */}
       {data.ligacoesPorDia.length > 0 && tipo !== "dia" && (
-        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Phone className="w-4 h-4 text-sky-400" />
+        <div className="bg-liv-surface border border-liv-line rounded-2xl p-5">
+          <h2 className="text-[11px] font-bold text-liv-faint uppercase tracking-[0.12em] mb-4 flex items-center gap-2">
+            <Phone className="w-4 h-4 text-liv-sage" />
             Ligações por Dia
           </h2>
           <div className="space-y-1">
             {data.ligacoesPorDia.map((l) => (
-              <BarRow key={l.data} label={formatDiaSemana(l.data)} count={l.count} max={maxLig} color="bg-sky-500" />
+              <BarRow key={l.data} label={formatDiaSemana(l.data)} count={l.count} max={maxLig} color="bg-liv-info" />
             ))}
           </div>
         </div>
@@ -466,33 +467,33 @@ export default function VisaoGeralSDRPage() {
 
       {/* Motivos */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400" />
+        <div className="bg-liv-surface border border-liv-line rounded-2xl p-5">
+          <h2 className="text-[11px] font-bold text-liv-faint uppercase tracking-[0.12em] mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-liv-gold" />
             Motivos de Não Comparecimento
           </h2>
           {data.motivosNaoCompareceu.length === 0 ? (
-            <p className="text-gray-500 text-sm">Nenhum registro</p>
+            <p className="text-liv-faint text-sm">Nenhum registro</p>
           ) : (
             <div className="space-y-1">
               {data.motivosNaoCompareceu.map((m) => (
-                <BarRow key={m.motivo} label={m.motivo} count={m.count} max={maxNc} color="bg-amber-400" />
+                <BarRow key={m.motivo} label={m.motivo} count={m.count} max={maxNc} color="bg-liv-gold" />
               ))}
             </div>
           )}
         </div>
-        <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <Ban className="w-4 h-4 text-gray-400" />
+        <div className="bg-liv-surface border border-liv-line rounded-2xl p-5">
+          <h2 className="text-[11px] font-bold text-liv-faint uppercase tracking-[0.12em] mb-4 flex items-center gap-2">
+            <Ban className="w-4 h-4 text-liv-muted" />
             Motivos de Finalização
           </h2>
           {data.motivosFinalizacao.length === 0 ? (
-            <p className="text-gray-500 text-sm">Nenhum registro</p>
+            <p className="text-liv-faint text-sm">Nenhum registro</p>
           ) : (
             <div className="space-y-1">
               {data.motivosFinalizacao.map((m) => (
                 <BarRow key={m.motivo} label={m.motivo} count={m.count} max={maxFin}
-                  color={m.motivo === "CPF negada" ? "bg-rose-400" : "bg-gray-500"} />
+                  color={m.motivo === "CPF negada" ? "bg-liv-danger" : "bg-liv-faint"} />
               ))}
             </div>
           )}
@@ -500,20 +501,20 @@ export default function VisaoGeralSDRPage() {
       </div>
 
       {/* Oportunidades por Vendedor */}
-      <div className="bg-[#1a1f2e] border border-[#232a3b] rounded-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#232a3b] flex items-center gap-2">
-          <Users className="w-4 h-4 text-sky-400" />
-          <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Oportunidades por Vendedor</h2>
-          <span className="ml-auto text-xs text-gray-500">clique para ver as oportunidades</span>
+      <div className="bg-liv-surface border border-liv-line rounded-2xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-liv-line flex items-center gap-2">
+          <Users className="w-4 h-4 text-liv-sage" />
+          <h2 className="text-[11px] font-bold text-liv-faint uppercase tracking-[0.12em]">Oportunidades por Vendedor</h2>
+          <span className="ml-auto text-xs text-liv-faint">clique para ver as oportunidades</span>
         </div>
         {data.porVendedor.length === 0 ? (
           <div className="p-12 text-center">
-            <Users className="w-10 h-10 text-gray-600 mx-auto mb-3" />
-            <p className="text-gray-500">Nenhuma oportunidade registrada</p>
+            <Users className="w-10 h-10 text-liv-faint mx-auto mb-3" />
+            <p className="text-liv-faint">Nenhuma oportunidade registrada</p>
           </div>
         ) : (
           <div>
-            <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-[#141820] border-b border-[#232a3b] text-xs font-semibold text-gray-500 uppercase">
+            <div className="grid grid-cols-12 gap-2 px-4 py-3 bg-liv-surface-2 border-b border-liv-line text-[11px] font-bold text-liv-faint uppercase tracking-[0.12em]">
               <div className="col-span-3">Vendedor</div>
               <div className="col-span-2 text-center">Ligações</div>
               <div className="col-span-2 text-center">Reuniões</div>
@@ -525,25 +526,25 @@ export default function VisaoGeralSDRPage() {
               <div key={v.id}>
                 <button
                   onClick={() => setExpandido(expandido === v.id ? null : v.id)}
-                  className="w-full grid grid-cols-12 gap-2 px-4 py-3 border-b border-[#232a3b] hover:bg-[#232a3b]/50 transition text-left"
+                  className="w-full grid grid-cols-12 gap-2 px-4 py-3 border-b border-liv-line hover:bg-liv-surface-2 transition text-left"
                 >
-                  <div className="col-span-3 flex items-center gap-2 font-medium text-sky-400 text-sm">
+                  <div className="col-span-3 flex items-center gap-2 font-medium text-liv-sage text-sm">
                     {expandido === v.id ? <ChevronUp className="w-4 h-4 flex-shrink-0" /> : <ChevronDown className="w-4 h-4 flex-shrink-0" />}
                     {v.nome}
                   </div>
-                  <div className="col-span-2 text-center text-sky-300 font-semibold text-sm">{v.totalOportunidades}</div>
-                  <div className="col-span-2 text-center text-emerald-400 font-semibold text-sm">{v.reunioesFeitas}</div>
-                  <div className="col-span-2 text-center"><span className={`font-semibold text-sm ${v.cpfNegado > 0 ? "text-rose-400" : "text-gray-500"}`}>{v.cpfNegado}</span></div>
-                  <div className="col-span-1 text-center"><span className={`font-semibold text-sm ${v.desqualificados > 0 ? "text-orange-400" : "text-gray-500"}`}>{v.desqualificados}</span></div>
-                  <div className="col-span-2 text-center"><span className={`font-semibold text-sm ${v.vendas > 0 ? "text-lime-400" : "text-gray-500"}`}>{v.vendas}</span></div>
+                  <div className="col-span-2 text-center text-liv-info font-semibold text-sm tabular-nums">{v.totalOportunidades}</div>
+                  <div className="col-span-2 text-center text-liv-sage font-semibold text-sm tabular-nums">{v.reunioesFeitas}</div>
+                  <div className="col-span-2 text-center"><span className={`font-semibold text-sm tabular-nums ${v.cpfNegado > 0 ? "text-liv-danger" : "text-liv-faint"}`}>{v.cpfNegado}</span></div>
+                  <div className="col-span-1 text-center"><span className={`font-semibold text-sm tabular-nums ${v.desqualificados > 0 ? "text-liv-orange" : "text-liv-faint"}`}>{v.desqualificados}</span></div>
+                  <div className="col-span-2 text-center"><span className={`font-semibold text-sm tabular-nums ${v.vendas > 0 ? "text-liv-sage" : "text-liv-faint"}`}>{v.vendas}</span></div>
                 </button>
                 {expandido === v.id && (
-                  <div className="border-b border-[#232a3b] bg-[#0b0f19]">
+                  <div className="border-b border-liv-line bg-liv-bg">
                     {v.registros.length === 0 ? (
-                      <p className="px-8 py-4 text-sm text-gray-500">Sem registros</p>
+                      <p className="px-8 py-4 text-sm text-liv-faint">Sem registros</p>
                     ) : (
-                      <div className="divide-y divide-[#1a1f2e]">
-                        <div className="grid grid-cols-12 gap-2 px-8 py-2 text-xs font-semibold text-gray-600 uppercase">
+                      <div className="divide-y divide-liv-line">
+                        <div className="grid grid-cols-12 gap-2 px-8 py-2 text-[11px] font-bold text-liv-faint uppercase tracking-[0.12em]">
                           <div className="col-span-3">Cliente</div>
                           <div className="col-span-2">Reunião</div>
                           <div className="col-span-2">Status</div>
@@ -556,14 +557,14 @@ export default function VisaoGeralSDRPage() {
                             ? `Venda: ${formatCurrency(r.vendaVinculada.valorVenda)}`
                             : r.motivoFinalizacao ?? r.motivoNaoCompareceu ?? "—";
                           return (
-                            <div key={r.id} className="grid grid-cols-12 gap-2 px-8 py-2.5 hover:bg-[#1a1f2e]/50 transition text-sm">
-                              <div className="col-span-3 font-medium text-gray-100 truncate">{r.nomeCliente}</div>
-                              <div className="col-span-2 text-gray-400">{formatDate(r.dataReuniao)}</div>
+                            <div key={r.id} className="grid grid-cols-12 gap-2 px-8 py-2.5 hover:bg-liv-surface-2 transition text-sm">
+                              <div className="col-span-3 font-medium text-liv-ink truncate">{r.nomeCliente}</div>
+                              <div className="col-span-2 text-liv-muted">{formatDate(r.dataReuniao)}</div>
                               <div className="col-span-2">
                                 <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${sc.bg} ${sc.color}`}>{sc.icon}{sc.label}</span>
                               </div>
-                              <div className="col-span-2 text-gray-400 truncate">{r.sdrNome ?? "—"}</div>
-                              <div className="col-span-3 text-gray-400 truncate text-xs">{obs}</div>
+                              <div className="col-span-2 text-liv-muted truncate">{r.sdrNome ?? "—"}</div>
+                              <div className="col-span-3 text-liv-muted truncate text-xs">{obs}</div>
                             </div>
                           );
                         })}
@@ -579,46 +580,46 @@ export default function VisaoGeralSDRPage() {
 
       {/* ── Ranking de SDRs (comissões — sempre mensal) ────────────────────────── */}
       {ranking.length > 0 && (
-        <div className="bg-[#1a1f2e] rounded-xl shadow-sm border border-[#232a3b] overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#232a3b] flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-sky-400" />
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">
+        <div className="bg-liv-surface rounded-2xl border border-liv-line overflow-hidden">
+          <div className="px-6 py-4 border-b border-liv-line flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-liv-sage" />
+            <h2 className="text-[11px] font-bold text-liv-faint uppercase tracking-[0.12em]">
               Ranking de SDRs — {getNomeMes(mesAtual)}
             </h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#141820] text-gray-400">
+              <thead className="bg-liv-surface-2 text-liv-faint">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium">#</th>
-                  <th className="text-left px-4 py-3 font-medium">SDR</th>
-                  <th className="text-center px-4 py-3 font-medium">Registros</th>
-                  <th className="text-center px-4 py-3 font-medium">Reuniões</th>
-                  <th className="text-center px-4 py-3 font-medium">Vendas</th>
-                  <th className="text-center px-4 py-3 font-medium">Conversão</th>
-                  <th className="text-right px-4 py-3 font-medium">Comissão</th>
-                  <th className="text-right px-4 py-3 font-medium">Pendente</th>
-                  <th className="text-right px-4 py-3 font-medium">Paga</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">#</th>
+                  <th className="text-left px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">SDR</th>
+                  <th className="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Registros</th>
+                  <th className="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Reuniões</th>
+                  <th className="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Vendas</th>
+                  <th className="text-center px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Conversão</th>
+                  <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Comissão</th>
+                  <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Pendente</th>
+                  <th className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Paga</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#232a3b]">
+              <tbody className="divide-y divide-liv-line">
                 {ranking.map((sdr, i) => (
-                  <tr key={sdr.id} className="hover:bg-[#232a3b]">
-                    <td className="px-4 py-3 text-gray-500 font-medium">{i + 1}</td>
-                    <td className="px-4 py-3 font-medium text-gray-100">{sdr.nome}</td>
-                    <td className="px-4 py-3 text-center text-gray-400">{sdr.totalRegistros}</td>
-                    <td className="px-4 py-3 text-center text-gray-400">{sdr.reunioes}</td>
-                    <td className="px-4 py-3 text-center text-gray-400">{sdr.vendas}</td>
+                  <tr key={sdr.id} className="hover:bg-liv-surface-2">
+                    <td className="px-4 py-3 text-liv-faint font-medium tabular-nums">{i + 1}</td>
+                    <td className="px-4 py-3 font-medium text-liv-ink">{sdr.nome}</td>
+                    <td className="px-4 py-3 text-center text-liv-muted tabular-nums">{sdr.totalRegistros}</td>
+                    <td className="px-4 py-3 text-center text-liv-muted tabular-nums">{sdr.reunioes}</td>
+                    <td className="px-4 py-3 text-center text-liv-muted tabular-nums">{sdr.vendas}</td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                        sdr.taxaConversao >= 50 ? "bg-sky-400/15 text-sky-400"
-                        : sdr.taxaConversao >= 30 ? "bg-amber-400/15 text-amber-400"
-                        : "bg-red-400/15 text-red-400"
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium tabular-nums ${
+                        sdr.taxaConversao >= 50 ? "bg-liv-sage/14 text-liv-sage"
+                        : sdr.taxaConversao >= 30 ? "bg-liv-gold/12 text-liv-gold"
+                        : "bg-liv-danger/12 text-liv-danger"
                       }`}>{sdr.taxaConversao}%</span>
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-sky-400">{formatCurrency(sdr.comissaoTotal)}</td>
-                    <td className="px-4 py-3 text-right text-amber-400">{formatCurrency(sdr.comissaoPendente)}</td>
-                    <td className="px-4 py-3 text-right text-sky-400">{formatCurrency(sdr.comissaoPaga)}</td>
+                    <td className="px-4 py-3 text-right font-medium tabular-nums text-liv-sage">{formatCurrency(sdr.comissaoTotal)}</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-liv-gold">{formatCurrency(sdr.comissaoPendente)}</td>
+                    <td className="px-4 py-3 text-right tabular-nums text-liv-sage">{formatCurrency(sdr.comissaoPaga)}</td>
                   </tr>
                 ))}
               </tbody>
