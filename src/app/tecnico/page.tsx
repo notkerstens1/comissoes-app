@@ -425,6 +425,22 @@ export default function SetorTecnicoPage() {
     } catch { setErroMsg("Erro ao excluir anexo"); }
   }
 
+  async function handleExcluirComentario(r: RegistroTecnico, comentarioId: string) {
+    if (!confirm("Excluir este comentario?")) return;
+    try {
+      const res = await fetch(`/api/setor-tecnico/${r.id}/comentarios/${comentarioId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || "Erro ao excluir comentario");
+        return;
+      }
+      await fetchRegistros();
+      await loadDetalhes(r.id);
+    } catch { setErroMsg("Erro ao excluir comentario"); }
+  }
+
   // Contagens por aba (calculadas em cima do array completo)
   const countProjetos = filtrarPorAba(registros, "PROJETOS").length;
   const countProjetosConcluidos = filtrarPorAba(registros, "PROJETOS_CONCLUIDOS").length;
@@ -932,7 +948,16 @@ export default function SetorTecnicoPage() {
                                   <div key={c.id} className="p-3 bg-liv-surface-2 rounded-lg border border-liv-line">
                                     <div className="flex items-center justify-between mb-1">
                                       <span className="text-xs font-semibold text-liv-teal">{c.autor}</span>
-                                      <span className="text-xs text-liv-faint">{formatDate(c.criadoEm)}</span>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs text-liv-faint">{formatDate(c.criadoEm)}</span>
+                                        <button
+                                          onClick={() => handleExcluirComentario(r, c.id)}
+                                          className="text-liv-faint hover:text-liv-danger transition"
+                                          title="Excluir comentario"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </div>
                                     </div>
                                     <p className="text-sm text-liv-muted">{c.texto}</p>
                                   </div>
