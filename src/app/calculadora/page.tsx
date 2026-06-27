@@ -228,33 +228,34 @@ export default function CalculadoraPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lime-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-liv-sage"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-100 flex items-center gap-2">
-          <Calculator className="w-6 h-6 text-lime-400" />
+        <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.12em] text-liv-faint">Vendas · Calculadora</p>
+        <h1 className="text-[1.75rem] font-bold leading-tight tracking-tight text-liv-ink flex items-center gap-2">
+          <Calculator className="w-6 h-6 text-liv-sage" />
           Calculadora de Venda
         </h1>
-        <p className="text-gray-400 text-sm mt-1">
+        <p className="text-liv-muted text-sm mt-1">
           Simule uma venda para verificar se a margem é saudável para a empresa
         </p>
       </div>
 
       {/* Formulario */}
-      <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] p-6">
-        <h2 className="text-sm font-semibold text-lime-400 uppercase tracking-wider mb-4">
+      <div className="bg-liv-surface rounded-2xl border border-liv-line p-6">
+        <h2 className="text-[11px] font-bold text-liv-faint uppercase tracking-[0.12em] mb-4">
           Dados da Venda
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Valor da Venda */}
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1">
+            <label className="block text-xs font-medium text-liv-muted mb-1">
               Valor da Venda (R$)
             </label>
             <input
@@ -264,7 +265,7 @@ export default function CalculadoraPage() {
               onChange={(e) =>
                 handleCurrency(e.target.value, setValorVendaRaw, setValorVenda)
               }
-              className="w-full px-3 py-2.5 rounded-lg border border-[#232a3b] focus:border-lime-400 outline-none text-sm bg-[#0b0f19] text-gray-100"
+              className="w-full px-3 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none text-sm bg-liv-surface-2 text-liv-ink"
               placeholder="0,00"
               autoComplete="off"
             />
@@ -272,7 +273,7 @@ export default function CalculadoraPage() {
 
           {/* Custo Equipamentos */}
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1">
+            <label className="block text-xs font-medium text-liv-muted mb-1">
               Custo Equipamentos (R$)
             </label>
             <input
@@ -282,7 +283,7 @@ export default function CalculadoraPage() {
               onChange={(e) =>
                 handleCurrency(e.target.value, setCustoEquipRaw, setCustoEquip)
               }
-              className="w-full px-3 py-2.5 rounded-lg border border-[#232a3b] focus:border-lime-400 outline-none text-sm bg-[#0b0f19] text-gray-100"
+              className="w-full px-3 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none text-sm bg-liv-surface-2 text-liv-ink"
               placeholder="0,00"
               autoComplete="off"
             />
@@ -290,7 +291,7 @@ export default function CalculadoraPage() {
 
           {/* kWp */}
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1">
+            <label className="block text-xs font-medium text-liv-muted mb-1">
               kWp
             </label>
             <input
@@ -298,7 +299,7 @@ export default function CalculadoraPage() {
               inputMode="decimal"
               value={kwp}
               onChange={(e) => setKwp(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-[#232a3b] focus:border-lime-400 outline-none text-sm bg-[#0b0f19] text-gray-100"
+              className="w-full px-3 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none text-sm bg-liv-surface-2 text-liv-ink"
               placeholder="Ex: 4.68"
               autoComplete="off"
             />
@@ -306,7 +307,7 @@ export default function CalculadoraPage() {
 
           {/* Quantidade de Placas */}
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1">
+            <label className="block text-xs font-medium text-liv-muted mb-1">
               Qtd. Placas
             </label>
             <input
@@ -315,14 +316,14 @@ export default function CalculadoraPage() {
               step="1"
               value={placas}
               onChange={(e) => setPlacas(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-[#232a3b] focus:border-lime-400 outline-none text-sm bg-[#0b0f19] text-gray-100"
+              className="w-full px-3 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none text-sm bg-liv-surface-2 text-liv-ink"
               placeholder="Ex: 12"
             />
           </div>
 
           {/* Quantidade de Inversores */}
           <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1">
+            <label className="block text-xs font-medium text-liv-muted mb-1">
               Qtd. Inversores
             </label>
             <input
@@ -331,7 +332,7 @@ export default function CalculadoraPage() {
               step="1"
               value={inversores}
               onChange={(e) => setInversores(e.target.value)}
-              className="w-full px-3 py-2.5 rounded-lg border border-[#232a3b] focus:border-lime-400 outline-none text-sm bg-[#0b0f19] text-gray-100"
+              className="w-full px-3 py-2.5 rounded-lg border border-liv-line focus:border-liv-sage outline-none text-sm bg-liv-surface-2 text-liv-ink"
               placeholder="1"
             />
           </div>
@@ -341,29 +342,29 @@ export default function CalculadoraPage() {
             <label
               className={`flex items-center gap-3 cursor-pointer w-full px-4 py-3 rounded-lg border transition ${
                 ehExcecao
-                  ? "border-amber-400/40 bg-amber-400/5"
-                  : "border-[#232a3b] bg-[#0b0f19] hover:border-[#2a3040]"
+                  ? "border-liv-gold/40 bg-liv-gold/5"
+                  : "border-liv-line bg-liv-surface-2 hover:border-liv-faint"
               }`}
             >
               <div
                 className={`w-5 h-5 rounded flex items-center justify-center shrink-0 border-2 transition ${
                   ehExcecao
-                    ? "bg-amber-400 border-amber-400"
-                    : "border-gray-600 bg-transparent"
+                    ? "bg-liv-gold border-liv-gold"
+                    : "border-liv-faint bg-transparent"
                 }`}
                 onClick={() => setEhExcecao((v) => !v)}
               >
                 {ehExcecao && (
-                  <svg className="w-3 h-3 text-gray-900" fill="none" viewBox="0 0 12 12">
+                  <svg className="w-3 h-3 text-liv-bg" fill="none" viewBox="0 0 12 12">
                     <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 )}
               </div>
               <div onClick={() => setEhExcecao((v) => !v)}>
-                <p className={`text-xs font-semibold ${ehExcecao ? "text-amber-400" : "text-gray-400"}`}>
+                <p className={`text-xs font-semibold ${ehExcecao ? "text-liv-gold" : "text-liv-muted"}`}>
                   Venda de Exceção
                 </p>
-                <p className="text-[10px] text-gray-500 mt-0.5">
+                <p className="text-[10px] text-liv-faint mt-0.5">
                   Margem mín. 1.65x (máx 2/mês)
                 </p>
               </div>
@@ -378,78 +379,78 @@ export default function CalculadoraPage() {
           {/* Cards resumo */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Margem Vendedor */}
-            <div className={`rounded-xl p-5 border ${
+            <div className={`rounded-2xl p-5 border ${
               resultado.margemOk
-                ? "bg-lime-400/5 border-lime-400/20"
-                : "bg-red-400/5 border-red-400/20"
+                ? "bg-liv-sage/5 border-liv-sage/30"
+                : "bg-liv-danger/5 border-liv-danger/30"
             }`}>
               <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className={`w-4 h-4 ${resultado.margemOk ? "text-lime-400" : "text-red-400"}`} />
-                <span className="text-xs text-gray-400 uppercase font-semibold">Margem Vendedor</span>
+                <TrendingUp className={`w-4 h-4 ${resultado.margemOk ? "text-liv-sage" : "text-liv-danger"}`} />
+                <span className="text-xs text-liv-faint uppercase font-semibold">Margem Vendedor</span>
               </div>
-              <p className={`text-2xl font-bold ${resultado.margemOk ? "text-lime-400" : "text-red-400"}`}>
+              <p className={`text-2xl font-bold tabular-nums ${resultado.margemOk ? "text-liv-sage" : "text-liv-danger"}`}>
                 {resultado.margem.toFixed(2)}x
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-liv-faint mt-1 tabular-nums">
                 Mínimo: {resultado.threshold.toFixed(2)}x
               </p>
             </div>
 
             {/* Over */}
-            <div className="bg-[#1a1f2e] rounded-xl p-5 border border-[#232a3b]">
+            <div className="bg-liv-surface rounded-2xl p-5 border border-liv-line">
               <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-4 h-4 text-amber-400" />
-                <span className="text-xs text-gray-400 uppercase font-semibold">Over</span>
+                <Zap className="w-4 h-4 text-liv-gold" />
+                <span className="text-xs text-liv-faint uppercase font-semibold">Over</span>
               </div>
-              <p className="text-2xl font-bold text-gray-100">
+              <p className="text-2xl font-bold tabular-nums text-liv-ink">
                 {formatCurrency(resultado.over)}
               </p>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-liv-faint mt-1 tabular-nums">
                 Geração: {resultado.geracao.toFixed(0)} kWh
               </p>
             </div>
 
             {/* Lucro Liquido */}
-            <div className={`rounded-xl p-5 border ${
+            <div className={`rounded-2xl p-5 border ${
               resultado.lucroLiquido >= 0
-                ? "bg-[#1a1f2e] border-[#232a3b]"
-                : "bg-red-400/5 border-red-400/20"
+                ? "bg-liv-surface border-liv-line"
+                : "bg-liv-danger/5 border-liv-danger/30"
             }`}>
               <div className="flex items-center gap-2 mb-2">
                 {resultado.lucroLiquido >= 0 ? (
-                  <CheckCircle2 className="w-4 h-4 text-lime-400" />
+                  <CheckCircle2 className="w-4 h-4 text-liv-sage" />
                 ) : (
-                  <XCircle className="w-4 h-4 text-red-400" />
+                  <XCircle className="w-4 h-4 text-liv-danger" />
                 )}
-                <span className="text-xs text-gray-400 uppercase font-semibold">Lucro Líquido</span>
+                <span className="text-xs text-liv-faint uppercase font-semibold">Lucro Líquido</span>
               </div>
-              <p className={`text-2xl font-bold ${resultado.lucroLiquido >= 0 ? "text-lime-400" : "text-red-400"}`}>
+              <p className={`text-2xl font-bold tabular-nums ${resultado.lucroLiquido >= 0 ? "text-liv-sage" : "text-liv-danger"}`}>
                 {formatCurrency(resultado.lucroLiquido)}
               </p>
             </div>
 
             {/* Margem Empresa */}
-            <div className={`rounded-xl p-5 border ring-2 ${
+            <div className={`rounded-2xl p-5 border ring-2 ${
               resultado.vendaSaudavel
-                ? "bg-lime-400/5 border-lime-400/20 ring-lime-400/20"
-                : "bg-red-400/5 border-red-400/20 ring-red-400/20"
+                ? "bg-liv-sage/5 border-liv-sage/30 ring-liv-sage/20"
+                : "bg-liv-danger/5 border-liv-danger/30 ring-liv-danger/20"
             }`}>
               <div className="flex items-center gap-2 mb-2">
                 {resultado.vendaSaudavel ? (
-                  <CheckCircle2 className="w-4 h-4 text-lime-400" />
+                  <CheckCircle2 className="w-4 h-4 text-liv-sage" />
                 ) : (
-                  <XCircle className="w-4 h-4 text-red-400" />
+                  <XCircle className="w-4 h-4 text-liv-danger" />
                 )}
-                <span className="text-xs text-gray-400 uppercase font-semibold">Margem Empresa</span>
+                <span className="text-xs text-liv-faint uppercase font-semibold">Margem Empresa</span>
               </div>
-              <p className={`text-2xl font-bold ${resultado.vendaSaudavel ? "text-lime-400" : "text-red-400"}`}>
+              <p className={`text-2xl font-bold tabular-nums ${resultado.vendaSaudavel ? "text-liv-sage" : "text-liv-danger"}`}>
                 {(resultado.margemEmpresa * 100).toFixed(1)}%
               </p>
               <p className="text-xs mt-1">
                 {resultado.vendaSaudavel ? (
-                  <span className="text-lime-400 font-medium">Venda Saudável ✓</span>
+                  <span className="text-liv-sage font-medium">Venda Saudável ✓</span>
                 ) : (
-                  <span className="text-red-400 font-medium">Margem Abaixo de 20%</span>
+                  <span className="text-liv-danger font-medium">Margem Abaixo de 20%</span>
                 )}
               </p>
             </div>
@@ -457,9 +458,9 @@ export default function CalculadoraPage() {
 
           {/* Alerta de exceção */}
           {ehExcecao && resultado.margemOk && (
-            <div className="flex items-center gap-3 bg-amber-400/10 border border-amber-400/20 rounded-xl px-5 py-3">
-              <Info className="w-5 h-5 text-amber-400 shrink-0" />
-              <p className="text-sm text-amber-300">
+            <div className="flex items-center gap-3 bg-liv-gold/10 border border-liv-gold/30 rounded-2xl px-5 py-3">
+              <Info className="w-5 h-5 text-liv-gold shrink-0" />
+              <p className="text-sm text-liv-gold">
                 Esta venda usa <strong>margem de exceção</strong> (1.65x mínimo).
                 Você pode usar no máximo <strong>2 vendas de exceção por mês</strong>.
               </p>
@@ -468,9 +469,9 @@ export default function CalculadoraPage() {
 
           {/* Alerta margem vendedor abaixo */}
           {!resultado.margemOk && (
-            <div className="flex items-center gap-3 bg-red-400/10 border border-red-400/20 rounded-xl px-5 py-3">
-              <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
-              <p className="text-sm text-red-300">
+            <div className="flex items-center gap-3 bg-liv-danger/10 border border-liv-danger/30 rounded-2xl px-5 py-3">
+              <AlertTriangle className="w-5 h-5 text-liv-danger shrink-0" />
+              <p className="text-sm text-liv-danger">
                 Margem do vendedor ({resultado.margem.toFixed(2)}x) está abaixo do mínimo ({resultado.threshold.toFixed(2)}x).
                 Você <strong>não receberá comissão sobre o over</strong> nesta venda.
               </p>
@@ -478,11 +479,11 @@ export default function CalculadoraPage() {
           )}
 
           {/* Tabela detalhada de custos */}
-          <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] overflow-hidden">
-            <div className="px-6 py-4 border-b border-[#232a3b]">
-              <h2 className="font-semibold text-gray-100">Detalhamento de Custos</h2>
+          <div className="bg-liv-surface rounded-2xl border border-liv-line overflow-hidden">
+            <div className="px-6 py-4 border-b border-liv-line">
+              <h2 className="font-semibold text-liv-ink">Detalhamento de Custos</h2>
             </div>
-            <div className="divide-y divide-[#232a3b]">
+            <div className="divide-y divide-liv-line">
               <CustoRow label="Equipamentos" valor={custoEquip} tipo="Informado" />
               <CustoRow
                 label="Instalação"
@@ -506,19 +507,19 @@ export default function CalculadoraPage() {
               />
 
               {/* Total */}
-              <div className="flex items-center justify-between px-6 py-4 bg-[#141820]">
-                <p className="font-bold text-amber-400 uppercase text-sm">Custo Total Operacional</p>
-                <p className="font-bold text-lg text-amber-400">
+              <div className="flex items-center justify-between px-6 py-4 bg-liv-surface-2">
+                <p className="font-bold text-liv-gold uppercase text-sm">Custo Total Operacional</p>
+                <p className="font-bold text-lg tabular-nums text-liv-gold">
                   {formatCurrency(resultado.custoTotalOperacional)}
                 </p>
               </div>
 
               {/* Lucro */}
-              <div className="flex items-center justify-between px-6 py-4 bg-[#141820]">
-                <p className={`font-bold uppercase text-sm ${resultado.lucroLiquido >= 0 ? "text-lime-400" : "text-red-400"}`}>
+              <div className="flex items-center justify-between px-6 py-4 bg-liv-surface-2">
+                <p className={`font-bold uppercase text-sm ${resultado.lucroLiquido >= 0 ? "text-liv-sage" : "text-liv-danger"}`}>
                   Lucro Líquido
                 </p>
-                <p className={`font-bold text-lg ${resultado.lucroLiquido >= 0 ? "text-lime-400" : "text-red-400"}`}>
+                <p className={`font-bold text-lg tabular-nums ${resultado.lucroLiquido >= 0 ? "text-liv-sage" : "text-liv-danger"}`}>
                   {formatCurrency(resultado.lucroLiquido)}
                 </p>
               </div>
@@ -530,13 +531,13 @@ export default function CalculadoraPage() {
             <button
               onClick={salvarSimulacao}
               disabled={saving}
-              className="flex items-center gap-2 px-5 py-2.5 bg-lime-400 text-gray-900 rounded-xl font-semibold text-sm hover:bg-lime-300 disabled:opacity-50 transition"
+              className="flex items-center gap-2 px-5 py-2.5 bg-liv-sage text-liv-bg rounded-xl font-semibold text-sm hover:bg-liv-sage-deep disabled:opacity-50 transition"
             >
               <Save className="w-4 h-4" />
               {saving ? "Salvando..." : "Salvar Simulação"}
             </button>
             {savedMsg && (
-              <span className="flex items-center gap-1.5 text-sm text-lime-400 font-medium">
+              <span className="flex items-center gap-1.5 text-sm text-liv-sage font-medium">
                 <CheckCircle2 className="w-4 h-4" />
                 Simulação salva!
               </span>
@@ -547,88 +548,88 @@ export default function CalculadoraPage() {
 
       {/* Vazio */}
       {!resultado && (
-        <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] p-12 text-center">
-          <Calculator className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-100 mb-2">Preencha os dados</h3>
-          <p className="text-gray-400">Insira o valor da venda e custo dos equipamentos para ver a simulação.</p>
+        <div className="bg-liv-surface rounded-2xl border border-liv-line p-12 text-center">
+          <Calculator className="w-12 h-12 text-liv-faint mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-liv-ink mb-2">Preencha os dados</h3>
+          <p className="text-liv-muted">Insira o valor da venda e custo dos equipamentos para ver a simulação.</p>
         </div>
       )}
 
       {/* ===================== HISTÓRICO ===================== */}
-      <div className="bg-[#1a1f2e] rounded-xl border border-[#232a3b] overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#232a3b] flex items-center justify-between">
+      <div className="bg-liv-surface rounded-2xl border border-liv-line overflow-hidden">
+        <div className="px-6 py-4 border-b border-liv-line flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <History className="w-4 h-4 text-gray-400" />
-            <h2 className="font-semibold text-gray-100">
+            <History className="w-4 h-4 text-liv-muted" />
+            <h2 className="font-semibold text-liv-ink">
               Simulações do Mês
             </h2>
-            <span className="text-xs bg-[#232a3b] text-gray-400 px-2 py-0.5 rounded-full">
+            <span className="text-xs bg-liv-surface-2 text-liv-muted px-2 py-0.5 rounded-full tabular-nums">
               {simulacoes.length}
             </span>
           </div>
         </div>
 
         {loadingHist ? (
-          <div className="p-6 text-center text-gray-500 text-sm">Carregando...</div>
+          <div className="p-6 text-center text-liv-faint text-sm">Carregando...</div>
         ) : simulacoes.length === 0 ? (
           <div className="p-8 text-center">
-            <History className="w-8 h-8 text-gray-600 mx-auto mb-2" />
-            <p className="text-gray-500 text-sm">Nenhuma simulação salva este mês</p>
+            <History className="w-8 h-8 text-liv-faint mx-auto mb-2" />
+            <p className="text-liv-faint text-sm">Nenhuma simulação salva este mês</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#232a3b] bg-[#141820]">
-                  <th className="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase">Data</th>
-                  <th className="text-right px-4 py-3 text-xs text-gray-500 font-semibold uppercase">Venda</th>
-                  <th className="text-right px-4 py-3 text-xs text-gray-500 font-semibold uppercase">Equip.</th>
-                  <th className="text-right px-4 py-3 text-xs text-gray-500 font-semibold uppercase">Margem</th>
-                  <th className="text-right px-4 py-3 text-xs text-gray-500 font-semibold uppercase">Lucro</th>
-                  <th className="text-right px-4 py-3 text-xs text-gray-500 font-semibold uppercase">M. Empresa</th>
-                  <th className="text-center px-4 py-3 text-xs text-gray-500 font-semibold uppercase">Status</th>
+                <tr className="border-b border-liv-line bg-liv-surface-2">
+                  <th className="text-left px-4 py-3 text-[11px] text-liv-faint font-bold uppercase tracking-[0.12em]">Data</th>
+                  <th className="text-right px-4 py-3 text-[11px] text-liv-faint font-bold uppercase tracking-[0.12em]">Venda</th>
+                  <th className="text-right px-4 py-3 text-[11px] text-liv-faint font-bold uppercase tracking-[0.12em]">Equip.</th>
+                  <th className="text-right px-4 py-3 text-[11px] text-liv-faint font-bold uppercase tracking-[0.12em]">Margem</th>
+                  <th className="text-right px-4 py-3 text-[11px] text-liv-faint font-bold uppercase tracking-[0.12em]">Lucro</th>
+                  <th className="text-right px-4 py-3 text-[11px] text-liv-faint font-bold uppercase tracking-[0.12em]">M. Empresa</th>
+                  <th className="text-center px-4 py-3 text-[11px] text-liv-faint font-bold uppercase tracking-[0.12em]">Status</th>
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#232a3b]">
+              <tbody className="divide-y divide-liv-line">
                 {simulacoes.map((s) => (
-                  <tr key={s.id} className="hover:bg-[#141820] transition">
-                    <td className="px-4 py-3 text-xs text-gray-400">
+                  <tr key={s.id} className="hover:bg-liv-surface-2 transition">
+                    <td className="px-4 py-3 text-xs text-liv-muted">
                       {formatDatetime(s.createdAt)}
                       {s.ehExcecao && (
-                        <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-400 font-semibold">
+                        <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-liv-gold/12 text-liv-gold font-semibold">
                           Exceção
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-100 font-medium">
+                    <td className="px-4 py-3 text-right text-liv-ink font-medium tabular-nums">
                       {formatCurrency(s.valorVenda)}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-400">
+                    <td className="px-4 py-3 text-right text-liv-muted tabular-nums">
                       {formatCurrency(s.custoEquipamentos)}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className={`font-bold ${s.margemVendedor >= (s.ehExcecao ? 1.65 : 1.80) ? "text-lime-400" : "text-red-400"}`}>
+                      <span className={`font-bold tabular-nums ${s.margemVendedor >= (s.ehExcecao ? 1.65 : 1.80) ? "text-liv-sage" : "text-liv-danger"}`}>
                         {s.margemVendedor.toFixed(2)}x
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className={s.lucroLiquido >= 0 ? "text-lime-400" : "text-red-400"}>
+                      <span className={`tabular-nums ${s.lucroLiquido >= 0 ? "text-liv-sage" : "text-liv-danger"}`}>
                         {formatCurrency(s.lucroLiquido)}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className={s.vendaSaudavel ? "text-lime-400" : "text-red-400"}>
+                      <span className={`tabular-nums ${s.vendaSaudavel ? "text-liv-sage" : "text-liv-danger"}`}>
                         {(s.margemEmpresa * 100).toFixed(1)}%
                       </span>
                     </td>
                     <td className="px-4 py-3 text-center">
                       {s.vendaSaudavel ? (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-lime-400/10 text-lime-400 font-semibold">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-liv-sage/14 text-liv-sage font-semibold">
                           Saudável
                         </span>
                       ) : (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-400/10 text-red-400 font-semibold">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-liv-danger/12 text-liv-danger font-semibold">
                           Risco
                         </span>
                       )}
@@ -636,7 +637,7 @@ export default function CalculadoraPage() {
                     <td className="px-4 py-3">
                       <button
                         onClick={() => deletarSimulacao(s.id)}
-                        className="p-1.5 rounded text-gray-600 hover:text-red-400 hover:bg-red-400/10 transition"
+                        className="p-1.5 rounded text-liv-faint hover:text-liv-danger hover:bg-liv-danger/10 transition"
                         title="Excluir simulação"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -665,18 +666,18 @@ function CustoRow({
   fixo?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between px-6 py-3 hover:bg-[#141820] transition">
+    <div className="flex items-center justify-between px-6 py-3 hover:bg-liv-surface-2 transition">
       <div className="flex items-center gap-3">
-        <p className="text-sm text-gray-100 font-medium">{label}</p>
+        <p className="text-sm text-liv-ink font-medium">{label}</p>
         {fixo && (
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-sky-400/10 text-sky-400 font-semibold uppercase">
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-liv-info/12 text-liv-info font-semibold uppercase">
             Fixo
           </span>
         )}
       </div>
       <div className="text-right">
-        <p className="text-sm font-medium text-gray-100">{formatCurrency(valor)}</p>
-        <p className="text-[10px] text-gray-500">{tipo}</p>
+        <p className="text-sm font-medium tabular-nums text-liv-ink">{formatCurrency(valor)}</p>
+        <p className="text-[10px] text-liv-faint">{tipo}</p>
       </div>
     </div>
   );
