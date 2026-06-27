@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { formatCurrency } from "@/lib/utils";
-import { Target, TrendingUp, DollarSign, Calendar, Users } from "lucide-react";
+import { Target, TrendingUp, DollarSign, Calendar, Users, Edit2 } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { EditVendaPanel, VendaEditavel } from "@/components/EditVendaPanel";
 
 interface Resultado {
   mesReferencia: string;
@@ -25,6 +26,41 @@ interface Resultado {
     faixaProjetada: "ate_80" | "80_a_100" | "acima_100";
     comissaoProjetada: number;
   };
+}
+
+interface VendaApi {
+  id: string;
+  cliente: string;
+  vendedor?: { nome: string };
+  vendedorId: string;
+  valorVenda: number;
+  custoEquipamentos: number;
+  margem: number;
+  over: number;
+  comissaoVenda: number;
+  comissaoOver: number;
+  comissaoTotal: number;
+  excecao: boolean;
+  quantidadePlacas: number;
+  quantidadeInversores: number;
+  custoInstalacao: number | null;
+  custoVisitaTecnica: number | null;
+  custoCosern: number | null;
+  custoTrtCrea: number | null;
+  custoEngenheiro: number | null;
+  custoMaterialCA: number | null;
+  custoImposto: number | null;
+  lucroLiquido: number | null;
+  margemLucroLiquido: number | null;
+  percentualComissaoOverride: number | null;
+  dataConversao: string;
+  mesReferencia: string;
+  historicoAlteracoes: string | null;
+  fonte: string;
+  tipoVenda: string;
+  distribuidora: string;
+  formaPagamento: string;
+  kwp: number;
 }
 
 const faixaLabel: Record<Resultado["faixa"], string> = {
@@ -60,14 +96,26 @@ export default function SupervisorPage() {
   const [mes, setMes] = useState(getMesAtual());
   const [dados, setDados] = useState<Resultado | null>(null);
   const [loading, setLoading] = useState(true);
+  const [vendas, setVendas] = useState<VendaApi[]>([]);
+  const [vendaEditando, setVendaEditando] = useState<VendaEditavel | null>(null);
+  const [editPanelOpen, setEditPanelOpen] = useState(false);
 
-  useEffect(() => {
+  const carregar = useCallback(() => {
     setLoading(true);
-    fetch(`/api/supervisor/comissao?mes=${mes}`)
-      .then((r) => r.json())
-      .then(setDados)
+    Promise.all([
+      fetch(`/api/supervisor/comissao?mes=${mes}`).then((r) => r.json()),
+      fetch(`/api/vendas?mes=${mes}`).then((r) => (r.ok ? r.json() : [])),
+    ])
+      .then(([d, vs]) => {
+        setDados(d);
+        setVendas(Array.isArray(vs) ? vs : []);
+      })
       .finally(() => setLoading(false));
   }, [mes]);
+
+  useEffect(() => {
+    carregar();
+  }, [carregar]);
 
   return (
     <div className="space-y-6">
@@ -223,8 +271,118 @@ export default function SupervisorPage() {
               </div>
             )}
           </div>
+
+          {/* Vendas do mes — ajustar over / excecao */}
+          <div className="bg-liv-surface rounded-2xl border border-liv-line overflow-hidden">
+            <div className="px-6 py-4 border-b border-liv-line flex items-center gap-2">
+              <Edit2 className="w-5 h-5 text-liv-muted" />
+              <h2 className="font-semibold text-liv-ink">Vendas do mes</h2>
+              <span className="text-xs text-liv-faint ml-auto">
+                {vendas.length} venda{vendas.length === 1 ? "" : "s"} — clique para ajustar over / excecao
+              </span>
+            </div>
+            {vendas.length === 0 ? (
+              <p className="p-6 text-liv-muted text-center">Nenhuma venda neste mes.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-liv-surface-2 text-liv-faint">
+                    <tr>
+                      <th className="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Cliente</th>
+                      <th className="text-left px-6 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Vendedor</th>
+                      <th className="text-right px-6 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Valor</th>
+                      <th className="text-right px-6 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Margem</th>
+                      <th className="text-right px-6 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Over</th>
+                      <th className="text-right px-6 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Comissao</th>
+                      <th className="text-right px-6 py-3 text-[11px] font-bold uppercase tracking-[0.12em]">Ajustar</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-liv-line">
+                    {vendas.map((v) => (
+                      <tr key={v.id} className="hover:bg-liv-surface-2">
+                        <td className="px-6 py-3 font-medium text-liv-ink">
+                          {v.cliente}
+                          {v.excecao && (
+                            <span className="ml-2 rounded-full bg-liv-gold/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-liv-gold">
+                              Excecao
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-3 text-liv-muted">{v.vendedor?.nome ?? "—"}</td>
+                        <td className="px-6 py-3 text-right tabular-nums text-liv-muted">{formatCurrency(v.valorVenda)}</td>
+                        <td className={`px-6 py-3 text-right tabular-nums ${v.margem < 1.8 ? "text-liv-danger" : "text-liv-muted"}`}>
+                          {v.margem?.toFixed(2)}x
+                        </td>
+                        <td className="px-6 py-3 text-right tabular-nums text-liv-muted">{formatCurrency(v.over ?? 0)}</td>
+                        <td className="px-6 py-3 text-right tabular-nums font-semibold text-liv-ink">{formatCurrency(v.comissaoTotal ?? 0)}</td>
+                        <td className="px-6 py-3 text-right">
+                          <button
+                            onClick={() => {
+                              setVendaEditando({
+                                id: v.id,
+                                cliente: v.cliente,
+                                vendedor: v.vendedor?.nome,
+                                valorVenda: v.valorVenda,
+                                custoEquipamentos: v.custoEquipamentos,
+                                margem: v.margem || 1.8,
+                                quantidadePlacas: v.quantidadePlacas || 0,
+                                quantidadeInversores: v.quantidadeInversores || 1,
+                                custoInstalacao: v.custoInstalacao || 0,
+                                custoVisitaTecnica: v.custoVisitaTecnica || 120,
+                                custoCosern: v.custoCosern || 70,
+                                custoTrtCrea: v.custoTrtCrea || 65,
+                                custoEngenheiro: v.custoEngenheiro || 400,
+                                custoMaterialCA: v.custoMaterialCA || 500,
+                                custoImposto: v.custoImposto || 0,
+                                lucroLiquido: v.lucroLiquido || 0,
+                                margemLucroLiquido: v.margemLucroLiquido || 0,
+                                dataConversao: v.dataConversao,
+                                comissaoVenda: v.comissaoVenda,
+                                comissaoOver: v.comissaoOver,
+                                comissaoTotal: v.comissaoTotal,
+                                over: v.over,
+                                vendedorId: v.vendedorId,
+                                mesReferencia: v.mesReferencia,
+                                excecao: v.excecao,
+                                historicoAlteracoes: v.historicoAlteracoes,
+                                percentualComissaoOverride: v.percentualComissaoOverride,
+                                fonte: v.fonte,
+                                tipoVenda: v.tipoVenda,
+                                distribuidora: v.distribuidora,
+                                formaPagamento: v.formaPagamento,
+                                kwp: v.kwp,
+                              });
+                              setEditPanelOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-liv-gold/10 text-liv-faint hover:text-liv-gold transition"
+                            title="Ajustar venda (over / excecao)"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </>
       )}
+
+      <EditVendaPanel
+        venda={vendaEditando}
+        isOpen={editPanelOpen}
+        onClose={() => {
+          setEditPanelOpen(false);
+          setVendaEditando(null);
+        }}
+        onSaved={() => {
+          setEditPanelOpen(false);
+          setVendaEditando(null);
+          carregar();
+        }}
+      />
     </div>
   );
 }

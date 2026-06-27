@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { calcularOver, calcularMargem, calcularGeracaoKwh, PERCENTUAL_OVER_EXTERNA } from "@/lib/comissao";
 import { calcularCustosVenda, ConfiguracaoCustos } from "@/lib/custos";
 import { calcularCustoInstalacaoEstimado, type BitolaCabo } from "@/lib/margem-instalacao";
-import { isAdmin } from "@/lib/roles";
+import { isSupervisor } from "@/lib/roles";
 import { tentarVincularVendaSDR } from "@/lib/sdr-linking";
 
 // GET - Listar vendas do vendedor logado (ou todas se admin/diretor)
@@ -23,11 +23,11 @@ export async function GET(request: NextRequest) {
 
   const where: any = {};
 
-  // Se nao e admin/diretor, mostra apenas as vendas do vendedor
-  if (!isAdmin(session.user.role)) {
+  // Admin/diretor/supervisor veem todas; demais (vendedor) apenas as proprias.
+  if (!isSupervisor(session.user.role)) {
     where.vendedorId = session.user.id;
   } else if (vendedorFiltro) {
-    // Admin/diretor pode filtrar por vendedor especifico
+    // Admin/diretor/supervisor pode filtrar por vendedor especifico
     where.vendedorId = vendedorFiltro;
   }
 

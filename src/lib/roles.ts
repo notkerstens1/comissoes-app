@@ -125,10 +125,11 @@ export function canManageTeam(role: string | undefined | null): boolean {
 }
 
 /**
- * Verifica se o usuario pode editar vendas (ADMIN, DIRETOR ou FINANCEIRO)
+ * Verifica se o usuario pode editar vendas (ADMIN, DIRETOR, FINANCEIRO ou SUPERVISOR).
+ * SUPERVISOR pode ajustar a venda (inclui over/excecao) apos o registro.
  */
 export function canEditVenda(role: string | undefined | null): boolean {
-  return role === "ADMIN" || role === "DIRETOR" || role === "FINANCEIRO";
+  return role === "ADMIN" || role === "DIRETOR" || role === "FINANCEIRO" || role === "SUPERVISOR";
 }
 
 /**
