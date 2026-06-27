@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { MOTIVOS_NAO_COMPARECEU, MOTIVOS_FINALIZACAO, COLUNAS_KANBAN } from "@/lib/sdr";
 import type { StatusLead } from "@/lib/sdr";
+import { PageHeader } from "@/components/ui/page-header";
 
 interface Vendedora {
   id: string;
@@ -59,31 +60,31 @@ interface Registro {
   statusLead: StatusLead;
 }
 
-// Cores por coluna
+// Cores por coluna — alinhadas aos tokens LIV
 const colunaConfig: Record<string, { border: string; bg: string; text: string; badge: string; icon: React.ReactNode; count: string }> = {
   AGENDADO: {
-    border: "border-amber-400/30",
-    bg: "bg-amber-400/5",
-    text: "text-amber-400",
-    badge: "bg-amber-400/15 text-amber-400",
+    border: "border-liv-gold/30",
+    bg: "bg-liv-gold/5",
+    text: "text-liv-gold",
+    badge: "bg-liv-gold/12 text-liv-gold",
     icon: <CalendarClock className="w-4 h-4" />,
-    count: "bg-amber-400/20 text-amber-400",
+    count: "bg-liv-gold/20 text-liv-gold",
   },
   COMPARECEU: {
-    border: "border-sky-400/30",
-    bg: "bg-sky-400/5",
-    text: "text-sky-400",
-    badge: "bg-sky-400/15 text-sky-400",
+    border: "border-liv-info/30",
+    bg: "bg-liv-info/5",
+    text: "text-liv-info",
+    badge: "bg-liv-info/12 text-liv-info",
     icon: <CheckCircle className="w-4 h-4" />,
-    count: "bg-sky-400/20 text-sky-400",
+    count: "bg-liv-info/20 text-liv-info",
   },
   FINALIZADO: {
-    border: "border-gray-500/30",
-    bg: "bg-gray-500/5",
-    text: "text-gray-400",
-    badge: "bg-gray-500/15 text-gray-400",
+    border: "border-liv-faint/30",
+    bg: "bg-liv-faint/5",
+    text: "text-liv-muted",
+    badge: "bg-liv-faint/12 text-liv-muted",
     icon: <Ban className="w-4 h-4" />,
-    count: "bg-gray-500/20 text-gray-400",
+    count: "bg-liv-faint/20 text-liv-muted",
   },
 };
 
@@ -376,8 +377,8 @@ export default function RegistrosSDRPage() {
   };
 
   const inputClass =
-    "w-full px-4 py-2.5 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 focus:ring-2 focus:ring-sky-400/30 focus:border-transparent outline-none text-sm";
-  const labelClass = "block text-sm font-medium text-gray-300 mb-1";
+    "w-full px-4 py-2.5 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink focus:ring-2 focus:ring-liv-sage/30 focus:border-liv-sage outline-none text-sm";
+  const labelClass = "block text-sm font-medium text-liv-muted mb-1";
 
   // Agrupar registros por coluna — VENDIDO fica dentro de COMPARECEU
   const getRegistrosPorColuna = (colunaKey: string) => {
@@ -393,143 +394,143 @@ export default function RegistrosSDRPage() {
       {detalheRegistro && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setDetalheRegistro(null)}>
           <div
-            className="bg-[#1a1f2e] rounded-2xl max-w-lg w-full shadow-lg max-h-[90vh] overflow-y-auto"
+            className="bg-liv-surface rounded-2xl max-w-lg w-full border border-liv-line shadow-xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-6 border-b border-[#232a3b]">
+            <div className="flex items-center justify-between p-6 border-b border-liv-line">
               <div>
-                <h3 className="font-bold text-lg text-gray-100">{detalheRegistro.nomeCliente}</h3>
-                <p className="text-sm text-gray-400 mt-0.5">Registro completo do lead</p>
+                <h3 className="font-bold text-lg text-liv-ink">{detalheRegistro.nomeCliente}</h3>
+                <p className="text-sm text-liv-muted mt-0.5">Registro completo do lead</p>
               </div>
-              <button onClick={() => setDetalheRegistro(null)} className="text-gray-500 hover:text-gray-400 transition">
+              <button onClick={() => setDetalheRegistro(null)} className="text-liv-faint hover:text-liv-ink transition">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6 space-y-5">
               <div className="grid grid-cols-2 gap-4">
-                <div className="bg-[#141820] rounded-lg p-4 border border-[#232a3b]">
+                <div className="bg-liv-surface-2 rounded-lg p-4 border border-liv-line">
                   <div className="flex items-center gap-2 mb-1">
-                    <User className="w-3.5 h-3.5 text-gray-500" />
-                    <p className="text-xs text-gray-500">Vendedora</p>
+                    <User className="w-3.5 h-3.5 text-liv-faint" />
+                    <p className="text-xs text-liv-faint">Vendedora</p>
                   </div>
-                  <p className="text-sm font-medium text-gray-100">{detalheRegistro.vendedora.nome}</p>
+                  <p className="text-sm font-medium text-liv-ink">{detalheRegistro.vendedora.nome}</p>
                 </div>
-                <div className="bg-[#141820] rounded-lg p-4 border border-[#232a3b]">
+                <div className="bg-liv-surface-2 rounded-lg p-4 border border-liv-line">
                   <div className="flex items-center gap-2 mb-1">
-                    <Calendar className="w-3.5 h-3.5 text-gray-500" />
-                    <p className="text-xs text-gray-500">Data da Reuniao</p>
+                    <Calendar className="w-3.5 h-3.5 text-liv-faint" />
+                    <p className="text-xs text-liv-faint">Data da Reuniao</p>
                   </div>
-                  <p className="text-sm font-medium text-gray-100">
+                  <p className="text-sm font-medium text-liv-ink">
                     {new Date(detalheRegistro.dataReuniao + "T12:00:00").toLocaleDateString("pt-BR")}
                   </p>
                 </div>
-                <div className="bg-[#141820] rounded-lg p-4 border border-[#232a3b]">
+                <div className="bg-liv-surface-2 rounded-lg p-4 border border-liv-line">
                   <div className="flex items-center gap-2 mb-1">
-                    <Clock className="w-3.5 h-3.5 text-gray-500" />
-                    <p className="text-xs text-gray-500">Data do Registro</p>
+                    <Clock className="w-3.5 h-3.5 text-liv-faint" />
+                    <p className="text-xs text-liv-faint">Data do Registro</p>
                   </div>
-                  <p className="text-sm font-medium text-gray-100">
+                  <p className="text-sm font-medium text-liv-ink">
                     {new Date(detalheRegistro.dataRegistro + "T12:00:00").toLocaleDateString("pt-BR")}
                   </p>
                 </div>
-                <div className="bg-[#141820] rounded-lg p-4 border border-[#232a3b]">
+                <div className="bg-liv-surface-2 rounded-lg p-4 border border-liv-line">
                   <div className="flex items-center gap-2 mb-1">
                     {detalheRegistro.compareceu ? (
-                      <CheckCircle className="w-3.5 h-3.5 text-sky-400" />
+                      <CheckCircle className="w-3.5 h-3.5 text-liv-info" />
                     ) : (
-                      <XCircle className="w-3.5 h-3.5 text-red-400" />
+                      <XCircle className="w-3.5 h-3.5 text-liv-danger" />
                     )}
-                    <p className="text-xs text-gray-500">Compareceu</p>
+                    <p className="text-xs text-liv-faint">Compareceu</p>
                   </div>
-                  <p className={`text-sm font-medium ${detalheRegistro.compareceu ? "text-sky-400" : "text-red-400"}`}>
+                  <p className={`text-sm font-medium ${detalheRegistro.compareceu ? "text-liv-info" : "text-liv-danger"}`}>
                     {detalheRegistro.compareceu ? "Sim" : "Nao"}
                   </p>
                   {!detalheRegistro.compareceu && detalheRegistro.motivoNaoCompareceu && (
-                    <p className="text-xs text-red-400/70 mt-0.5">{detalheRegistro.motivoNaoCompareceu}</p>
+                    <p className="text-xs text-liv-danger/70 mt-0.5">{detalheRegistro.motivoNaoCompareceu}</p>
                   )}
                 </div>
               </div>
 
               {detalheRegistro.statusLead === "FINALIZADO" && detalheRegistro.motivoFinalizacao && (
-                <div className="bg-red-400/5 rounded-lg p-4 border border-red-400/20">
+                <div className="bg-liv-danger/5 rounded-lg p-4 border border-liv-danger/20">
                   <div className="flex items-center gap-2 mb-1">
-                    <Ban className="w-3.5 h-3.5 text-red-400" />
-                    <p className="text-xs text-red-400">Motivo da Finalizacao</p>
+                    <Ban className="w-3.5 h-3.5 text-liv-danger" />
+                    <p className="text-xs text-liv-danger">Motivo da Finalizacao</p>
                   </div>
-                  <p className="text-sm font-medium text-red-300">{detalheRegistro.motivoFinalizacao}</p>
+                  <p className="text-sm font-medium text-liv-danger">{detalheRegistro.motivoFinalizacao}</p>
                 </div>
               )}
 
               {detalheRegistro.consideracoes && (
-                <div className="bg-[#141820] rounded-lg p-4 border border-[#232a3b]">
+                <div className="bg-liv-surface-2 rounded-lg p-4 border border-liv-line">
                   <div className="flex items-center gap-2 mb-2">
-                    <MessageSquare className="w-3.5 h-3.5 text-gray-500" />
-                    <p className="text-xs text-gray-500">Consideracoes</p>
+                    <MessageSquare className="w-3.5 h-3.5 text-liv-faint" />
+                    <p className="text-xs text-liv-faint">Consideracoes</p>
                   </div>
-                  <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">{detalheRegistro.consideracoes}</p>
+                  <p className="text-sm text-liv-muted whitespace-pre-wrap leading-relaxed">{detalheRegistro.consideracoes}</p>
                 </div>
               )}
 
               {detalheRegistro.imagemUrl && (
-                <div className="bg-[#141820] rounded-lg p-4 border border-[#232a3b]">
+                <div className="bg-liv-surface-2 rounded-lg p-4 border border-liv-line">
                   <div className="flex items-center gap-2 mb-2">
-                    <Image className="w-3.5 h-3.5 text-gray-500" />
-                    <p className="text-xs text-gray-500">Documento Anexado</p>
+                    <Image className="w-3.5 h-3.5 text-liv-faint" />
+                    <p className="text-xs text-liv-faint">Documento Anexado</p>
                   </div>
                   {detalheRegistro.imagemUrl.startsWith("data:image") ? (
-                    <img src={detalheRegistro.imagemUrl} alt="Documento" className="max-w-full rounded-lg border border-[#232a3b] object-contain max-h-64" />
+                    <img src={detalheRegistro.imagemUrl} alt="Documento" className="max-w-full rounded-lg border border-liv-line object-contain max-h-64" />
                   ) : (
-                    <a href={detalheRegistro.imagemUrl} target="_blank" rel="noreferrer" className="text-sm text-sky-400 hover:underline flex items-center gap-1">
+                    <a href={detalheRegistro.imagemUrl} target="_blank" rel="noreferrer" className="text-sm text-liv-sage hover:underline flex items-center gap-1">
                       <Paperclip className="w-3.5 h-3.5" /> Ver documento
                     </a>
                   )}
                 </div>
               )}
 
-              <div className="bg-sky-400/5 rounded-lg p-4 border border-sky-400/20">
+              <div className="bg-liv-sage/8 rounded-lg p-4 border border-liv-sage/20">
                 <div className="flex items-center gap-2 mb-3">
-                  <DollarSign className="w-4 h-4 text-sky-400" />
-                  <p className="text-sm font-medium text-sky-400">Comissoes</p>
+                  <DollarSign className="w-4 h-4 text-liv-sage" />
+                  <p className="text-sm font-medium text-liv-sage">Comissoes</p>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-400">Reuniao</span>
-                    <span className={`text-sm font-medium ${detalheRegistro.comissaoReuniao > 0 ? "text-sky-400" : "text-gray-500"}`}>
+                    <span className="text-sm text-liv-muted">Reuniao</span>
+                    <span className={`text-sm font-medium tabular-nums ${detalheRegistro.comissaoReuniao > 0 ? "text-liv-sage" : "text-liv-faint"}`}>
                       {formatCurrency(detalheRegistro.comissaoReuniao)}
                     </span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-400">Venda vinculada</span>
-                    <span className={`text-sm font-medium ${detalheRegistro.comissaoVenda > 0 ? "text-sky-400" : "text-gray-500"}`}>
+                    <span className="text-sm text-liv-muted">Venda vinculada</span>
+                    <span className={`text-sm font-medium tabular-nums ${detalheRegistro.comissaoVenda > 0 ? "text-liv-sage" : "text-liv-faint"}`}>
                       {formatCurrency(detalheRegistro.comissaoVenda)}
                     </span>
                   </div>
-                  <div className="border-t border-sky-400/20 pt-2 flex justify-between">
-                    <span className="text-sm font-semibold text-gray-100">Total</span>
-                    <span className="text-sm font-bold text-sky-400">{formatCurrency(detalheRegistro.comissaoTotal)}</span>
+                  <div className="border-t border-liv-sage/20 pt-2 flex justify-between">
+                    <span className="text-sm font-semibold text-liv-ink">Total</span>
+                    <span className="text-sm font-bold tabular-nums text-liv-sage">{formatCurrency(detalheRegistro.comissaoTotal)}</span>
                   </div>
                 </div>
               </div>
 
               {detalheRegistro.vendaVinculada && (
-                <div className="bg-[#141820] rounded-lg p-4 border border-sky-400/20">
+                <div className="bg-liv-surface-2 rounded-lg p-4 border border-liv-sage/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <Link2 className="w-3.5 h-3.5 text-sky-400" />
-                    <p className="text-xs font-medium text-sky-400">Venda Vinculada</p>
+                    <Link2 className="w-3.5 h-3.5 text-liv-sage" />
+                    <p className="text-xs font-medium text-liv-sage">Venda Vinculada</p>
                   </div>
                   <div className="space-y-1">
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-400">Cliente</span>
-                      <span className="text-sm text-gray-100">{detalheRegistro.vendaVinculada.cliente}</span>
+                      <span className="text-sm text-liv-muted">Cliente</span>
+                      <span className="text-sm text-liv-ink">{detalheRegistro.vendaVinculada.cliente}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-400">Valor</span>
-                      <span className="text-sm font-medium text-sky-400">{formatCurrency(detalheRegistro.vendaVinculada.valorVenda)}</span>
+                      <span className="text-sm text-liv-muted">Valor</span>
+                      <span className="text-sm font-medium tabular-nums text-liv-sage">{formatCurrency(detalheRegistro.vendaVinculada.valorVenda)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-sm text-gray-400">Data conversao</span>
-                      <span className="text-sm text-gray-100">
+                      <span className="text-sm text-liv-muted">Data conversao</span>
+                      <span className="text-sm text-liv-ink">
                         {new Date(detalheRegistro.vendaVinculada.dataConversao).toLocaleDateString("pt-BR")}
                       </span>
                     </div>
@@ -537,12 +538,12 @@ export default function RegistrosSDRPage() {
                 </div>
               )}
 
-              <div className="flex items-center justify-between bg-[#141820] rounded-lg px-4 py-3 border border-[#232a3b]">
-                <span className="text-sm text-gray-400">Status do Pagamento</span>
+              <div className="flex items-center justify-between bg-liv-surface-2 rounded-lg px-4 py-3 border border-liv-line">
+                <span className="text-sm text-liv-muted">Status do Pagamento</span>
                 <span className={`text-xs px-3 py-1 rounded-full font-medium ${
                   detalheRegistro.statusPagamento === "PAGO"
-                    ? "bg-sky-400/15 text-sky-400"
-                    : "bg-amber-400/15 text-amber-400"
+                    ? "bg-liv-sage/12 text-liv-sage"
+                    : "bg-liv-gold/12 text-liv-gold"
                 }`}>
                   {detalheRegistro.statusPagamento}
                 </span>
@@ -556,12 +557,12 @@ export default function RegistrosSDRPage() {
       {finalizandoId && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => { setFinalizandoId(null); setMotivoFinal(""); }}>
           <div
-            className="bg-[#1a1f2e] rounded-2xl max-w-sm w-full shadow-lg"
+            className="bg-liv-surface rounded-2xl max-w-sm w-full border border-liv-line shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 border-b border-[#232a3b]">
-              <h3 className="font-bold text-gray-100">Finalizar Lead</h3>
-              <p className="text-sm text-gray-400 mt-1">Selecione o motivo da finalizacao</p>
+            <div className="p-6 border-b border-liv-line">
+              <h3 className="font-bold text-liv-ink">Finalizar Lead</h3>
+              <p className="text-sm text-liv-muted mt-1">Selecione o motivo da finalizacao</p>
             </div>
             <div className="p-6 space-y-4">
               <select
@@ -577,14 +578,14 @@ export default function RegistrosSDRPage() {
               <div className="flex gap-3">
                 <button
                   onClick={() => { setFinalizandoId(null); setMotivoFinal(""); }}
-                  className="flex-1 px-4 py-2.5 rounded-lg border border-[#232a3b] text-gray-400 font-medium hover:bg-[#232a3b] transition text-sm"
+                  className="flex-1 px-4 py-2.5 rounded-lg border border-liv-line text-liv-muted font-medium hover:bg-liv-surface-2 transition text-sm"
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={finalizarLead}
                   disabled={!motivoFinal || finalizandoLoading}
-                  className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 text-white font-medium hover:bg-red-400 transition text-sm disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-liv-danger text-liv-ink font-medium hover:opacity-90 transition text-sm disabled:opacity-50"
                 >
                   {finalizandoLoading ? "..." : "Finalizar"}
                 </button>
@@ -595,36 +596,37 @@ export default function RegistrosSDRPage() {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-100">Meus Registros</h1>
-          <p className="text-gray-400">{getNomeMes(mesAtual)}</p>
-        </div>
-        <div className="flex gap-3">
-          <input
-            type="month"
-            value={mesAtual}
-            onChange={(e) => setMesAtual(e.target.value)}
-            className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
-          />
-          <button
-            onClick={() => {
-              if (formAberto) resetForm();
-              setFormAberto(!formAberto);
-            }}
-            className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm ${
-              formAberto
-                ? "bg-[#232a3b] text-gray-300 hover:bg-[#2a3142]"
-                : "bg-sky-400 text-gray-900 hover:bg-sky-300"
-            }`}
-          >
-            <Plus
-              className={`w-4 h-4 transition-transform duration-300 ${formAberto ? "rotate-45" : ""}`}
+      <PageHeader
+        eyebrow="Pré-venda · SDR"
+        title="Meus Registros"
+        subtitle={getNomeMes(mesAtual)}
+        actions={
+          <>
+            <input
+              type="month"
+              value={mesAtual}
+              onChange={(e) => setMesAtual(e.target.value)}
+              className="rounded-lg border border-liv-line bg-liv-surface-2 px-3 py-2 text-sm text-liv-ink"
             />
-            Novo Registro
-          </button>
-        </div>
-      </div>
+            <button
+              onClick={() => {
+                if (formAberto) resetForm();
+                setFormAberto(!formAberto);
+              }}
+              className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 text-sm ${
+                formAberto
+                  ? "bg-liv-surface-2 text-liv-muted border border-liv-line hover:bg-liv-surface"
+                  : "bg-liv-sage text-liv-bg hover:bg-liv-sage-deep"
+              }`}
+            >
+              <Plus
+                className={`w-4 h-4 transition-transform duration-300 ${formAberto ? "rotate-45" : ""}`}
+              />
+              Novo Registro
+            </button>
+          </>
+        }
+      />
 
       {/* Accordion Form */}
       <div
@@ -637,14 +639,14 @@ export default function RegistrosSDRPage() {
         <div ref={formContentRef}>
           <form
             onSubmit={handleSubmit}
-            className="bg-[#1a1f2e] rounded-xl p-6 shadow-sm border border-[#232a3b] space-y-5"
+            className="bg-liv-surface rounded-xl p-6 border border-liv-line space-y-5"
           >
             <div className="flex items-center justify-between mb-1">
-              <h2 className="text-lg font-semibold text-gray-100">Novo Registro de Reuniao</h2>
+              <h2 className="text-lg font-semibold text-liv-ink">Novo Registro de Reuniao</h2>
               <button
                 type="button"
                 onClick={() => { resetForm(); setFormAberto(false); }}
-                className="text-gray-500 hover:text-gray-400 transition"
+                className="text-liv-faint hover:text-liv-ink transition"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -709,8 +711,8 @@ export default function RegistrosSDRPage() {
                     onClick={() => setCompareceu(true)}
                     className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition border ${
                       compareceu
-                        ? "bg-sky-400/10 border-sky-400/30 text-sky-400"
-                        : "border-[#232a3b] text-gray-400 hover:bg-[#232a3b]"
+                        ? "bg-liv-sage/10 border-liv-sage/30 text-liv-sage"
+                        : "border-liv-line text-liv-muted hover:bg-liv-surface-2"
                     }`}
                   >
                     Sim
@@ -720,8 +722,8 @@ export default function RegistrosSDRPage() {
                     onClick={() => setCompareceu(false)}
                     className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition border ${
                       !compareceu
-                        ? "bg-red-400/10 border-red-400/30 text-red-400"
-                        : "border-[#232a3b] text-gray-400 hover:bg-[#232a3b]"
+                        ? "bg-liv-danger/10 border-liv-danger/30 text-liv-danger"
+                        : "border-liv-line text-liv-muted hover:bg-liv-surface-2"
                     }`}
                   >
                     Nao
@@ -759,7 +761,7 @@ export default function RegistrosSDRPage() {
             <div>
               <label className={labelClass}>Documento / Conta de Luz (máx 15MB)</label>
               <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-[#232a3b] bg-[#141820] text-gray-400 hover:border-sky-400/50 hover:text-sky-400 cursor-pointer transition text-sm">
+                <label className="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-dashed border-liv-line bg-liv-surface-2 text-liv-muted hover:border-liv-sage/50 hover:text-liv-sage cursor-pointer transition text-sm">
                   <Paperclip className="w-4 h-4" />
                   {imagemNome ? imagemNome : "Anexar arquivo"}
                   <input
@@ -774,39 +776,39 @@ export default function RegistrosSDRPage() {
                   <button
                     type="button"
                     onClick={() => { setImagemBase64(null); setImagemNome(""); if (fileInputRef.current) fileInputRef.current.value = ""; }}
-                    className="text-red-400 hover:text-red-300 text-xs flex items-center gap-1"
+                    className="text-liv-danger hover:opacity-80 text-xs flex items-center gap-1"
                   >
                     <X className="w-3.5 h-3.5" /> Remover
                   </button>
                 )}
               </div>
               {imagemBase64 && imagemBase64.startsWith("data:image") && (
-                <img src={imagemBase64} alt="preview" className="mt-2 max-h-32 rounded-lg border border-[#232a3b] object-contain" />
+                <img src={imagemBase64} alt="preview" className="mt-2 max-h-32 rounded-lg border border-liv-line object-contain" />
               )}
             </div>
 
             {compareceu && (
-              <div className="bg-sky-400/10 border border-sky-400/20 rounded-lg px-4 py-3">
-                <p className="text-sm text-sky-400">
+              <div className="bg-liv-sage/10 border border-liv-sage/20 rounded-lg px-4 py-3">
+                <p className="text-sm text-liv-sage">
                   Comissao por reuniao comparecida: <strong>R$ 20,00</strong>
                 </p>
               </div>
             )}
 
             {formErro && (
-              <div className="bg-red-400/10 text-red-400 px-4 py-3 rounded-lg text-sm">{formErro}</div>
+              <div className="bg-liv-danger/10 text-liv-danger px-4 py-3 rounded-lg text-sm">{formErro}</div>
             )}
             {formSucesso && (
-              <div className="bg-sky-400/10 text-sky-400 px-4 py-3 rounded-lg text-sm">Registro criado com sucesso!</div>
+              <div className="bg-liv-sage/10 text-liv-sage px-4 py-3 rounded-lg text-sm">Registro criado com sucesso!</div>
             )}
 
             <button
               type="submit"
               disabled={formLoading || formSucesso}
-              className="w-full bg-sky-400 text-gray-900 py-3 rounded-lg font-semibold hover:bg-sky-300 transition disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full bg-liv-sage text-liv-bg py-3 rounded-lg font-semibold hover:bg-liv-sage-deep transition disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {formLoading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-liv-bg"></div>
               ) : (
                 <>
                   <Save className="w-4 h-4" />
@@ -820,25 +822,25 @@ export default function RegistrosSDRPage() {
 
       {/* Resumo */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-[#1a1f2e] rounded-xl p-4 shadow-sm border border-[#232a3b]">
-          <p className="text-xs text-gray-500">Total</p>
-          <p className="text-lg font-bold text-gray-100 mt-0.5">{registros.length}</p>
+        <div className="bg-liv-surface rounded-xl p-4 border border-liv-line">
+          <p className="text-xs text-liv-faint">Total</p>
+          <p className="text-lg font-bold tabular-nums text-liv-ink mt-0.5">{registros.length}</p>
         </div>
-        <div className="bg-[#1a1f2e] rounded-xl p-4 shadow-sm border border-[#232a3b]">
-          <p className="text-xs text-gray-500">Compareceram</p>
-          <p className="text-lg font-bold text-sky-400 mt-0.5">
+        <div className="bg-liv-surface rounded-xl p-4 border border-liv-line">
+          <p className="text-xs text-liv-faint">Compareceram</p>
+          <p className="text-lg font-bold tabular-nums text-liv-info mt-0.5">
             {registros.filter((r) => r.compareceu).length}
           </p>
         </div>
-        <div className="bg-[#1a1f2e] rounded-xl p-4 shadow-sm border border-[#232a3b]">
-          <p className="text-xs text-gray-500">Venderam</p>
-          <p className="text-lg font-bold text-emerald-400 mt-0.5">
+        <div className="bg-liv-surface rounded-xl p-4 border border-liv-line">
+          <p className="text-xs text-liv-faint">Venderam</p>
+          <p className="text-lg font-bold tabular-nums text-liv-sage mt-0.5">
             {registros.filter((r) => r.statusLead === "VENDIDO").length}
           </p>
         </div>
-        <div className="bg-[#1a1f2e] rounded-xl p-4 shadow-sm border border-[#232a3b]">
-          <p className="text-xs text-gray-500">Comissao</p>
-          <p className="text-lg font-bold text-sky-400 mt-0.5">
+        <div className="bg-liv-surface rounded-xl p-4 border border-liv-line">
+          <p className="text-xs text-liv-faint">Comissao</p>
+          <p className="text-lg font-bold tabular-nums text-liv-sage mt-0.5">
             {formatCurrency(registros.reduce((s, r) => s + r.comissaoTotal, 0))}
           </p>
         </div>
@@ -847,15 +849,15 @@ export default function RegistrosSDRPage() {
       {/* KANBAN */}
       {loading ? (
         <div className="flex items-center justify-center h-32">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-400"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-liv-sage"></div>
         </div>
       ) : registros.length === 0 ? (
-        <div className="bg-[#1a1f2e] rounded-xl p-12 shadow-sm border border-[#232a3b] text-center">
-          <ClipboardList className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-100 mb-2">Nenhum registro neste mes</h3>
+        <div className="bg-liv-surface rounded-xl p-12 border border-liv-line text-center">
+          <ClipboardList className="w-12 h-12 text-liv-faint mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-liv-ink mb-2">Nenhum registro neste mes</h3>
           <button
             onClick={() => setFormAberto(true)}
-            className="inline-flex items-center gap-2 bg-sky-400 text-gray-900 px-6 py-3 rounded-lg font-medium hover:bg-sky-300 transition"
+            className="inline-flex items-center gap-2 bg-liv-sage text-liv-bg px-6 py-3 rounded-lg font-medium hover:bg-liv-sage-deep transition"
           >
             <Plus className="w-4 h-4" />
             Novo Registro
@@ -876,7 +878,7 @@ export default function RegistrosSDRPage() {
                       <span className={cfg.text}>{cfg.icon}</span>
                       <div>
                         <h3 className={`font-semibold text-sm ${cfg.text}`}>{coluna.label}</h3>
-                        <p className="text-[11px] text-gray-500">{coluna.sublabel}</p>
+                        <p className="text-[11px] text-liv-faint">{coluna.sublabel}</p>
                       </div>
                     </div>
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${cfg.count}`}>
@@ -888,8 +890,8 @@ export default function RegistrosSDRPage() {
                 {/* Cards da coluna */}
                 <div className="space-y-2">
                   {regs.length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-[#232a3b] p-6 text-center">
-                      <p className="text-xs text-gray-600">Nenhum lead</p>
+                    <div className="rounded-lg border border-dashed border-liv-line p-6 text-center">
+                      <p className="text-xs text-liv-faint">Nenhum lead</p>
                     </div>
                   ) : (
                     regs.map((r) => {
@@ -900,8 +902,8 @@ export default function RegistrosSDRPage() {
                       return (
                         <div
                           key={r.id}
-                          className={`bg-[#1a1f2e] rounded-lg border overflow-hidden transition-all ${
-                            isEditing ? "border-sky-400/40" : "border-[#232a3b] hover:border-[#3a4255]"
+                          className={`bg-liv-surface rounded-lg border overflow-hidden transition-all ${
+                            isEditing ? "border-liv-sage/40" : "border-liv-line hover:border-liv-line/80"
                           }`}
                         >
                           {/* Card content — VIEW */}
@@ -914,17 +916,17 @@ export default function RegistrosSDRPage() {
                               <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-1.5">
-                                    <h4 className="font-medium text-sm text-gray-100 truncate">{r.nomeCliente}</h4>
-                                    {r.imagemUrl && <Paperclip className="w-3 h-3 text-gray-500 flex-shrink-0" />}
+                                    <h4 className="font-medium text-sm text-liv-ink truncate">{r.nomeCliente}</h4>
+                                    {r.imagemUrl && <Paperclip className="w-3 h-3 text-liv-faint flex-shrink-0" />}
                                   </div>
-                                  <p className="text-[11px] text-gray-500 mt-0.5">
+                                  <p className="text-[11px] text-liv-faint mt-0.5">
                                     {r.vendedora.nome} · {new Date(r.dataReuniao + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
                                   </p>
                                 </div>
                                 <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
                                   <button
                                     onClick={(e) => iniciarEdicao(r, e)}
-                                    className="text-gray-600 hover:text-sky-400 transition p-1 rounded hover:bg-sky-400/10"
+                                    className="text-liv-faint hover:text-liv-sage transition p-1 rounded hover:bg-liv-sage/10"
                                     title="Editar"
                                   >
                                     <Pencil className="w-3.5 h-3.5" />
@@ -932,7 +934,7 @@ export default function RegistrosSDRPage() {
                                   {!temVinculo && r.statusLead !== "FINALIZADO" && (
                                     <button
                                       onClick={(e) => { e.stopPropagation(); excluirRegistro(r.id, e); }}
-                                      className="text-gray-600 hover:text-red-400 transition p-1 rounded hover:bg-red-400/10"
+                                      className="text-liv-faint hover:text-liv-danger transition p-1 rounded hover:bg-liv-danger/10"
                                       title="Excluir"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
@@ -944,23 +946,23 @@ export default function RegistrosSDRPage() {
                               {/* Badges */}
                               <div className="flex items-center gap-1.5 flex-wrap">
                                 {isVendido && (
-                                  <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/15 text-emerald-400 font-medium">
+                                  <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-liv-sage/14 text-liv-sage font-medium">
                                     <ShoppingCart className="w-2.5 h-2.5" />
                                     Vendeu
                                   </span>
                                 )}
                                 {!r.compareceu && r.motivoNaoCompareceu && (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-400/10 text-red-400 font-medium">
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-liv-danger/10 text-liv-danger font-medium">
                                     {r.motivoNaoCompareceu}
                                   </span>
                                 )}
                                 {r.statusLead === "FINALIZADO" && r.motivoFinalizacao && (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-500/15 text-gray-400 font-medium">
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-liv-faint/12 text-liv-muted font-medium">
                                     {r.motivoFinalizacao}
                                   </span>
                                 )}
                                 {r.comissaoTotal > 0 && (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-400/10 text-sky-400 font-medium ml-auto">
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-liv-sage/10 text-liv-sage font-medium tabular-nums ml-auto">
                                     {formatCurrency(r.comissaoTotal)}
                                   </span>
                                 )}
@@ -968,7 +970,7 @@ export default function RegistrosSDRPage() {
 
                               {/* Considerações */}
                               {r.consideracoes && (
-                                <p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2">
+                                <p className="text-[11px] text-liv-faint leading-relaxed line-clamp-2">
                                   {r.consideracoes}
                                 </p>
                               )}
@@ -978,14 +980,14 @@ export default function RegistrosSDRPage() {
                                 <div className="flex gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
                                   <button
                                     onClick={() => marcarCompareceu(r.id)}
-                                    className="flex-1 text-[11px] py-1.5 rounded-lg bg-sky-400/10 text-sky-400 font-medium hover:bg-sky-400/20 transition flex items-center justify-center gap-1"
+                                    className="flex-1 text-[11px] py-1.5 rounded-lg bg-liv-sage/10 text-liv-sage font-medium hover:bg-liv-sage/20 transition flex items-center justify-center gap-1"
                                   >
                                     <CheckCircle className="w-3 h-3" />
                                     Compareceu
                                   </button>
                                   <button
                                     onClick={() => { setFinalizandoId(r.id); }}
-                                    className="text-[11px] px-3 py-1.5 rounded-lg bg-gray-500/10 text-gray-400 font-medium hover:bg-gray-500/20 transition"
+                                    className="text-[11px] px-3 py-1.5 rounded-lg bg-liv-faint/10 text-liv-muted font-medium hover:bg-liv-faint/20 transition"
                                   >
                                     <Ban className="w-3 h-3" />
                                   </button>
@@ -995,7 +997,7 @@ export default function RegistrosSDRPage() {
                                 <div className="flex gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
                                   <button
                                     onClick={() => { setFinalizandoId(r.id); }}
-                                    className="flex-1 text-[11px] py-1.5 rounded-lg bg-gray-500/10 text-gray-400 font-medium hover:bg-gray-500/20 transition flex items-center justify-center gap-1"
+                                    className="flex-1 text-[11px] py-1.5 rounded-lg bg-liv-faint/10 text-liv-muted font-medium hover:bg-liv-faint/20 transition flex items-center justify-center gap-1"
                                   >
                                     <Ban className="w-3 h-3" />
                                     Finalizar
@@ -1009,21 +1011,21 @@ export default function RegistrosSDRPage() {
                           {isEditing && (
                             <div className="p-3.5 space-y-3" onClick={(e) => e.stopPropagation()}>
                               <div className="flex items-center justify-between">
-                                <h4 className="font-medium text-sm text-gray-100">{r.nomeCliente}</h4>
-                                <button onClick={(e) => cancelarEdicao(e)} className="text-gray-500 hover:text-gray-400 p-1">
+                                <h4 className="font-medium text-sm text-liv-ink">{r.nomeCliente}</h4>
+                                <button onClick={(e) => cancelarEdicao(e)} className="text-liv-faint hover:text-liv-ink p-1">
                                   <X className="w-4 h-4" />
                                 </button>
                               </div>
 
                               {temVinculo && (
-                                <div className="flex items-center gap-2 text-[11px] text-amber-400 bg-amber-400/10 rounded-lg px-2.5 py-1.5 border border-amber-400/20">
+                                <div className="flex items-center gap-2 text-[11px] text-liv-gold bg-liv-gold/10 rounded-lg px-2.5 py-1.5 border border-liv-gold/20">
                                   <Lock className="w-3 h-3" />
                                   Vinculada — somente consideracoes editaveis
                                 </div>
                               )}
 
                               <div>
-                                <label className="block text-[11px] font-medium text-gray-500 mb-1">Data da Reuniao</label>
+                                <label className="block text-[11px] font-medium text-liv-faint mb-1">Data da Reuniao</label>
                                 <input
                                   type="date"
                                   value={editData.dataReuniao}
@@ -1034,15 +1036,15 @@ export default function RegistrosSDRPage() {
                               </div>
 
                               <div>
-                                <label className="block text-[11px] font-medium text-gray-500 mb-1">Compareceu?</label>
+                                <label className="block text-[11px] font-medium text-liv-faint mb-1">Compareceu?</label>
                                 <div className="flex gap-2">
                                   <button
                                     type="button"
                                     onClick={() => !temVinculo && setEditData({ ...editData, compareceu: true, motivoNaoCompareceu: "", statusLead: "COMPARECEU" })}
                                     className={`flex-1 py-2 rounded-lg text-xs font-medium transition border ${
                                       editData.compareceu
-                                        ? "bg-sky-400/10 border-sky-400/30 text-sky-400"
-                                        : "border-[#232a3b] text-gray-400 hover:bg-[#232a3b]"
+                                        ? "bg-liv-sage/10 border-liv-sage/30 text-liv-sage"
+                                        : "border-liv-line text-liv-muted hover:bg-liv-surface-2"
                                     } ${temVinculo ? "opacity-50 cursor-not-allowed" : ""}`}
                                     disabled={temVinculo}
                                   >
@@ -1053,8 +1055,8 @@ export default function RegistrosSDRPage() {
                                     onClick={() => !temVinculo && setEditData({ ...editData, compareceu: false, statusLead: "AGENDADO" })}
                                     className={`flex-1 py-2 rounded-lg text-xs font-medium transition border ${
                                       !editData.compareceu
-                                        ? "bg-red-400/10 border-red-400/30 text-red-400"
-                                        : "border-[#232a3b] text-gray-400 hover:bg-[#232a3b]"
+                                        ? "bg-liv-danger/10 border-liv-danger/30 text-liv-danger"
+                                        : "border-liv-line text-liv-muted hover:bg-liv-surface-2"
                                     } ${temVinculo ? "opacity-50 cursor-not-allowed" : ""}`}
                                     disabled={temVinculo}
                                   >
@@ -1065,7 +1067,7 @@ export default function RegistrosSDRPage() {
 
                               {!editData.compareceu && !temVinculo && (
                                 <div>
-                                  <label className="block text-[11px] font-medium text-gray-500 mb-1">Motivo</label>
+                                  <label className="block text-[11px] font-medium text-liv-faint mb-1">Motivo</label>
                                   <select
                                     value={editData.motivoNaoCompareceu}
                                     onChange={(e) => setEditData({ ...editData, motivoNaoCompareceu: e.target.value })}
@@ -1080,7 +1082,7 @@ export default function RegistrosSDRPage() {
                               )}
 
                               <div>
-                                <label className="block text-[11px] font-medium text-gray-500 mb-1">Consideracoes</label>
+                                <label className="block text-[11px] font-medium text-liv-faint mb-1">Consideracoes</label>
                                 <textarea
                                   value={editData.consideracoes}
                                   onChange={(e) => setEditData({ ...editData, consideracoes: e.target.value })}
@@ -1092,14 +1094,14 @@ export default function RegistrosSDRPage() {
                               <div className="flex gap-2">
                                 <button
                                   onClick={(e) => cancelarEdicao(e)}
-                                  className="flex-1 px-3 py-2 rounded-lg border border-[#232a3b] text-gray-400 font-medium hover:bg-[#232a3b] transition text-xs"
+                                  className="flex-1 px-3 py-2 rounded-lg border border-liv-line text-liv-muted font-medium hover:bg-liv-surface-2 transition text-xs"
                                 >
                                   Cancelar
                                 </button>
                                 <button
                                   onClick={() => salvarEdicao(r.id, temVinculo)}
                                   disabled={editLoading}
-                                  className="flex-1 px-3 py-2 rounded-lg bg-sky-400 text-gray-900 font-medium hover:bg-sky-300 transition text-xs disabled:opacity-50 flex items-center justify-center gap-1"
+                                  className="flex-1 px-3 py-2 rounded-lg bg-liv-sage text-liv-bg font-medium hover:bg-liv-sage-deep transition text-xs disabled:opacity-50 flex items-center justify-center gap-1"
                                 >
                                   {editLoading ? "..." : <><Save className="w-3 h-3" /> Salvar</>}
                                 </button>
