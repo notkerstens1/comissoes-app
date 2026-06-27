@@ -25,12 +25,13 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { isAdmin as checkAdmin } from "@/lib/roles";
+import { PageHeader } from "@/components/ui/page-header";
 
 const ESTAGIOS = [
-  { key: "REUNIAO", label: "Reuniao", cor: "bg-sky-400/10 text-sky-400" },
-  { key: "PROPOSTA", label: "Proposta", cor: "bg-amber-400/10 text-amber-400" },
-  { key: "NEGOCIACAO", label: "Negociacao", cor: "bg-orange-400/10 text-orange-400" },
-  { key: "FECHADA", label: "Fechada", cor: "bg-emerald-400/10 text-emerald-400" },
+  { key: "REUNIAO", label: "Reuniao", cor: "bg-liv-info/12 text-liv-info" },
+  { key: "PROPOSTA", label: "Proposta", cor: "bg-liv-gold/12 text-liv-gold" },
+  { key: "NEGOCIACAO", label: "Negociacao", cor: "bg-liv-orange/12 text-liv-orange" },
+  { key: "FECHADA", label: "Fechada", cor: "bg-liv-sage/12 text-liv-sage" },
 ];
 
 const MOTIVOS_FINALIZACAO = [
@@ -257,9 +258,9 @@ export default function OportunidadesPage() {
   };
 
   const getDiasBadge = (dias: number) => {
-    if (dias >= 5) return "bg-red-400/10 text-red-400";
-    if (dias >= 3) return "bg-amber-400/10 text-amber-400";
-    return "bg-lime-400/10 text-lime-400";
+    if (dias >= 5) return "bg-liv-danger/12 text-liv-danger";
+    if (dias >= 3) return "bg-liv-gold/12 text-liv-gold";
+    return "bg-liv-sage/12 text-liv-sage";
   };
 
   // Edicao
@@ -482,7 +483,7 @@ export default function OportunidadesPage() {
   }
 
   function getEstagioStyle(key: string) {
-    return ESTAGIOS.find((e) => e.key === key)?.cor ?? "bg-gray-400/10 text-gray-400";
+    return ESTAGIOS.find((e) => e.key === key)?.cor ?? "bg-liv-faint/12 text-liv-faint";
   }
   function getEstagioLabel(key: string) {
     return ESTAGIOS.find((e) => e.key === key)?.label ?? key;
@@ -507,15 +508,15 @@ export default function OportunidadesPage() {
           {/* Modal de Descarte */}
           {descartando && (
             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-              <div className="bg-[#1a1f2e] rounded-2xl max-w-sm w-full shadow-lg">
-                <div className="p-5 border-b border-[#232a3b]">
-                  <h3 className="font-bold text-gray-100">Descartar Lead</h3>
+              <div className="bg-liv-surface rounded-2xl max-w-sm w-full shadow-lg border border-liv-line">
+                <div className="p-5 border-b border-liv-line">
+                  <h3 className="font-bold text-liv-ink">Descartar Lead</h3>
                 </div>
                 <div className="p-5 space-y-4">
                   <select
                     value={motivoDescarte}
                     onChange={(e) => setMotivoDescarte(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                    className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:border-liv-sage outline-none"
                   >
                     <option value="">Selecione o motivo...</option>
                     {MOTIVOS_FINALIZACAO.map((m) => (
@@ -523,13 +524,13 @@ export default function OportunidadesPage() {
                     ))}
                   </select>
                 </div>
-                <div className="p-5 border-t border-[#232a3b] flex gap-3">
+                <div className="p-5 border-t border-liv-line flex gap-3">
                   <button onClick={() => { setDescartando(null); setMotivoDescarte(""); }}
-                    className="flex-1 px-4 py-2 rounded-lg border border-[#232a3b] text-gray-400 hover:bg-[#232a3b] transition text-sm">
+                    className="flex-1 px-4 py-2 rounded-lg border border-liv-line text-liv-muted hover:bg-liv-surface-2 transition text-sm">
                     Cancelar
                   </button>
                   <button onClick={descartarLead} disabled={!motivoDescarte || saving}
-                    className="flex-1 px-4 py-2 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition disabled:opacity-50">
+                    className="flex-1 px-4 py-2 rounded-lg bg-liv-danger text-liv-bg text-sm font-medium hover:opacity-90 transition disabled:opacity-50">
                     Descartar
                   </button>
                 </div>
@@ -540,82 +541,82 @@ export default function OportunidadesPage() {
           {/* Modal de Nova Oportunidade (auto-prospeccao do vendedor) */}
           {novaOportunidade && (
             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-              <div className="bg-[#1a1f2e] rounded-2xl max-w-md w-full shadow-lg">
-                <div className="p-5 border-b border-[#232a3b]">
-                  <h3 className="font-bold text-gray-100 flex items-center gap-2">
-                    <Target className="w-5 h-5 text-lime-400" />
+              <div className="bg-liv-surface rounded-2xl max-w-md w-full shadow-lg border border-liv-line">
+                <div className="p-5 border-b border-liv-line">
+                  <h3 className="font-bold text-liv-ink flex items-center gap-2">
+                    <Target className="w-5 h-5 text-liv-sage" />
                     Nova Oportunidade
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-liv-faint mt-1">
                     Cliente que voce mesmo prospectou e agendou. Entra no seu pipeline e
                     conta na sua eficiencia.
                   </p>
                 </div>
                 <div className="p-5 space-y-4">
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">Nome do Cliente *</label>
+                    <label className="block text-xs font-medium text-liv-muted mb-1">Nome do Cliente *</label>
                     <input
                       type="text"
                       value={novaForm.nomeCliente}
                       onChange={(e) => setNovaForm({ ...novaForm, nomeCliente: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                      className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:border-liv-sage outline-none"
                       placeholder="Nome completo do cliente"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">Telefone (WhatsApp) *</label>
+                    <label className="block text-xs font-medium text-liv-muted mb-1">Telefone (WhatsApp) *</label>
                     <input
                       type="tel"
                       value={novaForm.telefone}
                       onChange={(e) => setNovaForm({ ...novaForm, telefone: e.target.value })}
-                      className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                      className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:border-liv-sage outline-none"
                       placeholder="(84) 9 9999-9999"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Data do Agendamento *</label>
+                      <label className="block text-xs font-medium text-liv-muted mb-1">Data do Agendamento *</label>
                       <input
                         type="date"
                         value={novaForm.dataReuniao}
                         onChange={(e) => setNovaForm({ ...novaForm, dataReuniao: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                        className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:border-liv-sage outline-none"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Valor Estimado (R$)</label>
+                      <label className="block text-xs font-medium text-liv-muted mb-1">Valor Estimado (R$)</label>
                       <input
                         type="number"
                         value={novaForm.valorForecast}
                         onChange={(e) => setNovaForm({ ...novaForm, valorForecast: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                        className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:border-liv-sage outline-none"
                         placeholder="Ex: 45000"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">Observacoes</label>
+                    <label className="block text-xs font-medium text-liv-muted mb-1">Observacoes</label>
                     <textarea
                       value={novaForm.consideracoes}
                       onChange={(e) => setNovaForm({ ...novaForm, consideracoes: e.target.value })}
                       rows={3}
-                      className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm resize-none"
+                      className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm resize-none focus:border-liv-sage outline-none"
                       placeholder="Contexto do contato, qualificacao, proximo passo..."
                     />
                   </div>
                   {erroNova && (
-                    <div className="bg-red-400/10 text-red-400 px-4 py-2 rounded-lg text-sm">{erroNova}</div>
+                    <div className="bg-liv-danger/10 text-liv-danger px-4 py-2 rounded-lg text-sm">{erroNova}</div>
                   )}
                 </div>
-                <div className="p-5 border-t border-[#232a3b] flex gap-3">
+                <div className="p-5 border-t border-liv-line flex gap-3">
                   <button onClick={() => { setNovaOportunidade(false); setErroNova(""); }}
-                    className="flex-1 px-4 py-2 rounded-lg border border-[#232a3b] text-gray-400 hover:bg-[#232a3b] transition text-sm">
+                    className="flex-1 px-4 py-2 rounded-lg border border-liv-line text-liv-muted hover:bg-liv-surface-2 transition text-sm">
                     Cancelar
                   </button>
                   <button onClick={criarNovaOportunidade} disabled={salvandoNova}
-                    className="flex-1 px-4 py-2 rounded-lg bg-lime-400 text-gray-900 text-sm font-medium hover:bg-lime-500 transition disabled:opacity-50 flex items-center justify-center gap-2">
+                    className="flex-1 px-4 py-2 rounded-lg bg-liv-sage text-liv-bg text-sm font-medium hover:bg-liv-sage-deep transition disabled:opacity-50 flex items-center justify-center gap-2">
                     {salvandoNova ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900" />
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-liv-bg" />
                     ) : (
                       <><Plus className="w-4 h-4" /> Criar Oportunidade</>
                     )}
@@ -628,37 +629,37 @@ export default function OportunidadesPage() {
           {/* Modal de Fechar Venda */}
           {fechandoVenda && (
             <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-              <div className="bg-[#1a1f2e] rounded-2xl max-w-lg w-full shadow-lg max-h-[90vh] overflow-y-auto">
-                <div className="p-5 border-b border-[#232a3b]">
-                  <h3 className="font-bold text-gray-100 flex items-center gap-2">
-                    <ShoppingCart className="w-5 h-5 text-lime-400" />
+              <div className="bg-liv-surface rounded-2xl max-w-lg w-full shadow-lg border border-liv-line max-h-[90vh] overflow-y-auto">
+                <div className="p-5 border-b border-liv-line">
+                  <h3 className="font-bold text-liv-ink flex items-center gap-2">
+                    <ShoppingCart className="w-5 h-5 text-liv-sage" />
                     Fechar Venda — {fechandoVenda.nomeCliente}
                   </h3>
                 </div>
                 <div className="p-5 space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Valor da Venda (R$) *</label>
+                      <label className="block text-xs font-medium text-liv-muted mb-1">Valor da Venda (R$) *</label>
                       <input type="number" value={vendaForm.valorVenda}
                         onChange={(e) => setVendaForm({ ...vendaForm, valorVenda: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                        className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:border-liv-sage outline-none"
                         placeholder="Ex: 45000" required />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Custo Equipamentos (R$) *</label>
+                      <label className="block text-xs font-medium text-liv-muted mb-1">Custo Equipamentos (R$) *</label>
                       <input type="number" value={vendaForm.custoEquipamentos}
                         onChange={(e) => setVendaForm({ ...vendaForm, custoEquipamentos: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                        className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:border-liv-sage outline-none"
                         placeholder="Ex: 25000" required />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Forma de Pagamento</label>
+                      <label className="block text-xs font-medium text-liv-muted mb-1">Forma de Pagamento</label>
                       <select value={vendaForm.formaPagamento}
                         onChange={(e) => setVendaForm({ ...vendaForm, formaPagamento: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm">
+                        className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:border-liv-sage outline-none">
                         <option value="">Selecione...</option>
                         <option value="SANTANDER">Santander</option>
                         <option value="BV">BV</option>
@@ -669,10 +670,10 @@ export default function OportunidadesPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Distribuidora</label>
+                      <label className="block text-xs font-medium text-liv-muted mb-1">Distribuidora</label>
                       <select value={vendaForm.distribuidora}
                         onChange={(e) => setVendaForm({ ...vendaForm, distribuidora: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm">
+                        className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:border-liv-sage outline-none">
                         <option value="">Selecione...</option>
                         <option value="BELENERGY">Belenergy</option>
                         <option value="SOLFACIL">Solfacil</option>
@@ -685,24 +686,24 @@ export default function OportunidadesPage() {
 
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">kWp</label>
+                      <label className="block text-xs font-medium text-liv-muted mb-1">kWp</label>
                       <input type="number" step="0.01" value={vendaForm.kwp}
                         onChange={(e) => setVendaForm({ ...vendaForm, kwp: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                        className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:border-liv-sage outline-none"
                         placeholder="5.40" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Qtd. Placas</label>
+                      <label className="block text-xs font-medium text-liv-muted mb-1">Qtd. Placas</label>
                       <input type="number" value={vendaForm.quantidadePlacas}
                         onChange={(e) => setVendaForm({ ...vendaForm, quantidadePlacas: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                        className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:border-liv-sage outline-none"
                         placeholder="8" />
                     </div>
                     <div>
-                      <label className="block text-xs font-medium text-gray-400 mb-1">Fonte</label>
+                      <label className="block text-xs font-medium text-liv-muted mb-1">Fonte</label>
                       <select value={vendaForm.fonte}
                         onChange={(e) => setVendaForm({ ...vendaForm, fonte: e.target.value })}
-                        className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 text-sm">
+                        className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:border-liv-sage outline-none">
                         <option value="">Selecione...</option>
                         <option value="TRAFEGO">Trafego</option>
                         <option value="INDICACAO">Indicacao</option>
@@ -713,9 +714,9 @@ export default function OportunidadesPage() {
 
                   {/* Origem da venda (apenas vendedor hibrido) */}
                   {isHibrido && (
-                    <div className="rounded-lg border border-[#B7C1AC]/40 bg-[#141820] p-3">
-                      <label className="block text-xs font-medium text-gray-300 mb-2">
-                        Origem da venda <span className="text-[#B7C1AC]">*</span>
+                    <div className="rounded-lg border border-liv-sage/40 bg-liv-surface-2 p-3">
+                      <label className="block text-xs font-medium text-liv-muted mb-2">
+                        Origem da venda <span className="text-liv-sage">*</span>
                       </label>
                       <div className="grid grid-cols-2 gap-2">
                         <button
@@ -723,12 +724,12 @@ export default function OportunidadesPage() {
                           onClick={() => setVendaForm({ ...vendaForm, tipoVenda: "INBOUND" })}
                           className={`px-3 py-2 rounded-lg text-sm font-medium transition border ${
                             vendaForm.tipoVenda === "INBOUND"
-                              ? "border-[#B7C1AC] bg-[#B7C1AC]/15 text-[#B7C1AC]"
-                              : "border-[#232a3b] bg-transparent text-gray-400 hover:text-gray-200"
+                              ? "border-liv-sage bg-liv-sage/15 text-liv-sage"
+                              : "border-liv-line bg-transparent text-liv-muted hover:text-liv-ink"
                           }`}
                         >
                           Inbound
-                          <span className="block text-[10px] font-normal text-gray-500 mt-0.5">
+                          <span className="block text-[10px] font-normal text-liv-faint mt-0.5">
                             Lead da empresa · over progressivo
                           </span>
                         </button>
@@ -737,12 +738,12 @@ export default function OportunidadesPage() {
                           onClick={() => setVendaForm({ ...vendaForm, tipoVenda: "EXTERNA" })}
                           className={`px-3 py-2 rounded-lg text-sm font-medium transition border ${
                             vendaForm.tipoVenda === "EXTERNA"
-                              ? "border-[#B7C1AC] bg-[#B7C1AC]/15 text-[#B7C1AC]"
-                              : "border-[#232a3b] bg-transparent text-gray-400 hover:text-gray-200"
+                              ? "border-liv-sage bg-liv-sage/15 text-liv-sage"
+                              : "border-liv-line bg-transparent text-liv-muted hover:text-liv-ink"
                           }`}
                         >
                           Externa
-                          <span className="block text-[10px] font-normal text-gray-500 mt-0.5">
+                          <span className="block text-[10px] font-normal text-liv-faint mt-0.5">
                             Captação própria · over 50% flat
                           </span>
                         </button>
@@ -754,53 +755,53 @@ export default function OportunidadesPage() {
                       aqui; vendedor nao mexe em cabos/bitola/cidade (Pedro
                       cuida disso em /tecnico/margem depois da venda). */}
                   {admin && (
-                  <div className="rounded-lg border border-teal-400/30 bg-teal-400/5 p-3 space-y-3">
+                  <div className="rounded-lg border border-liv-teal/30 bg-liv-teal/5 p-3 space-y-3">
                     <div className="flex items-center justify-between">
-                      <label className="block text-xs font-medium text-teal-300">
+                      <label className="block text-xs font-medium text-liv-teal">
                         Engenharia · ajuda Pedro a precificar instalacao
                       </label>
-                      <span className="text-[10px] text-gray-500">opcional, mas evita prejuizo</span>
+                      <span className="text-[10px] text-liv-faint">opcional, mas evita prejuizo</span>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       <div>
-                        <label className="block text-[10px] text-gray-400 mb-0.5">Metragem cabo (m/perna)</label>
+                        <label className="block text-[10px] text-liv-muted mb-0.5">Metragem cabo (m/perna)</label>
                         <input
                           type="number"
                           value={vendaForm.metragemCaboPrevista}
                           onChange={(e) => setVendaForm({ ...vendaForm, metragemCaboPrevista: e.target.value })}
                           placeholder="ex: 15"
-                          className="w-full px-2 py-1.5 rounded border border-[#232a3b] bg-[#141820] text-gray-100 text-sm focus:ring-1 focus:ring-teal-400 outline-none"
+                          className="w-full px-2 py-1.5 rounded border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:ring-1 focus:ring-liv-teal outline-none"
                         />
                       </div>
                       <div>
-                        <label className="block text-[10px] text-gray-400 mb-0.5">Bitola do cabo</label>
+                        <label className="block text-[10px] text-liv-muted mb-0.5">Bitola do cabo</label>
                         <select
                           value={vendaForm.bitolaCabo}
                           onChange={(e) => setVendaForm({ ...vendaForm, bitolaCabo: e.target.value as "6mm" | "10mm" })}
-                          className="w-full px-2 py-1.5 rounded border border-[#232a3b] bg-[#141820] text-gray-100 text-sm"
+                          className="w-full px-2 py-1.5 rounded border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:border-liv-sage outline-none"
                         >
                           <option value="6mm">6mm</option>
                           <option value="10mm">10mm</option>
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[10px] text-gray-400 mb-0.5">Cidade da instalacao</label>
+                        <label className="block text-[10px] text-liv-muted mb-0.5">Cidade da instalacao</label>
                         <input
                           type="text"
                           value={vendaForm.cidadeInstalacao}
                           onChange={(e) => setVendaForm({ ...vendaForm, cidadeInstalacao: e.target.value })}
                           placeholder="ex: Natal"
-                          className="w-full px-2 py-1.5 rounded border border-[#232a3b] bg-[#141820] text-gray-100 text-sm focus:ring-1 focus:ring-teal-400 outline-none"
+                          className="w-full px-2 py-1.5 rounded border border-liv-line bg-liv-surface-2 text-liv-ink text-sm focus:ring-1 focus:ring-liv-teal outline-none"
                         />
                       </div>
                       <div className="flex items-end">
-                        <label className="flex items-center gap-2 text-xs text-gray-300 cursor-pointer">
+                        <label className="flex items-center gap-2 text-xs text-liv-muted cursor-pointer">
                           <input
                             type="checkbox"
                             checked={vendaForm.inversorTrifasico}
                             onChange={(e) => setVendaForm({ ...vendaForm, inversorTrifasico: e.target.checked })}
-                            className="rounded border-[#232a3b]"
+                            className="rounded border-liv-line"
                           />
                           Inversor trifasico
                         </label>
@@ -809,7 +810,7 @@ export default function OportunidadesPage() {
 
                     {/* Avisos contextuais (Bloco 1.4) */}
                     {vendaForm.metragemCaboPrevista && parseInt(vendaForm.metragemCaboPrevista) > 20 && (
-                      <div className="text-xs bg-red-400/10 border border-red-400/30 rounded px-2 py-1.5 text-red-300">
+                      <div className="text-xs bg-liv-danger/10 border border-liv-danger/30 rounded px-2 py-1.5 text-liv-danger">
                         <AlertTriangle className="w-3 h-3 inline mr-1" />
                         Mais de 20m por perna. Negocie material extra com o cliente OU peça aprovação do diretor pra absorver.
                       </div>
@@ -817,18 +818,18 @@ export default function OportunidadesPage() {
                     {vendaForm.metragemCaboPrevista &&
                       parseInt(vendaForm.metragemCaboPrevista) > 15 &&
                       parseInt(vendaForm.metragemCaboPrevista) <= 20 && (
-                      <div className="text-xs bg-amber-400/10 border border-amber-400/30 rounded px-2 py-1.5 text-amber-300">
+                      <div className="text-xs bg-liv-gold/10 border border-liv-gold/30 rounded px-2 py-1.5 text-liv-gold">
                         Acima do padrao (15m), mas dentro da tolerancia (20m).
                       </div>
                     )}
                     {vendaForm.inversorTrifasico && (
-                      <div className="text-xs bg-blue-400/10 border border-blue-400/30 rounded px-2 py-1.5 text-blue-300">
+                      <div className="text-xs bg-liv-info/10 border border-liv-info/30 rounded px-2 py-1.5 text-liv-info">
                         Trifasico = 4 cabos por perna. Avise o Pedro antes de fechar pra ele preparar material.
                       </div>
                     )}
                     {vendaForm.cidadeInstalacao &&
                       !["natal", "parnamirim", "macaiba"].includes(vendaForm.cidadeInstalacao.trim().toLowerCase()) && (
-                      <div className="text-xs bg-purple-400/10 border border-purple-400/30 rounded px-2 py-1.5 text-purple-300">
+                      <div className="text-xs bg-liv-violet/10 border border-liv-violet/30 rounded px-2 py-1.5 text-liv-violet">
                         Cidade fora da regiao metropolitana. Deslocamento e material podem encarecer — confirme com Pedro.
                       </div>
                     )}
@@ -837,7 +838,7 @@ export default function OportunidadesPage() {
 
                   {/* Upload do Orcamento PDF */}
                   <div>
-                    <label className="block text-xs font-medium text-gray-400 mb-1">
+                    <label className="block text-xs font-medium text-liv-muted mb-1">
                       <Paperclip className="w-3 h-3 inline mr-1" />
                       Orcamento (PDF)
                     </label>
@@ -851,11 +852,11 @@ export default function OportunidadesPage() {
                       />
                       <label
                         htmlFor="orcamento-upload"
-                        className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg border border-dashed border-[#232a3b] bg-[#141820] text-gray-400 text-sm cursor-pointer hover:border-lime-400/50 hover:text-lime-400 transition"
+                        className="flex items-center gap-2 w-full px-3 py-2.5 rounded-lg border border-dashed border-liv-line bg-liv-surface-2 text-liv-muted text-sm cursor-pointer hover:border-liv-sage/50 hover:text-liv-sage transition"
                       >
                         <Upload className="w-4 h-4" />
                         {orcamentoNome ? (
-                          <span className="text-lime-400 truncate">{orcamentoNome}</span>
+                          <span className="text-liv-sage truncate">{orcamentoNome}</span>
                         ) : (
                           <span>Clique para anexar PDF do orcamento</span>
                         )}
@@ -864,28 +865,28 @@ export default function OportunidadesPage() {
                         <button
                           type="button"
                           onClick={() => { setOrcamentoPdf(null); setOrcamentoNome(""); }}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-red-400/10 text-gray-500 hover:text-red-400 transition"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-liv-danger/10 text-liv-faint hover:text-liv-danger transition"
                         >
                           <X className="w-3.5 h-3.5" />
                         </button>
                       )}
                     </div>
-                    <p className="text-[11px] text-gray-600 mt-1">Maximo 15MB. Visivel para financeiro, admin e diretoria.</p>
+                    <p className="text-[11px] text-liv-faint mt-1">Maximo 15MB. Visivel para financeiro, admin e diretoria.</p>
                   </div>
 
                   {erroVenda && (
-                    <div className="bg-red-400/10 text-red-400 px-4 py-2 rounded-lg text-sm">{erroVenda}</div>
+                    <div className="bg-liv-danger/10 text-liv-danger px-4 py-2 rounded-lg text-sm">{erroVenda}</div>
                   )}
                 </div>
-                <div className="p-5 border-t border-[#232a3b] flex gap-3">
+                <div className="p-5 border-t border-liv-line flex gap-3">
                   <button onClick={() => { setFechandoVenda(null); setErroVenda(""); setOrcamentoPdf(null); setOrcamentoNome(""); }}
-                    className="flex-1 px-4 py-2 rounded-lg border border-[#232a3b] text-gray-400 hover:bg-[#232a3b] transition text-sm">
+                    className="flex-1 px-4 py-2 rounded-lg border border-liv-line text-liv-muted hover:bg-liv-surface-2 transition text-sm">
                     Cancelar
                   </button>
                   <button onClick={fecharVenda} disabled={salvandoVenda}
-                    className="flex-1 px-4 py-2 rounded-lg bg-lime-400 text-gray-900 text-sm font-medium hover:bg-lime-500 transition disabled:opacity-50 flex items-center justify-center gap-2">
+                    className="flex-1 px-4 py-2 rounded-lg bg-liv-sage text-liv-bg text-sm font-medium hover:bg-liv-sage-deep transition disabled:opacity-50 flex items-center justify-center gap-2">
                     {salvandoVenda ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900" />
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-liv-bg" />
                     ) : (
                       <><ShoppingCart className="w-4 h-4" /> Criar Venda</>
                     )}
@@ -896,89 +897,85 @@ export default function OportunidadesPage() {
           )}
 
           {/* Header */}
-          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-100 flex items-center gap-2">
-                <Target className="w-6 h-6 text-lime-400" />
-                Oportunidades
-              </h1>
-              <p className="text-gray-400 text-sm mt-1">
-                {admin ? "Todas as oportunidades do time" : "Leads qualificados pelo SDR destinados a voce"}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-3">
-              {!admin && (
-                <button
-                  onClick={() => { setNovaOportunidade(true); setErroNova(""); }}
-                  className="px-4 py-2 rounded-lg bg-lime-400 text-gray-900 text-sm font-medium hover:bg-lime-500 transition flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Nova Oportunidade
-                </button>
-              )}
-              {admin && vendedores.length > 0 && (
-                <select
-                  value={vendedorFiltro}
-                  onChange={(e) => setVendedorFiltro(e.target.value)}
-                  className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
-                >
-                  <option value="">Todos os vendedores</option>
-                  {vendedores.map((v) => (
-                    <option key={v.id} value={v.id}>{v.nome}</option>
-                  ))}
-                </select>
-              )}
-              <div className="flex items-center gap-1 bg-[#141820] rounded-lg p-1">
-                <CalendarDays className="w-4 h-4 text-gray-500 ml-2" />
-                {([
-                  { key: "todos", label: "Todos" },
-                  { key: "esta_semana", label: "Semana" },
-                  { key: "semana_passada", label: "Sem. Ant." },
-                  { key: "este_mes", label: "Mês" },
-                  { key: "mes_passado", label: "Mês Ant." },
-                ] as { key: PeriodoFiltro; label: string }[]).map((p) => (
+          <PageHeader
+            eyebrow="Vendas · Pipeline"
+            title="Oportunidades"
+            subtitle={admin ? "Todas as oportunidades do time" : "Leads qualificados pelo SDR destinados a voce"}
+            actions={
+              <div className="flex flex-wrap items-center gap-3">
+                {!admin && (
                   <button
-                    key={p.key}
-                    onClick={() => setPeriodo(p.key)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
-                      periodo === p.key
-                        ? "bg-lime-400 text-gray-900"
-                        : "text-gray-400 hover:text-gray-200"
-                    }`}
+                    onClick={() => { setNovaOportunidade(true); setErroNova(""); }}
+                    className="px-4 py-2 rounded-lg bg-liv-sage text-liv-bg text-sm font-medium hover:bg-liv-sage-deep transition flex items-center gap-2"
                   >
-                    {p.label}
+                    <Plus className="w-4 h-4" />
+                    Nova Oportunidade
                   </button>
-                ))}
-              </div>
-              {tab === "pipeline" && (
-                <div className="flex items-center gap-1 bg-[#141820] rounded-lg p-1">
-                  <Target className="w-4 h-4 text-gray-500 ml-2" />
-                  {[
+                )}
+                {admin && vendedores.length > 0 && (
+                  <select
+                    value={vendedorFiltro}
+                    onChange={(e) => setVendedorFiltro(e.target.value)}
+                    className="px-3 py-2 rounded-lg border border-liv-line text-sm bg-liv-surface-2 text-liv-ink focus:border-liv-sage outline-none"
+                  >
+                    <option value="">Todos os vendedores</option>
+                    {vendedores.map((v) => (
+                      <option key={v.id} value={v.id}>{v.nome}</option>
+                    ))}
+                  </select>
+                )}
+                <div className="flex items-center gap-1 bg-liv-surface-2 rounded-lg p-1">
+                  <CalendarDays className="w-4 h-4 text-liv-faint ml-2" />
+                  {([
                     { key: "todos", label: "Todos" },
-                    ...ESTAGIOS.map((e) => ({ key: e.key, label: e.label })),
-                  ].map((e) => (
+                    { key: "esta_semana", label: "Semana" },
+                    { key: "semana_passada", label: "Sem. Ant." },
+                    { key: "este_mes", label: "Mês" },
+                    { key: "mes_passado", label: "Mês Ant." },
+                  ] as { key: PeriodoFiltro; label: string }[]).map((p) => (
                     <button
-                      key={e.key}
-                      onClick={() => setEstagioFiltro(e.key)}
+                      key={p.key}
+                      onClick={() => setPeriodo(p.key)}
                       className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
-                        estagioFiltro === e.key
-                          ? "bg-lime-400 text-gray-900"
-                          : "text-gray-400 hover:text-gray-200"
+                        periodo === p.key
+                          ? "bg-liv-sage text-liv-bg"
+                          : "text-liv-muted hover:text-liv-ink"
                       }`}
                     >
-                      {e.label}
+                      {p.label}
                     </button>
                   ))}
                 </div>
-              )}
-            </div>
-          </div>
+                {tab === "pipeline" && (
+                  <div className="flex items-center gap-1 bg-liv-surface-2 rounded-lg p-1">
+                    <Target className="w-4 h-4 text-liv-faint ml-2" />
+                    {[
+                      { key: "todos", label: "Todos" },
+                      ...ESTAGIOS.map((e) => ({ key: e.key, label: e.label })),
+                    ].map((e) => (
+                      <button
+                        key={e.key}
+                        onClick={() => setEstagioFiltro(e.key)}
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                          estagioFiltro === e.key
+                            ? "bg-liv-sage text-liv-bg"
+                            : "text-liv-muted hover:text-liv-ink"
+                        }`}
+                      >
+                        {e.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            }
+          />
 
           {/* Alerta 5+ dias */}
           {alertas5dias > 0 && tab === "pipeline" && (
-            <div className="bg-red-400/10 border border-red-400/20 rounded-xl p-4 mb-6 flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-red-400 flex-shrink-0" />
-              <p className="text-sm text-red-400">
+            <div className="bg-liv-danger/10 border border-liv-danger/20 rounded-xl p-4 flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 text-liv-danger flex-shrink-0" />
+              <p className="text-sm text-liv-danger">
                 <strong>{alertas5dias} oportunidade{alertas5dias > 1 ? "s" : ""}</strong> com 5+ dias sem engajamento
               </p>
             </div>
@@ -986,36 +983,36 @@ export default function OportunidadesPage() {
 
           {/* Cards resumo */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-[#1a1f2e] rounded-xl p-5">
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Oportunidades</p>
-              <p className="text-3xl font-bold text-lime-400 mt-2">{registrosFiltrados.length}</p>
-              <p className="text-xs text-gray-500 mt-1">
+            <div className="bg-liv-surface rounded-xl p-5 border border-liv-line">
+              <p className="text-xs text-liv-faint uppercase tracking-wider">Oportunidades</p>
+              <p className="text-3xl font-bold text-liv-sage mt-2 tabular-nums">{registrosFiltrados.length}</p>
+              <p className="text-xs text-liv-faint mt-1">
                 {tab === "pipeline" ? "abertas no momento" : "descartadas"}
                 {estagioFiltro !== "todos" && ` (${getEstagioLabel(estagioFiltro)})`}
               </p>
             </div>
-            <div className="bg-[#1a1f2e] rounded-xl p-5">
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Forecast Total</p>
-              <p className="text-3xl font-bold text-lime-400 mt-2">
+            <div className="bg-liv-surface rounded-xl p-5 border border-liv-line">
+              <p className="text-xs text-liv-faint uppercase tracking-wider">Forecast Total</p>
+              <p className="text-3xl font-bold text-liv-sage mt-2 tabular-nums">
                 {formatCurrency(registrosFiltrados.reduce((s, r) => s + (r.valorForecast ?? 0), 0))}
               </p>
-              <p className="text-xs text-gray-500 mt-1">soma dos valores estimados</p>
+              <p className="text-xs text-liv-faint mt-1">soma dos valores estimados</p>
             </div>
-            <div className="bg-[#1a1f2e] rounded-xl p-5">
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Forecast Ponderado</p>
-              <p className="text-3xl font-bold text-emerald-400 mt-2">
+            <div className="bg-liv-surface rounded-xl p-5 border border-liv-line">
+              <p className="text-xs text-liv-faint uppercase tracking-wider">Forecast Ponderado</p>
+              <p className="text-3xl font-bold text-liv-sage-deep mt-2 tabular-nums">
                 {formatCurrency(registrosFiltrados.reduce((s, r) => s + (r.valorForecast ?? 0) * (r.probabilidade / 100), 0))}
               </p>
-              <p className="text-xs text-gray-500 mt-1">valor x probabilidade</p>
+              <p className="text-xs text-liv-faint mt-1">valor x probabilidade</p>
             </div>
           </div>
 
           {/* Tabs */}
-          <div className="flex gap-1 bg-[#141820] rounded-lg p-1 w-fit">
+          <div className="flex gap-1 bg-liv-surface-2 rounded-lg p-1 w-fit">
             <button
               onClick={() => { setTab("pipeline"); setEstagioFiltro("todos"); }}
               className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                tab === "pipeline" ? "bg-lime-400 text-gray-900" : "text-gray-400 hover:text-gray-200"
+                tab === "pipeline" ? "bg-liv-sage text-liv-bg" : "text-liv-muted hover:text-liv-ink"
               }`}
             >
               Pipeline
@@ -1023,7 +1020,7 @@ export default function OportunidadesPage() {
             <button
               onClick={() => { setTab("descartados"); setEstagioFiltro("todos"); }}
               className={`px-4 py-2 rounded-md text-sm font-medium transition ${
-                tab === "descartados" ? "bg-gray-500 text-white" : "text-gray-400 hover:text-gray-200"
+                tab === "descartados" ? "bg-liv-surface text-liv-ink" : "text-liv-muted hover:text-liv-ink"
               }`}
             >
               Descartados
@@ -1031,11 +1028,11 @@ export default function OportunidadesPage() {
           </div>
 
           {/* Tabela */}
-          <div className="bg-[#1a1f2e] rounded-xl overflow-hidden">
+          <div className="bg-liv-surface rounded-xl overflow-hidden border border-liv-line">
             {loading ? (
-              <div className="p-12 text-center text-gray-500">Carregando...</div>
+              <div className="p-12 text-center text-liv-muted">Carregando...</div>
             ) : registrosFiltrados.length === 0 ? (
-              <div className="p-12 text-center text-gray-500">
+              <div className="p-12 text-center text-liv-muted">
                 <Target className="w-10 h-10 mx-auto mb-3 opacity-30" />
                 <p>
                   {estagioFiltro !== "todos"
@@ -1046,33 +1043,33 @@ export default function OportunidadesPage() {
             ) : (
               <table className="w-full text-xs table-fixed">
                 <thead>
-                  <tr className="border-b border-[#232a3b] bg-[#141820]">
+                  <tr className="border-b border-liv-line bg-liv-surface-2">
                     {admin ? (
                       <>
-                        <th className="text-left pl-3 pr-1 py-3 font-semibold text-gray-500 uppercase w-[18%]">Cliente</th>
-                        <th className="text-left px-1 py-3 font-semibold text-gray-500 uppercase w-[11%]">Vendedor</th>
-                        <th className="text-left px-1 py-3 font-semibold text-gray-500 uppercase w-[10%]">Reuniao</th>
-                        <th className="text-center px-1 py-3 font-semibold text-gray-500 uppercase w-[5%]">Dias</th>
-                        <th className="text-right px-1 py-3 font-semibold text-gray-500 uppercase w-[12%]">Forecast</th>
-                        <th className="text-center px-1 py-3 font-semibold text-gray-500 uppercase w-[11%]">Estagio</th>
-                        <th className="text-center px-1 py-3 font-semibold text-gray-500 uppercase w-[6%]">Prob.</th>
-                        <th className="text-left px-1 py-3 font-semibold text-gray-500 uppercase w-[11%]">
+                        <th className="text-left pl-3 pr-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[18%]">Cliente</th>
+                        <th className="text-left px-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[11%]">Vendedor</th>
+                        <th className="text-left px-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[10%]">Reuniao</th>
+                        <th className="text-center px-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[5%]">Dias</th>
+                        <th className="text-right px-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[12%]">Forecast</th>
+                        <th className="text-center px-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[11%]">Estagio</th>
+                        <th className="text-center px-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[6%]">Prob.</th>
+                        <th className="text-left px-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[11%]">
                           {tab === "descartados" ? "Motivo" : "Fecham."}
                         </th>
-                        <th className="text-center px-1 pr-3 py-3 font-semibold text-gray-500 uppercase w-[10%]">Acoes</th>
+                        <th className="text-center px-1 pr-3 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[10%]">Acoes</th>
                       </>
                     ) : (
                       <>
-                        <th className="text-left pl-3 pr-1 py-3 font-semibold text-gray-500 uppercase w-[22%]">Cliente</th>
-                        <th className="text-left px-1 py-3 font-semibold text-gray-500 uppercase w-[12%]">Reuniao</th>
-                        <th className="text-center px-1 py-3 font-semibold text-gray-500 uppercase w-[7%]">Dias</th>
-                        <th className="text-right px-1 py-3 font-semibold text-gray-500 uppercase w-[14%]">Forecast</th>
-                        <th className="text-center px-1 py-3 font-semibold text-gray-500 uppercase w-[12%]">Estagio</th>
-                        <th className="text-center px-1 py-3 font-semibold text-gray-500 uppercase w-[7%]">Prob.</th>
-                        <th className="text-left px-1 py-3 font-semibold text-gray-500 uppercase w-[13%]">
+                        <th className="text-left pl-3 pr-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[22%]">Cliente</th>
+                        <th className="text-left px-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[12%]">Reuniao</th>
+                        <th className="text-center px-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[7%]">Dias</th>
+                        <th className="text-right px-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[14%]">Forecast</th>
+                        <th className="text-center px-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[12%]">Estagio</th>
+                        <th className="text-center px-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[7%]">Prob.</th>
+                        <th className="text-left px-1 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[13%]">
                           {tab === "descartados" ? "Motivo" : "Fechamento"}
                         </th>
-                        <th className="text-center px-1 pr-3 py-3 font-semibold text-gray-500 uppercase w-[10%]">Acoes</th>
+                        <th className="text-center px-1 pr-3 py-3 font-bold text-[11px] uppercase tracking-[0.12em] text-liv-faint w-[10%]">Acoes</th>
                       </>
                     )}
                   </tr>
@@ -1085,31 +1082,31 @@ export default function OportunidadesPage() {
 
                     return (
                       <React.Fragment key={r.id}>
-                        <tr className={`border-b border-[#232a3b]/40 hover:bg-[#141820]/50 transition ${vencido ? "opacity-70" : ""}`}>
+                        <tr className={`border-b border-liv-line/40 hover:bg-liv-surface-2/50 transition ${vencido ? "opacity-70" : ""}`}>
                           <td className="pl-3 pr-1 py-3 overflow-hidden">
-                            <p className="font-medium text-gray-100 text-sm truncate">{r.nomeCliente}</p>
+                            <p className="font-medium text-liv-ink text-sm truncate">{r.nomeCliente}</p>
                             {r.origemRegistro === "VENDEDOR" ? (
-                              <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-lime-400/10 text-lime-400 font-medium">
+                              <span className="inline-flex items-center gap-1 mt-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-liv-sage/12 text-liv-sage font-medium">
                                 Prospecção própria
                               </span>
                             ) : (
-                              <p className="text-[11px] text-gray-500 mt-0.5 truncate">SDR: {r.sdr.nome}</p>
+                              <p className="text-[11px] text-liv-faint mt-0.5 truncate">SDR: {r.sdr.nome}</p>
                             )}
                           </td>
                           {admin && (
-                            <td className="px-1 py-3 text-gray-300 text-sm truncate overflow-hidden">{r.vendedora.nome}</td>
+                            <td className="px-1 py-3 text-liv-muted text-sm truncate overflow-hidden">{r.vendedora.nome}</td>
                           )}
-                          <td className="px-1 py-3 text-gray-300 text-sm">{formatDate(r.dataReuniao)}</td>
+                          <td className="px-1 py-3 text-liv-muted text-sm">{formatDate(r.dataReuniao)}</td>
                           <td className="px-1 py-3 text-center">
-                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${getDiasBadge(dias)}`}>
+                            <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold tabular-nums ${getDiasBadge(dias)}`}>
                               {dias}d
                             </span>
                           </td>
                           <td className="px-1 py-3 text-right">
                             {r.valorForecast != null && r.valorForecast > 0 ? (
-                              <span className="text-lime-400 font-semibold text-sm">{formatCurrency(r.valorForecast)}</span>
+                              <span className="text-liv-sage font-semibold text-sm tabular-nums">{formatCurrency(r.valorForecast)}</span>
                             ) : (
-                              <span className="text-gray-600">--</span>
+                              <span className="text-liv-faint">--</span>
                             )}
                           </td>
                           <td className="px-1 py-3 text-center">
@@ -1118,15 +1115,15 @@ export default function OportunidadesPage() {
                             </span>
                           </td>
                           <td className="px-1 py-3 text-center">
-                            <span className={`text-sm font-bold ${r.probabilidade >= 70 ? "text-emerald-400" : r.probabilidade >= 40 ? "text-amber-400" : "text-rose-400"}`}>
+                            <span className={`text-sm font-bold tabular-nums ${r.probabilidade >= 70 ? "text-liv-sage" : r.probabilidade >= 40 ? "text-liv-gold" : "text-liv-danger"}`}>
                               {r.probabilidade}%
                             </span>
                           </td>
                           <td className="px-1 py-3">
                             {tab === "descartados" ? (
-                              <span className="text-sm text-gray-400 truncate block">{r.motivoFinalizacao || "--"}</span>
+                              <span className="text-sm text-liv-muted truncate block">{r.motivoFinalizacao || "--"}</span>
                             ) : (
-                              <span className={`text-sm ${vencido ? "text-rose-400 font-medium" : "text-gray-300"}`}>
+                              <span className={`text-sm ${vencido ? "text-liv-danger font-medium" : "text-liv-muted"}`}>
                                 {formatDate(r.dataFechamentoEsperado)}
                               </span>
                             )}
@@ -1137,17 +1134,17 @@ export default function OportunidadesPage() {
                                 <>
                                   <button
                                     onClick={() => setDetailsId(detailsId === r.id ? null : r.id)}
-                                    className="p-1 rounded-lg hover:bg-sky-400/10 text-gray-500 hover:text-sky-400 transition relative"
+                                    className="p-1 rounded-lg hover:bg-liv-info/10 text-liv-faint hover:text-liv-info transition relative"
                                     title="Ver info SDR"
                                   >
                                     <Eye className="w-3.5 h-3.5" />
                                     {admin && r.notaAdmin && (
-                                      <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-400 rounded-full" />
+                                      <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-liv-gold rounded-full" />
                                     )}
                                   </button>
                                   <button
                                     onClick={() => isEditing ? setEditingId(null) : startEdit(r)}
-                                    className="p-1 rounded-lg hover:bg-[#232a3b] text-gray-500 hover:text-gray-100 transition"
+                                    className="p-1 rounded-lg hover:bg-liv-surface-2 text-liv-faint hover:text-liv-ink transition"
                                     title="Editar"
                                   >
                                     {isEditing ? <ChevronUp className="w-3.5 h-3.5" /> : <Pencil className="w-3.5 h-3.5" />}
@@ -1173,14 +1170,14 @@ export default function OportunidadesPage() {
                                         cidadeInstalacao: "",
                                       });
                                     }}
-                                    className="p-1 rounded-lg hover:bg-lime-400/10 text-gray-500 hover:text-lime-400 transition"
+                                    className="p-1 rounded-lg hover:bg-liv-sage/10 text-liv-faint hover:text-liv-sage transition"
                                     title="Fechar Venda"
                                   >
                                     <ShoppingCart className="w-3.5 h-3.5" />
                                   </button>
                                   <button
                                     onClick={() => setDescartando(r.id)}
-                                    className="p-1 rounded-lg hover:bg-red-400/10 text-gray-500 hover:text-red-400 transition"
+                                    className="p-1 rounded-lg hover:bg-liv-danger/10 text-liv-faint hover:text-liv-danger transition"
                                     title="Descartar"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -1191,7 +1188,7 @@ export default function OportunidadesPage() {
                                 <button
                                   onClick={() => reativarLead(r.id)}
                                   disabled={saving}
-                                  className="px-2 py-1 rounded-lg hover:bg-lime-400/10 text-gray-500 hover:text-lime-400 transition disabled:opacity-50 flex items-center gap-1 text-xs"
+                                  className="px-2 py-1 rounded-lg hover:bg-liv-sage/10 text-liv-faint hover:text-liv-sage transition disabled:opacity-50 flex items-center gap-1 text-xs"
                                   title="Reativar"
                                 >
                                   <RotateCcw className="w-3.5 h-3.5" /> Reativar
@@ -1203,65 +1200,65 @@ export default function OportunidadesPage() {
 
                         {/* SDR Details row */}
                         {detailsId === r.id && (
-                          <tr className="bg-sky-400/5 border-b border-[#232a3b]/40">
+                          <tr className="bg-liv-info/5 border-b border-liv-line/40">
                             <td colSpan={admin ? 9 : 8} className="px-4 py-4">
                               <div className="space-y-3">
-                                <div className="flex items-center gap-2 text-sm font-semibold text-sky-400">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-liv-info">
                                   <Eye className="w-4 h-4" />
                                   Informacoes do SDR — {r.nomeCliente}
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                                  <div className="bg-[#141820] rounded-lg p-3">
-                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">SDR Responsavel</p>
-                                    <p className="text-sm text-gray-100 font-medium">{r.sdr.nome}</p>
+                                  <div className="bg-liv-surface-2 rounded-lg p-3">
+                                    <p className="text-[11px] text-liv-faint uppercase tracking-wider mb-1">SDR Responsavel</p>
+                                    <p className="text-sm text-liv-ink font-medium">{r.sdr.nome}</p>
                                   </div>
-                                  <div className="bg-[#141820] rounded-lg p-3">
-                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Data Reuniao</p>
-                                    <p className="text-sm text-gray-100">{formatDate(r.dataReuniao)}</p>
+                                  <div className="bg-liv-surface-2 rounded-lg p-3">
+                                    <p className="text-[11px] text-liv-faint uppercase tracking-wider mb-1">Data Reuniao</p>
+                                    <p className="text-sm text-liv-ink">{formatDate(r.dataReuniao)}</p>
                                   </div>
-                                  <div className="bg-[#141820] rounded-lg p-3">
-                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Compareceu</p>
-                                    <p className={`text-sm font-medium ${r.compareceu ? "text-emerald-400" : "text-red-400"}`}>
+                                  <div className="bg-liv-surface-2 rounded-lg p-3">
+                                    <p className="text-[11px] text-liv-faint uppercase tracking-wider mb-1">Compareceu</p>
+                                    <p className={`text-sm font-medium ${r.compareceu ? "text-liv-sage" : "text-liv-danger"}`}>
                                       {r.compareceu ? "Sim" : "Nao"}
                                     </p>
                                   </div>
                                   {!r.compareceu && r.motivoNaoCompareceu && (
-                                    <div className="bg-[#141820] rounded-lg p-3">
-                                      <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1">Motivo Nao Compareceu</p>
-                                      <p className="text-sm text-amber-400">{r.motivoNaoCompareceu}</p>
+                                    <div className="bg-liv-surface-2 rounded-lg p-3">
+                                      <p className="text-[11px] text-liv-faint uppercase tracking-wider mb-1">Motivo Nao Compareceu</p>
+                                      <p className="text-sm text-liv-gold">{r.motivoNaoCompareceu}</p>
                                     </div>
                                   )}
                                 </div>
                                 {r.consideracoes && (
-                                  <div className="bg-[#141820] rounded-lg p-3">
-                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">
+                                  <div className="bg-liv-surface-2 rounded-lg p-3">
+                                    <p className="text-[11px] text-liv-faint uppercase tracking-wider mb-1 flex items-center gap-1">
                                       <MessageSquare className="w-3 h-3" /> Consideracoes da SDR
                                     </p>
-                                    <p className="text-sm text-gray-200 whitespace-pre-wrap">{r.consideracoes}</p>
+                                    <p className="text-sm text-liv-muted whitespace-pre-wrap">{r.consideracoes}</p>
                                   </div>
                                 )}
                                 {r.imagemUrl && (
-                                  <div className="bg-[#141820] rounded-lg p-3">
-                                    <p className="text-[11px] text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+                                  <div className="bg-liv-surface-2 rounded-lg p-3">
+                                    <p className="text-[11px] text-liv-faint uppercase tracking-wider mb-2 flex items-center gap-1">
                                       <ImageIcon className="w-3 h-3" /> Documento Anexado (Conta de Luz / Documento)
                                     </p>
                                     <img
                                       src={r.imagemUrl}
                                       alt="Documento do cliente"
-                                      className="max-w-xs max-h-64 rounded-lg border border-[#232a3b] cursor-pointer hover:opacity-80 transition"
+                                      className="max-w-xs max-h-64 rounded-lg border border-liv-line cursor-pointer hover:opacity-80 transition"
                                       onClick={() => window.open(r.imagemUrl!, "_blank")}
                                     />
                                   </div>
                                 )}
                                 {!r.consideracoes && !r.imagemUrl && !r.motivoNaoCompareceu && (
-                                  <p className="text-xs text-gray-600 italic">Nenhuma informacao adicional registrada pela SDR.</p>
+                                  <p className="text-xs text-liv-faint italic">Nenhuma informacao adicional registrada pela SDR.</p>
                                 )}
 
                                 {/* Notas do Supervisor — somente admin/diretor */}
                                 {admin && (
-                                  <div className="mt-3 bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
+                                  <div className="mt-3 bg-liv-gold/5 border border-liv-gold/20 rounded-lg p-3">
                                     <div className="flex items-center justify-between mb-2">
-                                      <p className="text-[11px] text-amber-400 uppercase tracking-wider font-semibold flex items-center gap-1">
+                                      <p className="text-[11px] text-liv-gold uppercase tracking-wider font-semibold flex items-center gap-1">
                                         <StickyNote className="w-3 h-3" /> Notas do Supervisor
                                       </p>
                                       {editingNotaId !== r.id && (
@@ -1270,7 +1267,7 @@ export default function OportunidadesPage() {
                                             setEditingNotaId(r.id);
                                             setNotaAdminText(r.notaAdmin ?? "");
                                           }}
-                                          className="text-[11px] text-amber-400/70 hover:text-amber-400 transition flex items-center gap-1"
+                                          className="text-[11px] text-liv-gold/70 hover:text-liv-gold transition flex items-center gap-1"
                                         >
                                           <Pencil className="w-3 h-3" /> Editar
                                         </button>
@@ -1283,29 +1280,29 @@ export default function OportunidadesPage() {
                                           onChange={(e) => setNotaAdminText(e.target.value)}
                                           placeholder="Escreva observacoes, lembretes ou notas sobre esta oportunidade..."
                                           rows={3}
-                                          className="w-full bg-[#0b0f19] border border-amber-500/30 rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-amber-400 outline-none resize-none placeholder:text-gray-600"
+                                          className="w-full bg-liv-bg border border-liv-gold/30 rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-gold outline-none resize-none placeholder:text-liv-faint"
                                         />
                                         <div className="flex gap-2">
                                           <button
                                             onClick={() => salvarNotaAdmin(r.id)}
                                             disabled={salvandoNota}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-gray-900 rounded-lg text-xs font-semibold hover:bg-amber-400 transition disabled:opacity-50"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-liv-gold text-liv-bg rounded-lg text-xs font-semibold hover:opacity-90 transition disabled:opacity-50"
                                           >
                                             <Save className="w-3 h-3" />
                                             {salvandoNota ? "Salvando..." : "Salvar Nota"}
                                           </button>
                                           <button
                                             onClick={() => setEditingNotaId(null)}
-                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#232a3b] text-gray-300 rounded-lg text-xs font-medium hover:bg-[#2a3040] transition"
+                                            className="flex items-center gap-1.5 px-3 py-1.5 bg-liv-surface-2 text-liv-muted rounded-lg text-xs font-medium hover:bg-liv-line transition"
                                           >
                                             <X className="w-3 h-3" /> Cancelar
                                           </button>
                                         </div>
                                       </div>
                                     ) : r.notaAdmin ? (
-                                      <p className="text-sm text-amber-200/80 whitespace-pre-wrap">{r.notaAdmin}</p>
+                                      <p className="text-sm text-liv-gold/80 whitespace-pre-wrap">{r.notaAdmin}</p>
                                     ) : (
-                                      <p className="text-xs text-gray-600 italic">Nenhuma nota adicionada.</p>
+                                      <p className="text-xs text-liv-faint italic">Nenhuma nota adicionada.</p>
                                     )}
                                   </div>
                                 )}
@@ -1316,7 +1313,7 @@ export default function OportunidadesPage() {
 
                         {/* Inline edit row */}
                         {isEditing && (
-                          <tr className="bg-[#141820] border-b border-[#232a3b]/40">
+                          <tr className="bg-liv-surface-2 border-b border-liv-line/40">
                             <td colSpan={admin ? 9 : 8} className="px-3 py-4">
                               {/* Toggle descartado */}
                               <div className="mb-3">
@@ -1325,9 +1322,9 @@ export default function OportunidadesPage() {
                                     type="checkbox"
                                     checked={editData.descartado}
                                     onChange={(e) => setEditData((p) => ({ ...p, descartado: e.target.checked, motivoDescarte: "" }))}
-                                    className="w-4 h-4 rounded border-[#232a3b] bg-[#0b0f19] text-red-500 focus:ring-red-400"
+                                    className="w-4 h-4 rounded border-liv-line bg-liv-bg text-liv-danger focus:ring-liv-danger"
                                   />
-                                  <span className={`text-sm font-medium ${editData.descartado ? "text-red-400" : "text-gray-400"}`}>
+                                  <span className={`text-sm font-medium ${editData.descartado ? "text-liv-danger" : "text-liv-muted"}`}>
                                     Marcar como Descartado
                                   </span>
                                 </label>
@@ -1335,12 +1332,12 @@ export default function OportunidadesPage() {
 
                               {editData.descartado ? (
                                 /* Motivo do descarte */
-                                <div className="bg-red-400/5 border border-red-400/20 rounded-lg p-4">
-                                  <label className="block text-xs text-red-400 font-medium mb-2">Motivo do descarte</label>
+                                <div className="bg-liv-danger/5 border border-liv-danger/20 rounded-lg p-4">
+                                  <label className="block text-xs text-liv-danger font-medium mb-2">Motivo do descarte</label>
                                   <select
                                     value={editData.motivoDescarte}
                                     onChange={(e) => setEditData((p) => ({ ...p, motivoDescarte: e.target.value }))}
-                                    className="w-full bg-[#0b0f19] border border-red-400/30 rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-red-400 outline-none"
+                                    className="w-full bg-liv-bg border border-liv-danger/30 rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-danger outline-none"
                                   >
                                     <option value="">Selecione o motivo...</option>
                                     {MOTIVOS_FINALIZACAO.map((m) => (
@@ -1352,21 +1349,21 @@ export default function OportunidadesPage() {
                                 /* Campos normais de edicao */
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                   <div>
-                                    <label className="block text-xs text-gray-500 mb-1">Valor Forecast (R$)</label>
+                                    <label className="block text-xs text-liv-faint mb-1">Valor Forecast (R$)</label>
                                     <input
                                       type="number"
                                       value={editData.valorForecast}
                                       onChange={(e) => setEditData((p) => ({ ...p, valorForecast: e.target.value }))}
-                                      className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-lime-400 outline-none"
+                                      className="w-full bg-liv-bg border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
                                       placeholder="Ex: 45000"
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-xs text-gray-500 mb-1">Estagio</label>
+                                    <label className="block text-xs text-liv-faint mb-1">Estagio</label>
                                     <select
                                       value={editData.estagioOportunidade}
                                       onChange={(e) => setEditData((p) => ({ ...p, estagioOportunidade: e.target.value }))}
-                                      className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-lime-400 outline-none"
+                                      className="w-full bg-liv-bg border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
                                     >
                                       {ESTAGIOS.map((e) => (
                                         <option key={e.key} value={e.key}>{e.label}</option>
@@ -1374,23 +1371,23 @@ export default function OportunidadesPage() {
                                     </select>
                                   </div>
                                   <div>
-                                    <label className="block text-xs text-gray-500 mb-1">Probabilidade (%)</label>
+                                    <label className="block text-xs text-liv-faint mb-1">Probabilidade (%)</label>
                                     <input
                                       type="number"
                                       min="0"
                                       max="100"
                                       value={editData.probabilidade}
                                       onChange={(e) => setEditData((p) => ({ ...p, probabilidade: e.target.value }))}
-                                      className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-lime-400 outline-none"
+                                      className="w-full bg-liv-bg border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
                                     />
                                   </div>
                                   <div>
-                                    <label className="block text-xs text-gray-500 mb-1">Data Fechamento</label>
+                                    <label className="block text-xs text-liv-faint mb-1">Data Fechamento</label>
                                     <input
                                       type="date"
                                       value={editData.dataFechamentoEsperado}
                                       onChange={(e) => setEditData((p) => ({ ...p, dataFechamentoEsperado: e.target.value }))}
-                                      className="w-full bg-[#0b0f19] border border-[#232a3b] rounded-lg px-3 py-2 text-sm text-gray-100 focus:border-lime-400 outline-none"
+                                      className="w-full bg-liv-bg border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
                                     />
                                   </div>
                                 </div>
@@ -1402,8 +1399,8 @@ export default function OportunidadesPage() {
                                   disabled={saving || (editData.descartado && !editData.motivoDescarte)}
                                   className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 transition ${
                                     editData.descartado
-                                      ? "bg-red-500 text-white hover:bg-red-600"
-                                      : "bg-lime-400 text-gray-900 hover:bg-lime-300"
+                                      ? "bg-liv-danger text-liv-bg hover:opacity-90"
+                                      : "bg-liv-sage text-liv-bg hover:bg-liv-sage-deep"
                                   }`}
                                 >
                                   {editData.descartado ? (
@@ -1414,7 +1411,7 @@ export default function OportunidadesPage() {
                                 </button>
                                 <button
                                   onClick={() => setEditingId(null)}
-                                  className="flex items-center gap-1.5 px-4 py-2 bg-[#232a3b] text-gray-300 rounded-lg text-sm font-medium hover:bg-[#2a3040] transition"
+                                  className="flex items-center gap-1.5 px-4 py-2 bg-liv-surface-2 text-liv-muted rounded-lg text-sm font-medium hover:bg-liv-line transition"
                                 >
                                   <X className="w-3.5 h-3.5" />
                                   Cancelar
