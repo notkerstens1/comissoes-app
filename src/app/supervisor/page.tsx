@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/page-header";
 interface Resultado {
   mesReferencia: string;
   metaReceita: number;
+  metaVendasQtdTime: number;
   totalVendido: number;
   percentualAtingido: number;
   faixa: "ate_80" | "80_a_100" | "acima_100";
@@ -19,6 +20,7 @@ interface Resultado {
     diasDecorridos: number;
     diasTotal: number;
     receitaProjetada: number;
+    vendasProjetadas: number;
     percentualProjetado: number;
     faixaProjetada: "ate_80" | "80_a_100" | "acima_100";
     comissaoProjetada: number;
@@ -93,15 +95,15 @@ export default function SupervisorPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card
               icon={<Target className="w-5 h-5 text-liv-violet" />}
-              label="Meta de receita"
-              value={formatCurrency(dados.metaReceita)}
-              hint="meta mensal da empresa"
+              label="Meta de vendas (time)"
+              value={`${dados.metaVendasQtdTime} vendas`}
+              hint="qtd no mês — base da faixa do supervisor"
             />
             <Card
               icon={<DollarSign className="w-5 h-5 text-liv-sage" />}
               label="Receita realizada"
               value={formatCurrency(dados.totalVendido)}
-              hint={`${dados.quantidadeVendas} venda${dados.quantidadeVendas === 1 ? "" : "s"}`}
+              hint={`${dados.quantidadeVendas} venda${dados.quantidadeVendas === 1 ? "" : "s"} — base da comissão (R$)`}
             />
             <Card
               icon={<TrendingUp className={`w-5 h-5 ${faixaColor[dados.faixa]}`} />}
@@ -138,9 +140,9 @@ export default function SupervisorPage() {
               />
             </div>
             <div className="flex justify-between text-xs text-liv-faint mt-2 tabular-nums">
-              <span>R$ 0</span>
-              <span>80%: {formatCurrency(dados.metaReceita * 0.8)}</span>
-              <span>{formatCurrency(dados.metaReceita)}</span>
+              <span>0</span>
+              <span>80%: {Math.round(dados.metaVendasQtdTime * 0.8)} vendas</span>
+              <span>{dados.metaVendasQtdTime} vendas</span>
             </div>
           </div>
 
