@@ -23,8 +23,8 @@ export function Tabs({ tabs, activeTab, onTabChange }: TabsProps) {
           className={cn(
             "px-4 py-2 rounded-full text-sm font-medium transition",
             activeTab === tab.key
-              ? "bg-teal-600 text-white"
-              : "bg-[#1a1f2e] text-gray-400 hover:bg-[#232a3b] hover:text-gray-100"
+              ? "bg-liv-teal text-liv-bg"
+              : "bg-liv-surface text-liv-muted hover:bg-liv-surface-2 hover:text-liv-ink"
           )}
         >
           {tab.label}

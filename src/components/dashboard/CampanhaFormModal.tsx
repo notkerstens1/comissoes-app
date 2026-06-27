@@ -126,10 +126,10 @@ export function CampanhaFormModal({ isOpen, onClose, campanha, onSaved }: Props)
   };
 
   const inputClass =
-    "w-full px-4 py-2.5 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 focus:ring-2 focus:ring-lime-400/30 focus:border-transparent outline-none text-sm";
-  const labelClass = "block text-sm font-medium text-gray-300 mb-1.5";
+    "w-full px-4 py-2.5 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink focus:ring-2 focus:ring-liv-sage/30 focus:border-liv-sage outline-none text-sm";
+  const labelClass = "block text-sm font-medium text-liv-muted mb-1.5";
   const selectClass =
-    "w-full px-4 py-2.5 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 focus:ring-2 focus:ring-lime-400/30 focus:border-transparent outline-none text-sm";
+    "w-full px-4 py-2.5 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink focus:ring-2 focus:ring-liv-sage/30 focus:border-liv-sage outline-none text-sm";
 
   return (
     <SlidePanel
@@ -189,7 +189,7 @@ export function CampanhaFormModal({ isOpen, onClose, campanha, onSaved }: Props)
         </div>
 
         {/* Dica de escopo */}
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-liv-faint">
           {escopo === "TIME"
             ? "Meta coletiva — a soma de todas as vendas do time conta para atingir a meta."
             : "Meta individual — cada vendedor precisa atingir a meta separadamente."}
@@ -249,8 +249,8 @@ export function CampanhaFormModal({ isOpen, onClose, campanha, onSaved }: Props)
 
         {/* Erro */}
         {error && (
-          <div className="bg-red-400/10 border border-red-400/30 rounded-lg px-4 py-3">
-            <p className="text-sm text-red-400">{error}</p>
+          <div className="bg-liv-danger/10 border border-liv-danger/30 rounded-lg px-4 py-3">
+            <p className="text-sm text-liv-danger">{error}</p>
           </div>
         )}
 
@@ -259,7 +259,7 @@ export function CampanhaFormModal({ isOpen, onClose, campanha, onSaved }: Props)
           <button
             type="submit"
             disabled={saving}
-            className="flex-1 bg-lime-400 hover:bg-lime-300 text-gray-900 font-semibold py-2.5 rounded-lg transition disabled:opacity-50"
+            className="flex-1 bg-liv-sage hover:bg-liv-sage-deep text-liv-bg font-semibold py-2.5 rounded-lg transition disabled:opacity-50"
           >
             {saving
               ? "Salvando..."
@@ -270,7 +270,7 @@ export function CampanhaFormModal({ isOpen, onClose, campanha, onSaved }: Props)
           <button
             type="button"
             onClick={onClose}
-            className="px-6 py-2.5 rounded-lg border border-[#232a3b] text-gray-400 hover:bg-[#232a3b] transition"
+            className="px-6 py-2.5 rounded-lg border border-liv-line text-liv-muted hover:bg-liv-surface-2 transition"
           >
             Cancelar
           </button>

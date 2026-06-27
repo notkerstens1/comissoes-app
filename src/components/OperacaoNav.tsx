@@ -26,8 +26,8 @@ export function OperacaoNav({ contexto = "operador" }: OperacaoNavProps) {
       label: "Pos-Venda",
       hint: "Yuri",
       icon: ClipboardCheck,
-      activeColor: "bg-orange-400 text-gray-900",
-      idleColor: "text-orange-400 hover:bg-orange-400/10",
+      activeColor: "bg-liv-orange text-liv-bg",
+      idleColor: "text-liv-orange hover:bg-liv-orange/10",
       isActive: pathname === "/pos-venda" || pathname === "/admin/pos-venda",
     },
     {
@@ -35,8 +35,8 @@ export function OperacaoNav({ contexto = "operador" }: OperacaoNavProps) {
       label: "Engenharia",
       hint: "Pedro · Projetos + Instalacoes",
       icon: Wrench,
-      activeColor: "bg-teal-400 text-gray-900",
-      idleColor: "text-teal-400 hover:bg-teal-400/10",
+      activeColor: "bg-liv-teal text-liv-bg",
+      idleColor: "text-liv-teal hover:bg-liv-teal/10",
       isActive: pathname === "/tecnico",
     },
     {
@@ -44,8 +44,8 @@ export function OperacaoNav({ contexto = "operador" }: OperacaoNavProps) {
       label: "Margem Instalacao",
       hint: "Pedro · Custo real",
       icon: Activity,
-      activeColor: "bg-teal-400 text-gray-900",
-      idleColor: "text-teal-400 hover:bg-teal-400/10",
+      activeColor: "bg-liv-teal text-liv-bg",
+      idleColor: "text-liv-teal hover:bg-liv-teal/10",
       isActive: pathname === "/tecnico/margem",
     },
   ];
@@ -53,9 +53,9 @@ export function OperacaoNav({ contexto = "operador" }: OperacaoNavProps) {
   return (
     <div className="mb-6">
       <div className="flex items-center gap-1 mb-1">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Setor Tecnico</p>
+        <p className="text-xs font-semibold text-liv-faint uppercase tracking-wider">Setor Tecnico</p>
       </div>
-      <div className="flex flex-wrap gap-2 bg-[#1a1f2e] border border-[#232a3b] rounded-xl p-1 w-fit">
+      <div className="flex flex-wrap gap-2 bg-liv-surface border border-liv-line rounded-xl p-1 w-fit">
         {tabs.map((tab) => (
           <Link
             key={tab.href}

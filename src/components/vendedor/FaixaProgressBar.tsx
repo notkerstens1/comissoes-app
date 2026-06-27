@@ -30,9 +30,9 @@ export function FaixaProgressBar({
 }: FaixaProgressBarProps) {
   // Faixas hardcoded para a visualizacao completa (igual ao dashboard anterior)
   const faixas = [
-    { min: 0, max: 120000, label: "2,5% + 35% over", color: "bg-green-400" },
-    { min: 120000, max: 170000, label: "2,5% + 45% over", color: "bg-green-500" },
-    { min: 170000, max: 250000, label: "2,5% + 50% over", color: "bg-green-600" },
+    { min: 0, max: 120000, label: "2,5% + 35% over", color: "bg-liv-sage" },
+    { min: 120000, max: 170000, label: "2,5% + 45% over", color: "bg-liv-sage-deep" },
+    { min: 170000, max: 250000, label: "2,5% + 50% over", color: "bg-liv-gold" },
   ];
 
   const getProgressoVisual = () => {
@@ -45,13 +45,13 @@ export function FaixaProgressBar({
   };
 
   return (
-    <div className="bg-[#1a1f2e] rounded-xl p-6 shadow-sm border border-[#232a3b]">
+    <div className="bg-liv-surface rounded-xl p-6 border border-liv-line">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <Target className="w-5 h-5 text-gray-400" />
-          <h2 className="font-semibold text-gray-100">Progresso por Faixa</h2>
+          <Target className="w-5 h-5 text-liv-muted" />
+          <h2 className="font-semibold text-liv-ink">Progresso por Faixa</h2>
         </div>
-        <span className="text-sm font-medium text-lime-400 bg-lime-400/10 px-3 py-1 rounded-full">
+        <span className="text-sm font-medium text-liv-sage bg-liv-sage/10 px-3 py-1 rounded-full">
           {faixaAtual.label} ({(faixaAtual.percentualOver * 100).toFixed(0)}% over)
         </span>
       </div>
@@ -61,12 +61,12 @@ export function FaixaProgressBar({
         {getProgressoVisual().map((faixa, i) => (
           <div key={i}>
             <div className="flex justify-between text-sm mb-1">
-              <span className="text-gray-400">
+              <span className="text-liv-muted tabular-nums">
                 {formatCurrency(faixa.min)} - {formatCurrency(faixa.max)}
               </span>
-              <span className="font-medium text-gray-300">{faixa.label}</span>
+              <span className="font-medium text-liv-ink">{faixa.label}</span>
             </div>
-            <div className="h-3 bg-[#1a1f2e] rounded-full overflow-hidden">
+            <div className="h-3 bg-liv-bg rounded-full overflow-hidden">
               <div
                 className={`h-full ${faixa.color} rounded-full transition-all duration-500`}
                 style={{ width: `${faixa.percentual}%` }}
@@ -78,10 +78,10 @@ export function FaixaProgressBar({
 
       {/* Proxima faixa */}
       {proximaFaixa && (
-        <div className="mt-4 flex items-center gap-2 bg-amber-400/10 border border-amber-400/20 rounded-lg px-4 py-3">
-          <ChevronRight className="w-4 h-4 text-amber-400 flex-shrink-0" />
-          <p className="text-sm text-amber-400">
-            Faltam <span className="font-bold">{formatCurrency(proximaFaixa.faltaValor)}</span>{" "}
+        <div className="mt-4 flex items-center gap-2 bg-liv-gold/10 border border-liv-gold/20 rounded-lg px-4 py-3">
+          <ChevronRight className="w-4 h-4 text-liv-gold flex-shrink-0" />
+          <p className="text-sm text-liv-gold">
+            Faltam <span className="font-bold tabular-nums">{formatCurrency(proximaFaixa.faltaValor)}</span>{" "}
             para atingir a {proximaFaixa.label}
           </p>
         </div>
@@ -89,9 +89,9 @@ export function FaixaProgressBar({
 
       {/* Se ja esta na ultima faixa */}
       {!proximaFaixa && totalVendidoMes > 0 && (
-        <div className="mt-4 flex items-center gap-2 bg-lime-400/10 border border-[#232a3b] rounded-lg px-4 py-3">
-          <Target className="w-4 h-4 text-lime-400 flex-shrink-0" />
-          <p className="text-sm text-lime-400 font-medium">
+        <div className="mt-4 flex items-center gap-2 bg-liv-sage/10 border border-liv-sage/20 rounded-lg px-4 py-3">
+          <Target className="w-4 h-4 text-liv-sage flex-shrink-0" />
+          <p className="text-sm text-liv-sage font-medium">
             Voce esta na faixa maxima! Continue vendendo!
           </p>
         </div>

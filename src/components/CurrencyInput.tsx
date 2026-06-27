@@ -55,7 +55,7 @@ export default function CurrencyInput({
       onChange={handleChange}
       className={
         className ||
-        "w-full px-4 py-2.5 rounded-lg border border-[#232a3b] bg-[#141820] text-gray-100 focus:ring-2 focus:ring-lime-400/30 focus:border-transparent outline-none"
+        "w-full px-4 py-2.5 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink focus:ring-2 focus:ring-liv-sage/30 focus:border-liv-sage outline-none"
       }
       placeholder={placeholder}
       required={required}

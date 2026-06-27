@@ -49,16 +49,16 @@ export function SlidePanel({ isOpen, onClose, title, children }: SlidePanelProps
         aria-modal="true"
         aria-label={title}
         className={cn(
-          "fixed inset-y-0 right-0 z-50 w-full max-w-2xl bg-[#1a1f2e] shadow-xl transition-transform duration-300 ease-in-out flex flex-col",
+          "fixed inset-y-0 right-0 z-50 w-full max-w-2xl bg-liv-surface shadow-xl transition-transform duration-300 ease-in-out flex flex-col",
           isOpen ? "translate-x-0" : "translate-x-full"
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#232a3b] shrink-0">
-          <h2 className="text-lg font-semibold text-gray-100">{title}</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-liv-line shrink-0">
+          <h2 className="text-lg font-semibold text-liv-ink">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-2 text-gray-500 hover:text-gray-400 hover:bg-[#1a1f2e] transition"
+            className="rounded-lg p-2 text-liv-faint hover:text-liv-muted hover:bg-liv-surface-2 transition"
             aria-label="Fechar painel"
           >
             <X className="w-5 h-5" />

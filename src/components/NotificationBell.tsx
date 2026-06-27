@@ -88,24 +88,24 @@ export function NotificationBell() {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-lg text-gray-400 hover:text-gray-100 hover:bg-[#232a3b] transition"
+        className="relative p-2 rounded-lg text-liv-muted hover:text-liv-ink hover:bg-liv-surface-2 transition"
       >
         <Bell className="w-5 h-5" />
         {count > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-[10px] font-bold text-white">
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-liv-danger rounded-full flex items-center justify-center text-[10px] font-bold text-liv-bg">
             {count > 9 ? "9+" : count}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-[#1a1f2e] rounded-xl border border-[#232a3b] shadow-2xl z-50 overflow-hidden">
-          <div className="px-4 py-3 border-b border-[#232a3b] flex items-center justify-between">
-            <h3 className="font-semibold text-gray-100 text-sm">Notificacoes</h3>
+        <div className="absolute right-0 top-full mt-2 w-80 bg-liv-surface rounded-xl border border-liv-line shadow-2xl z-50 overflow-hidden">
+          <div className="px-4 py-3 border-b border-liv-line flex items-center justify-between">
+            <h3 className="font-semibold text-liv-ink text-sm">Notificacoes</h3>
             {count > 0 && (
               <button
                 onClick={marcarTodas}
-                className="text-xs text-gray-400 hover:text-gray-100 flex items-center gap-1 transition"
+                className="text-xs text-liv-muted hover:text-liv-ink flex items-center gap-1 transition"
               >
                 <CheckCheck className="w-3.5 h-3.5" />
                 Marcar todas
@@ -115,23 +115,23 @@ export function NotificationBell() {
 
           <div className="max-h-72 overflow-y-auto">
             {count === 0 ? (
-              <div className="px-4 py-8 text-center text-gray-500 text-sm">
+              <div className="px-4 py-8 text-center text-liv-faint text-sm">
                 Nenhuma notificacao pendente
               </div>
             ) : (
               notificacoes.map((n) => (
                 <div
                   key={n.id}
-                  className="px-4 py-3 border-b border-[#232a3b] last:border-b-0 hover:bg-[#232a3b]/50 transition"
+                  className="px-4 py-3 border-b border-liv-line last:border-b-0 hover:bg-liv-surface-2 transition"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-100 leading-snug">{n.mensagem}</p>
-                      <p className="text-xs text-gray-500 mt-1">{formatDate(n.createdAt)}</p>
+                      <p className="text-sm text-liv-ink leading-snug">{n.mensagem}</p>
+                      <p className="text-xs text-liv-faint mt-1">{formatDate(n.createdAt)}</p>
                     </div>
                     <button
                       onClick={() => marcarComoLida(n.id)}
-                      className="p-1 rounded text-gray-500 hover:text-emerald-400 hover:bg-emerald-400/10 transition flex-shrink-0"
+                      className="p-1 rounded text-liv-faint hover:text-liv-sage hover:bg-liv-sage/10 transition flex-shrink-0"
                       title="Marcar como lida"
                     >
                       <Check className="w-4 h-4" />
