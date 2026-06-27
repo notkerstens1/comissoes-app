@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { DollarSign, CheckCircle, Users } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 interface Registro {
   id: string;
@@ -124,32 +125,32 @@ export default function PagamentoSDRPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-liv-sage"></div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-100">Pagamento SDR</h1>
-          <p className="text-gray-400">{getNomeMes(mesAtual)}</p>
-        </div>
-        <input
-          type="month"
-          value={mesAtual}
-          onChange={(e) => setMesAtual(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
-        />
-      </div>
+      <PageHeader
+        eyebrow="Pré-venda · SDR"
+        title="Pagamento SDR"
+        subtitle={getNomeMes(mesAtual)}
+        actions={
+          <input
+            type="month"
+            value={mesAtual}
+            onChange={(e) => setMesAtual(e.target.value)}
+            className="rounded-lg border border-liv-line bg-liv-surface-2 px-3 py-2 text-sm text-liv-ink"
+          />
+        }
+      />
 
       {sdrs.length === 0 ? (
-        <div className="bg-[#1a1f2e] rounded-xl p-12 shadow-sm border border-[#232a3b] text-center">
-          <Users className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-100 mb-2">Sem registros neste mes</h3>
-          <p className="text-sm text-gray-400">
+        <div className="rounded-2xl border border-liv-line bg-liv-surface p-12 text-center">
+          <Users className="mx-auto mb-4 h-12 w-12 text-liv-faint" />
+          <h3 className="mb-2 text-lg font-medium text-liv-ink">Sem registros neste mes</h3>
+          <p className="text-sm text-liv-muted">
             Nenhum SDR possui registros neste periodo.
           </p>
         </div>
@@ -166,26 +167,26 @@ export default function PagamentoSDRPage() {
             return (
               <div
                 key={sdr.id}
-                className="bg-[#1a1f2e] rounded-xl shadow-sm border border-[#232a3b] overflow-hidden"
+                className="overflow-hidden rounded-2xl border border-liv-line bg-liv-surface"
               >
                 {/* Cabecalho SDR */}
-                <div className="px-6 py-4 border-b border-[#232a3b] flex items-center justify-between">
+                <div className="flex items-center justify-between border-b border-liv-line px-6 py-4">
                   <div>
-                    <h3 className="font-semibold text-gray-100">{sdr.nome}</h3>
-                    <p className="text-sm text-gray-400 mt-0.5">
+                    <h3 className="font-semibold text-liv-ink">{sdr.nome}</h3>
+                    <p className="mt-0.5 text-sm text-liv-muted">
                       {sdr.registros.length} registro(s) | {pendentes} pendente(s) | {pagos} pago(s)
                     </p>
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">Pendente</p>
-                      <p className="text-lg font-bold text-amber-400">
+                      <p className="text-xs text-liv-faint">Pendente</p>
+                      <p className="text-lg font-bold tabular-nums text-liv-gold">
                         {formatCurrency(sdr.totalPendente)}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">Pago</p>
-                      <p className="text-lg font-bold text-sky-400">
+                      <p className="text-xs text-liv-faint">Pago</p>
+                      <p className="text-lg font-bold tabular-nums text-liv-sage">
                         {formatCurrency(sdr.totalPago)}
                       </p>
                     </div>
@@ -193,10 +194,10 @@ export default function PagamentoSDRPage() {
                       <button
                         onClick={() => marcarPago(sdr.id)}
                         disabled={processando === sdr.id}
-                        className="px-4 py-2 rounded-lg bg-sky-400 text-gray-900 font-medium hover:bg-sky-300 transition text-sm flex items-center gap-2 disabled:opacity-50"
+                        className="flex items-center gap-2 rounded-lg bg-liv-sage px-4 py-2 text-sm font-medium text-liv-bg transition hover:bg-liv-sage-deep disabled:opacity-50"
                       >
                         {processando === sdr.id ? (
-                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-liv-bg"></div>
                         ) : (
                           <>
                             <DollarSign className="w-4 h-4" />
@@ -211,46 +212,46 @@ export default function PagamentoSDRPage() {
                 {/* Detalhamento */}
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
-                    <thead className="bg-[#141820] text-gray-400">
+                    <thead className="bg-liv-surface-2 text-liv-faint">
                       <tr>
-                        <th className="text-left px-4 py-2 font-medium">Cliente</th>
-                        <th className="text-center px-4 py-2 font-medium">Reuniao</th>
-                        <th className="text-center px-4 py-2 font-medium">Compareceu</th>
-                        <th className="text-center px-4 py-2 font-medium">Venda</th>
-                        <th className="text-right px-4 py-2 font-medium">Comissao</th>
-                        <th className="text-center px-4 py-2 font-medium">Status</th>
+                        <th className="px-4 py-2 text-left text-[11px] font-bold uppercase tracking-[0.12em]">Cliente</th>
+                        <th className="px-4 py-2 text-center text-[11px] font-bold uppercase tracking-[0.12em]">Reuniao</th>
+                        <th className="px-4 py-2 text-center text-[11px] font-bold uppercase tracking-[0.12em]">Compareceu</th>
+                        <th className="px-4 py-2 text-center text-[11px] font-bold uppercase tracking-[0.12em]">Venda</th>
+                        <th className="px-4 py-2 text-right text-[11px] font-bold uppercase tracking-[0.12em]">Comissao</th>
+                        <th className="px-4 py-2 text-center text-[11px] font-bold uppercase tracking-[0.12em]">Status</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#232a3b]">
+                    <tbody className="divide-y divide-liv-line">
                       {sdr.registros.map((r) => (
-                        <tr key={r.id} className="hover:bg-[#232a3b]">
-                          <td className="px-4 py-2 text-gray-100">{r.nomeCliente}</td>
-                          <td className="px-4 py-2 text-center text-gray-400">
+                        <tr key={r.id} className="hover:bg-liv-surface-2">
+                          <td className="px-4 py-2 text-liv-ink">{r.nomeCliente}</td>
+                          <td className="px-4 py-2 text-center text-liv-muted">
                             {new Date(r.dataReuniao + "T12:00:00").toLocaleDateString("pt-BR")}
                           </td>
                           <td className="px-4 py-2 text-center">
                             {r.compareceu ? (
-                              <CheckCircle className="w-4 h-4 text-sky-400 mx-auto" />
+                              <CheckCircle className="mx-auto h-4 w-4 text-liv-sage" />
                             ) : (
-                              <span className="text-xs text-red-400">Nao</span>
+                              <span className="text-xs text-liv-danger">Nao</span>
                             )}
                           </td>
                           <td className="px-4 py-2 text-center">
                             {r.vendaVinculadaId ? (
-                              <span className="text-xs text-sky-400">Sim</span>
+                              <span className="text-xs text-liv-sage">Sim</span>
                             ) : (
-                              <span className="text-xs text-gray-500">-</span>
+                              <span className="text-xs text-liv-faint">-</span>
                             )}
                           </td>
-                          <td className="px-4 py-2 text-right font-medium text-sky-400">
+                          <td className="px-4 py-2 text-right font-medium tabular-nums text-liv-sage">
                             {formatCurrency(r.comissaoTotal)}
                           </td>
                           <td className="px-4 py-2 text-center">
                             <span
-                              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                              className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                                 r.statusPagamento === "PAGO"
-                                  ? "bg-sky-400/15 text-sky-400"
-                                  : "bg-amber-400/15 text-amber-400"
+                                  ? "bg-liv-sage/14 text-liv-sage"
+                                  : "bg-liv-gold/12 text-liv-gold"
                               }`}
                             >
                               {r.statusPagamento}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { DollarSign, Users, CheckCircle, Zap } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 interface Registro {
   id: string;
@@ -65,59 +66,59 @@ export default function ExtratoSDRPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-liv-sage"></div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-100">Extrato de Comissoes</h1>
-          <p className="text-gray-400">{getNomeMes(mesAtual)}</p>
-        </div>
-        <input
-          type="month"
-          value={mesAtual}
-          onChange={(e) => setMesAtual(e.target.value)}
-          className="px-3 py-2 rounded-lg border border-[#232a3b] text-sm bg-[#141820] text-gray-100"
-        />
-      </div>
+      <PageHeader
+        eyebrow="Pré-venda · SDR"
+        title="Extrato de Comissões"
+        subtitle={getNomeMes(mesAtual)}
+        actions={
+          <input
+            type="month"
+            value={mesAtual}
+            onChange={(e) => setMesAtual(e.target.value)}
+            className="rounded-lg border border-liv-line bg-liv-surface-2 px-3 py-2 text-sm text-liv-ink"
+          />
+        }
+      />
 
       {/* Cards resumo */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-[#1a1f2e] rounded-xl p-5 shadow-sm border border-[#232a3b]">
-          <div className="flex items-center gap-2 mb-2">
-            <Users className="w-4 h-4 text-sky-400" />
-            <p className="text-sm text-gray-400">Reunioes</p>
+        <div className="rounded-2xl border border-liv-line bg-liv-surface p-5">
+          <div className="mb-2 flex items-center gap-2">
+            <Users className="h-4 w-4 text-liv-sage" />
+            <p className="text-sm text-liv-muted">Reunioes</p>
           </div>
-          <p className="text-xl font-bold text-gray-100">
+          <p className="text-xl font-bold tabular-nums text-liv-ink">
             {resumo?.reunioesComissao ?? 0} x R$ 20,00
           </p>
-          <p className="text-sm text-sky-400 mt-1">
+          <p className="mt-1 text-sm tabular-nums text-liv-sage">
             {formatCurrency(resumo?.totalReuniao ?? 0)}
           </p>
         </div>
-        <div className="bg-[#1a1f2e] rounded-xl p-5 shadow-sm border border-[#232a3b]">
-          <div className="flex items-center gap-2 mb-2">
-            <CheckCircle className="w-4 h-4 text-sky-400" />
-            <p className="text-sm text-gray-400">Vendas</p>
+        <div className="rounded-2xl border border-liv-line bg-liv-surface p-5">
+          <div className="mb-2 flex items-center gap-2">
+            <CheckCircle className="h-4 w-4 text-liv-sage" />
+            <p className="text-sm text-liv-muted">Vendas</p>
           </div>
-          <p className="text-xl font-bold text-gray-100">
+          <p className="text-xl font-bold tabular-nums text-liv-ink">
             {resumo?.vendasComissao ?? 0} x R$ 20,00
           </p>
-          <p className="text-sm text-sky-400 mt-1">
+          <p className="mt-1 text-sm tabular-nums text-liv-sage">
             {formatCurrency(resumo?.totalVenda ?? 0)}
           </p>
         </div>
-        <div className="bg-gradient-to-r from-sky-500/20 to-cyan-500/20 rounded-xl p-5 shadow-sm border border-sky-400/20">
-          <div className="flex items-center gap-2 mb-2">
-            <Zap className="w-4 h-4 text-sky-400" />
-            <p className="text-sm text-sky-300">Total</p>
+        <div className="rounded-2xl border border-liv-sage/30 bg-liv-sage/10 p-5">
+          <div className="mb-2 flex items-center gap-2">
+            <Zap className="h-4 w-4 text-liv-sage" />
+            <p className="text-sm text-liv-sage">Total</p>
           </div>
-          <p className="text-2xl font-bold text-gray-100">
+          <p className="text-2xl font-bold tabular-nums text-liv-ink">
             {formatCurrency(resumo?.totalGeral ?? 0)}
           </p>
         </div>
@@ -125,66 +126,66 @@ export default function ExtratoSDRPage() {
 
       {/* Tabela detalhada */}
       {registros.length === 0 ? (
-        <div className="bg-[#1a1f2e] rounded-xl p-12 shadow-sm border border-[#232a3b] text-center">
-          <DollarSign className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-100 mb-2">Sem registros neste mes</h3>
-          <p className="text-sm text-gray-400">
+        <div className="rounded-2xl border border-liv-line bg-liv-surface p-12 text-center">
+          <DollarSign className="mx-auto mb-4 h-12 w-12 text-liv-faint" />
+          <h3 className="mb-2 text-lg font-medium text-liv-ink">Sem registros neste mes</h3>
+          <p className="text-sm text-liv-muted">
             Suas comissoes aparecerao aqui quando houver registros.
           </p>
         </div>
       ) : (
-        <div className="bg-[#1a1f2e] rounded-xl shadow-sm border border-[#232a3b] overflow-hidden">
+        <div className="overflow-hidden rounded-2xl border border-liv-line bg-liv-surface">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[#141820] text-gray-400">
+              <thead className="bg-liv-surface-2 text-liv-faint">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium">Cliente</th>
-                  <th className="text-left px-4 py-3 font-medium">Vendedora</th>
-                  <th className="text-center px-4 py-3 font-medium">Data</th>
-                  <th className="text-right px-4 py-3 font-medium">Reuniao</th>
-                  <th className="text-right px-4 py-3 font-medium">Venda</th>
-                  <th className="text-right px-4 py-3 font-medium">Total</th>
-                  <th className="text-center px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.12em]">Cliente</th>
+                  <th className="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-[0.12em]">Vendedora</th>
+                  <th className="px-4 py-3 text-center text-[11px] font-bold uppercase tracking-[0.12em]">Data</th>
+                  <th className="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-[0.12em]">Reuniao</th>
+                  <th className="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-[0.12em]">Venda</th>
+                  <th className="px-4 py-3 text-right text-[11px] font-bold uppercase tracking-[0.12em]">Total</th>
+                  <th className="px-4 py-3 text-center text-[11px] font-bold uppercase tracking-[0.12em]">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#232a3b]">
+              <tbody className="divide-y divide-liv-line">
                 {registros.map((r) => (
-                  <tr key={r.id} className="hover:bg-[#232a3b]">
+                  <tr key={r.id} className="hover:bg-liv-surface-2">
                     <td className="px-4 py-3">
-                      <div className="font-medium text-gray-100">{r.nomeCliente}</div>
+                      <div className="font-medium text-liv-ink">{r.nomeCliente}</div>
                       {r.vendaVinculada && (
-                        <p className="text-xs text-sky-400 mt-0.5">
+                        <p className="mt-0.5 text-xs tabular-nums text-liv-sage">
                           Venda: {formatCurrency(r.vendaVinculada.valorVenda)}
                         </p>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-gray-400">{r.vendedora.nome}</td>
-                    <td className="px-4 py-3 text-center text-gray-400">
+                    <td className="px-4 py-3 text-liv-muted">{r.vendedora.nome}</td>
+                    <td className="px-4 py-3 text-center text-liv-muted">
                       {new Date(r.dataReuniao + "T12:00:00").toLocaleDateString("pt-BR")}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right tabular-nums">
                       {r.comissaoReuniao > 0 ? (
-                        <span className="text-sky-400">{formatCurrency(r.comissaoReuniao)}</span>
+                        <span className="text-liv-sage">{formatCurrency(r.comissaoReuniao)}</span>
                       ) : (
-                        <span className="text-gray-500">-</span>
+                        <span className="text-liv-faint">-</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-3 text-right tabular-nums">
                       {r.comissaoVenda > 0 ? (
-                        <span className="text-sky-400">{formatCurrency(r.comissaoVenda)}</span>
+                        <span className="text-liv-sage">{formatCurrency(r.comissaoVenda)}</span>
                       ) : (
-                        <span className="text-gray-500">-</span>
+                        <span className="text-liv-faint">-</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right font-medium text-sky-400">
+                    <td className="px-4 py-3 text-right font-medium tabular-nums text-liv-sage">
                       {formatCurrency(r.comissaoTotal)}
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span
-                        className={`text-xs px-2 py-1 rounded-full font-medium ${
+                        className={`rounded-full px-2 py-1 text-xs font-medium ${
                           r.statusPagamento === "PAGO"
-                            ? "bg-sky-400/15 text-sky-400"
-                            : "bg-amber-400/15 text-amber-400"
+                            ? "bg-liv-sage/14 text-liv-sage"
+                            : "bg-liv-gold/12 text-liv-gold"
                         }`}
                       >
                         {r.statusPagamento}
@@ -193,12 +194,12 @@ export default function ExtratoSDRPage() {
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="bg-sky-400/10 font-semibold text-sky-400">
+              <tfoot className="bg-liv-sage/10 font-semibold text-liv-sage">
                 <tr>
                   <td className="px-4 py-3" colSpan={3}>TOTAIS</td>
-                  <td className="px-4 py-3 text-right">{formatCurrency(resumo?.totalReuniao ?? 0)}</td>
-                  <td className="px-4 py-3 text-right">{formatCurrency(resumo?.totalVenda ?? 0)}</td>
-                  <td className="px-4 py-3 text-right">{formatCurrency(resumo?.totalGeral ?? 0)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(resumo?.totalReuniao ?? 0)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(resumo?.totalVenda ?? 0)}</td>
+                  <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(resumo?.totalGeral ?? 0)}</td>
                   <td></td>
                 </tr>
               </tfoot>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { AlertTriangle, Link2, XCircle, CheckCircle } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 interface Candidato {
   id: string;
@@ -74,24 +75,24 @@ export default function PendenciasSDRPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-400"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-liv-sage"></div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-100">Pendencias de Vinculo</h1>
-        <p className="text-gray-400">Vendas com match ambiguo de SDR</p>
-      </div>
+      <PageHeader
+        eyebrow="Pré-venda · SDR"
+        title="Pendências de Vínculo"
+        subtitle="Vendas com match ambíguo de SDR"
+      />
 
       {pendencias.length === 0 ? (
-        <div className="bg-[#1a1f2e] rounded-xl p-12 shadow-sm border border-[#232a3b] text-center">
-          <CheckCircle className="w-12 h-12 text-sky-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-100 mb-2">Nenhuma pendencia</h3>
-          <p className="text-sm text-gray-400">
+        <div className="rounded-2xl border border-liv-line bg-liv-surface p-12 text-center">
+          <CheckCircle className="mx-auto mb-4 h-12 w-12 text-liv-sage" />
+          <h3 className="mb-2 text-lg font-medium text-liv-ink">Nenhuma pendência</h3>
+          <p className="text-sm text-liv-muted">
             Todas as vendas foram vinculadas automaticamente ou resolvidas.
           </p>
         </div>
@@ -100,16 +101,16 @@ export default function PendenciasSDRPage() {
           {pendencias.map((p) => (
             <div
               key={p.id}
-              className="bg-[#1a1f2e] rounded-xl shadow-sm border border-[#232a3b] overflow-hidden"
+              className="overflow-hidden rounded-2xl border border-liv-line bg-liv-surface"
             >
               {/* Cabecalho da venda */}
-              <div className="px-6 py-4 border-b border-[#232a3b] flex items-center justify-between">
+              <div className="flex items-center justify-between border-b border-liv-line px-6 py-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-400" />
-                    <h3 className="font-semibold text-gray-100">{p.venda.cliente}</h3>
+                    <AlertTriangle className="h-4 w-4 text-liv-gold" />
+                    <h3 className="font-semibold text-liv-ink">{p.venda.cliente}</h3>
                   </div>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="mt-1 text-sm text-liv-muted">
                     Venda: {formatCurrency(p.venda.valorVenda)} | Vendedora: {p.venda.vendedor.nome} |{" "}
                     {new Date(p.venda.dataConversao).toLocaleDateString("pt-BR")}
                   </p>
@@ -117,27 +118,27 @@ export default function PendenciasSDRPage() {
                 <button
                   onClick={() => resolver(p.id, "SEM_SDR")}
                   disabled={processando === p.id}
-                  className="px-4 py-2 rounded-lg border border-[#232a3b] text-gray-400 hover:bg-[#232a3b] transition text-sm flex items-center gap-2 disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-lg border border-liv-line px-4 py-2 text-sm text-liv-muted transition hover:bg-liv-surface-2 disabled:opacity-50"
                 >
-                  <XCircle className="w-4 h-4" />
+                  <XCircle className="h-4 w-4" />
                   Sem SDR
                 </button>
               </div>
 
               {/* Candidatos */}
               <div className="px-6 py-4">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-liv-faint">
                   {p.candidatos.length} candidato{p.candidatos.length > 1 ? "s" : ""} encontrado{p.candidatos.length > 1 ? "s" : ""}
                 </p>
                 <div className="space-y-3">
                   {p.candidatos.map((c) => (
                     <div
                       key={c.id}
-                      className="flex items-center justify-between bg-[#141820] rounded-lg px-4 py-3 border border-[#232a3b]"
+                      className="flex items-center justify-between rounded-lg border border-liv-line bg-liv-surface-2 px-4 py-3"
                     >
                       <div>
-                        <p className="text-sm font-medium text-gray-100">{c.nomeCliente}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">
+                        <p className="text-sm font-medium text-liv-ink">{c.nomeCliente}</p>
+                        <p className="mt-0.5 text-xs text-liv-muted">
                           SDR: {c.sdr.nome} | Vendedora: {c.vendedora.nome} |{" "}
                           Reuniao: {new Date(c.dataReuniao + "T12:00:00").toLocaleDateString("pt-BR")}
                         </p>
@@ -145,9 +146,9 @@ export default function PendenciasSDRPage() {
                       <button
                         onClick={() => resolver(p.id, "VINCULAR", c.id)}
                         disabled={processando === p.id}
-                        className="px-4 py-2 rounded-lg bg-sky-400 text-gray-900 font-medium hover:bg-sky-300 transition text-sm flex items-center gap-2 disabled:opacity-50"
+                        className="flex items-center gap-2 rounded-lg bg-liv-sage px-4 py-2 text-sm font-medium text-liv-bg transition hover:bg-liv-sage-deep disabled:opacity-50"
                       >
-                        <Link2 className="w-4 h-4" />
+                        <Link2 className="h-4 w-4" />
                         Vincular
                       </button>
                     </div>
