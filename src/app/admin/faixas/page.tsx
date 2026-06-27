@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 // formatCurrency available from "@/lib/utils" if needed
 import { Layers, Save, Plus, Trash2 } from "lucide-react";
+import { PageHeader } from "@/components/ui/page-header";
 
 interface Faixa {
   id?: string;
@@ -72,77 +73,78 @@ export default function FaixasPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-lime-400"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-liv-sage"></div>
       </div>
     );
   }
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-100">Faixas de Comissao</h1>
-          <p className="text-gray-400">Configure as faixas progressivas de comissao sobre over</p>
-        </div>
-        <button
-          onClick={addFaixa}
-          className="bg-lime-400 text-gray-900 px-4 py-2 rounded-lg font-medium hover:bg-lime-500 transition flex items-center gap-2 text-sm"
-        >
-          <Plus className="w-4 h-4" />
-          Adicionar Faixa
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="Administração"
+        title="Faixas de Comissao"
+        subtitle="Configure as faixas progressivas de comissao sobre over"
+        actions={
+          <button
+            onClick={addFaixa}
+            className="bg-liv-sage text-liv-bg px-4 py-2 rounded-lg font-medium hover:bg-liv-sage-deep transition flex items-center gap-2 text-sm"
+          >
+            <Plus className="w-4 h-4" />
+            Adicionar Faixa
+          </button>
+        }
+      />
 
-      <div className="bg-[#1a1f2e] rounded-xl p-6 shadow-sm border border-[#232a3b] space-y-4">
+      <div className="bg-liv-surface rounded-2xl p-6 border border-liv-line space-y-4">
         <div className="flex items-center gap-2 mb-2">
-          <Layers className="w-5 h-5 text-lime-400" />
-          <h2 className="font-semibold text-gray-100">Faixas Progressivas</h2>
+          <Layers className="w-5 h-5 text-liv-sage" />
+          <h2 className="font-semibold text-liv-ink">Faixas Progressivas</h2>
         </div>
 
-        <p className="text-sm text-gray-400 bg-[#141820] p-3 rounded-lg">
+        <p className="text-sm text-liv-muted bg-liv-bg p-3 rounded-lg border border-liv-line">
           As faixas sao progressivas (tipo IR): a faixa superior so se aplica ao valor que excede o limite da faixa anterior.
         </p>
 
         {faixas.map((faixa, i) => (
-          <div key={i} className="flex items-end gap-3 p-4 bg-[#141820] rounded-lg">
+          <div key={i} className="flex items-end gap-3 p-4 bg-liv-bg rounded-xl border border-liv-line">
             <div className="flex-shrink-0">
-              <span className="text-sm font-bold text-gray-500">#{i + 1}</span>
+              <span className="text-sm font-bold text-liv-faint">#{i + 1}</span>
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-400 mb-1">Volume Minimo (R$)</label>
+              <label className="block text-xs font-medium text-liv-muted mb-1">Volume Minimo (R$)</label>
               <input
                 type="number"
                 value={faixa.volumeMinimo}
                 onChange={(e) => updateFaixa(i, "volumeMinimo", parseFloat(e.target.value))}
-                className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#1a1f2e] text-gray-100 text-sm"
+                className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface text-liv-ink text-sm focus:ring-2 focus:ring-liv-sage focus:border-liv-sage outline-none"
               />
             </div>
             <div className="flex-1">
-              <label className="block text-xs font-medium text-gray-400 mb-1">Volume Maximo (R$)</label>
+              <label className="block text-xs font-medium text-liv-muted mb-1">Volume Maximo (R$)</label>
               <input
                 type="number"
                 value={faixa.volumeMaximo || ""}
                 onChange={(e) => updateFaixa(i, "volumeMaximo", e.target.value ? parseFloat(e.target.value) : null)}
-                className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#1a1f2e] text-gray-100 text-sm placeholder-gray-500"
+                className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface text-liv-ink text-sm placeholder-liv-faint focus:ring-2 focus:ring-liv-sage focus:border-liv-sage outline-none"
                 placeholder="Sem limite"
               />
             </div>
             <div className="w-32">
-              <label className="block text-xs font-medium text-gray-400 mb-1">% Over</label>
+              <label className="block text-xs font-medium text-liv-muted mb-1">% Over</label>
               <div className="flex items-center gap-1">
                 <input
                   type="number"
                   step="0.01"
                   value={faixa.percentualOver}
                   onChange={(e) => updateFaixa(i, "percentualOver", parseFloat(e.target.value))}
-                  className="w-full px-3 py-2 rounded-lg border border-[#232a3b] bg-[#1a1f2e] text-gray-100 text-sm"
+                  className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface text-liv-ink text-sm focus:ring-2 focus:ring-liv-sage focus:border-liv-sage outline-none"
                 />
-                <span className="text-xs text-gray-400">({(faixa.percentualOver * 100).toFixed(0)}%)</span>
+                <span className="text-xs text-liv-faint">({(faixa.percentualOver * 100).toFixed(0)}%)</span>
               </div>
             </div>
             <button
               onClick={() => removeFaixa(i)}
-              className="text-red-400 hover:text-red-300 transition p-2"
+              className="text-liv-danger hover:bg-liv-danger/10 transition p-2 rounded-lg"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -150,7 +152,7 @@ export default function FaixasPage() {
         ))}
 
         {sucesso && (
-          <div className="bg-lime-400/10 text-lime-400 px-4 py-3 rounded-lg text-sm">
+          <div className="bg-liv-sage/10 text-liv-sage px-4 py-3 rounded-lg text-sm">
             Faixas salvas com sucesso!
           </div>
         )}
@@ -158,10 +160,10 @@ export default function FaixasPage() {
         <button
           onClick={salvar}
           disabled={saving}
-          className="bg-lime-400 text-gray-900 px-6 py-2.5 rounded-lg font-medium hover:bg-lime-500 transition flex items-center gap-2 disabled:opacity-50"
+          className="bg-liv-sage text-liv-bg px-6 py-2.5 rounded-lg font-medium hover:bg-liv-sage-deep transition flex items-center gap-2 disabled:opacity-50"
         >
           {saving ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900"></div>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-liv-bg"></div>
           ) : (
             <Save className="w-4 h-4" />
           )}
