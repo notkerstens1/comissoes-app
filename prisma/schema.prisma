@@ -54,29 +54,29 @@ model Venda {
   comissaoTotal     Float
 
   // Campos de custo (visao diretor)
-  quantidadePlacas           Int    @default(0)
-  quantidadeInversores       Int    @default(1)
-  custoInstalacao            Float? // auto: (placas * custoPlaca) + (inversores * custoInversor)
-  custoVisitaTecnica         Float? // padrao config, diretor pode editar
-  custoCosern                Float? // padrao config, diretor pode editar
-  custoTrtCrea               Float? // padrao config (R$65)
-  custoEngenheiro            Float? // R$400 fixo por instalacao (engenheiro)
-  custoMaterialCA            Float? // R$500 fixo (material CA)
-  aliquotaImposto            Float? // padrao config (0.06 = 6%)
+  quantidadePlacas     Int    @default(0)
+  quantidadeInversores Int    @default(1)
+  custoInstalacao      Float? // auto: (placas * custoPlaca) + (inversores * custoInversor)
+  custoVisitaTecnica   Float? // padrao config, diretor pode editar
+  custoCosern          Float? // padrao config, diretor pode editar
+  custoTrtCrea         Float? // padrao config (R$65)
+  custoEngenheiro      Float? // R$400 fixo por instalacao (engenheiro)
+  custoMaterialCA      Float? // R$500 fixo (material CA)
+  aliquotaImposto      Float? // padrao config (0.06 = 6%)
 
   // === Margem de instalacao (engenharia/Pedro) ===
   // Variaveis que definem o custo real da instalacao no campo
-  metragemCaboPrevista       Int?     // metros por perna (fase ou neutro)
-  bitolaCabo                 String?  // "6mm" | "10mm" — definida pela potencia do inversor + metragem
-  inversorTrifasico          Boolean  @default(false) // se sim, multiplica cabo por 4 em vez de 2
-  cidadeInstalacao           String?  // usada pra lookup de CustoDeslocamento
-  custoInstalacaoEstimado    Float?   // calculado no fechamento: cabo + eletroduto + fixos + deslocamento
-  custoInstalacaoReal        Float?   // preenchido pelo Pedro apos a instalacao concluida
+  metragemCaboPrevista       Int? // metros por perna (fase ou neutro)
+  bitolaCabo                 String? // "6mm" | "10mm" — definida pela potencia do inversor + metragem
+  inversorTrifasico          Boolean @default(false) // se sim, multiplica cabo por 4 em vez de 2
+  cidadeInstalacao           String? // usada pra lookup de CustoDeslocamento
+  custoInstalacaoEstimado    Float? // calculado no fechamento: cabo + eletroduto + fixos + deslocamento
+  custoInstalacaoReal        Float? // preenchido pelo Pedro apos a instalacao concluida
   // VERDE  = dentro do padrao (real <= limite)
   // AMARELO = passou do padrao mas foi negociado/avisado
   // VERMELHO = passou e gerou perda nao recuperada
   statusMargemInstalacao     String?
-  observacaoMargemInstalacao String?  // contexto do que rolou se nao foi VERDE
+  observacaoMargemInstalacao String? // contexto do que rolou se nao foi VERDE
   custoImposto               Float? // auto: aliquota * (valorVenda - custoEquipamentos)
   percentualComissaoOverride Float? // null = usa padrao da config (2.5%). Diretor pode alterar por venda
   comissaoVendedorCusto      Float? // copia do comissaoTotal para P&L
@@ -94,34 +94,39 @@ model Venda {
   // Orcamento PDF (base64, uploaded pelo vendedor ao fechar venda)
   orcamentoUrl String?
 
-  dataConversao      DateTime
-  fonte              String
+  dataConversao           DateTime
+  fonte                   String
   // Origem da venda (relevante para VENDEDOR_HIBRIDO):
   // INBOUND = lead da empresa (Meta Ads/SDR), aplica faixa progressiva normal
   // EXTERNA = captacao propria do vendedor (porta a porta), comissao over flat 50%
-  tipoVenda          String              @default("INBOUND") // INBOUND | EXTERNA
-  status             String              @default("AGUARDANDO") // AGUARDANDO | APROVADO | PAGO
+  tipoVenda               String              @default("INBOUND") // INBOUND | EXTERNA
+  status                  String              @default("AGUARDANDO") // AGUARDANDO | APROVADO | PAGO
   // Status do contrato (independente do pagamento de comissao):
   // COMPLETO    = fechado com empresa E banco, aprovado, venda finalizada
   // A_FINALIZAR = so assinou com a empresa; falta resolver burocracia
   //               (troca de titularidade, aprovacao de banco, etc.)
   // Default COMPLETO: vendas antigas e o caso comum ja entram como fechadas.
-  statusContrato     String              @default("COMPLETO") // COMPLETO | A_FINALIZAR
-  dataFinalizacaoContrato DateTime?       // quando passou de A_FINALIZAR -> COMPLETO
-  mesReferencia      String // formato: "2026-01" para agrupar por mês
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  statusContrato          String              @default("COMPLETO") // COMPLETO | A_FINALIZAR
+  dataFinalizacaoContrato DateTime? // quando passou de A_FINALIZAR -> COMPLETO
+  mesReferencia           String // formato: "2026-01" para agrupar por mês
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
   // SDR relations
-  registrosSDR       RegistroSDR[]
-  pendenciaVinculo   PendenciaVinculo?
+  registrosSDR            RegistroSDR[]
+  pendenciaVinculo        PendenciaVinculo?
   // Pos Venda
-  posVenda           PosVenda?
+  posVenda                PosVenda?
   // Setor Tecnico
-  setorTecnico       SetorTecnico?
+  setorTecnico            SetorTecnico?
   // Solicitações de exceção de margem pendentes
-  solicitacoesMargem SolicitacaoMargem[]
+  solicitacoesMargem      SolicitacaoMargem[]
   // Notificações
-  notificacoes       Notificacao[]
+  notificacoes            Notificacao[]
+
+  // Índices de performance (filtros/ordenação mais quentes do app)
+  @@index([mesReferencia, vendedorId]) // dashboards mensais + por vendedor
+  @@index([vendedorId]) // lista do próprio vendedor (todo período) / joins
+  @@index([dataConversao]) // filtros por intervalo de data + orderBy
 }
 
 // Solicitação de ajuste de margem criada por supervisor, aprovada pelo diretor
@@ -159,14 +164,14 @@ model Configuracao {
 
   // Comissao do SUPERVISOR: percentual sobre receita mensal total da empresa,
   // aplicado em faixas conforme % da meta atingida
-  percentualSupervisorAte80      Float @default(0.0)   // < 80% da meta: 0%
-  percentualSupervisor80a100     Float @default(0.008) // 80-99% da meta: 0,8%
-  percentualSupervisorAcima100   Float @default(0.01)  // >= 100% da meta: 1%
+  percentualSupervisorAte80    Float @default(0.0) // < 80% da meta: 0%
+  percentualSupervisor80a100   Float @default(0.008) // 80-99% da meta: 0,8%
+  percentualSupervisorAcima100 Float @default(0.01) // >= 100% da meta: 1%
 
   // Margem de instalacao (engenharia)
-  limiteCustoInstalacao          Float @default(998)  // R$ — base do VERDE (Pedro mediu 23 de 34 dentro disso)
-  metragemCaboPadrao             Int   @default(15)   // m por perna — abaixo disso e VERDE garantido
-  metragemCaboTolerada           Int   @default(20)   // m por perna — entre padrao e tolerada e amarelo
+  limiteCustoInstalacao Float @default(998) // R$ — base do VERDE (Pedro mediu 23 de 34 dentro disso)
+  metragemCaboPadrao    Int   @default(15) // m por perna — abaixo disso e VERDE garantido
+  metragemCaboTolerada  Int   @default(20) // m por perna — entre padrao e tolerada e amarelo
 
   // Custos padrao (visao diretor)
   custoPlacaInstalacao     Float @default(70) // R$70 por placa
@@ -266,6 +271,13 @@ model RegistroSDR {
   notaAdmin              String?
   createdAt              DateTime @default(now())
   updatedAt              DateTime @updatedAt
+
+  // Índices de performance (filtros mais quentes do módulo SDR)
+  @@index([sdrId]) // registros do SDR + pagamento/extrato
+  @@index([vendedoraId]) // pipeline/forecast por vendedora
+  @@index([vendaVinculadaId]) // vínculo registro↔venda
+  @@index([dataRegistro]) // recorte por dia/mês de lançamento
+  @@index([dataReuniao]) // agenda/recorte por data de reunião
 }
 
 // SDR: Ligacoes diarias (input manual da SDR)
@@ -357,53 +369,53 @@ model PosVenda {
 
 // Setor Tecnico: acompanhamento do projeto tecnico apos venda
 model SetorTecnico {
-  id             String   @id @default(cuid())
-  nomeCliente    String
-  telefone       String?
-  email          String?
+  id                  String   @id @default(cuid())
+  nomeCliente         String
+  telefone            String?
+  email               String?
   // Vinculo com venda do sistema
-  vendaId        String?  @unique
-  venda          Venda?   @relation(fields: [vendaId], references: [id])
-  vendedorNome   String?
+  vendaId             String?  @unique
+  venda               Venda?   @relation(fields: [vendaId], references: [id])
+  vendedorNome        String?
   // Trilho PROJETO (administrativo, ate o projeto ser aprovado).
   // Valores: NOVO_PROJETO, CONSULTAR_CARGA, AUMENTO_CARGA, EMITIR_TRT,
   //   LIBERADO_ENVIO, PROJETO_ENVIADO, PROJETO_APROVADO
   // Mantido com o nome `etapa` por compatibilidade com o schema antigo
   // (db push em prod nao suporta rename sem perda de dado).
-  etapa          String   @default("NOVO_PROJETO")
+  etapa               String   @default("NOVO_PROJETO")
   // Trilho INSTALACAO (operacional, do agendamento ate a rede ligada).
   // Valores: AGENDAR_VISITA, VISITA_AGENDADA, VISITA_FEITA, AGUARDANDO_MATERIAL,
   //   MATERIAL_ENTREGUE, INSTALACAO_AGENDADA, MATERIAL_COMPRADO, INSTALACAO_CONCLUIDA,
   //   SOLICITADO_VISTORIA, REDE_LIGADA (rotulada "Usina Ligada")
   // Card nasce com AGENDAR_VISITA e aparece em ambas as abas desde o inicio.
-  etapaInstalacao String  @default("AGENDAR_VISITA")
+  etapaInstalacao     String   @default("AGENDAR_VISITA")
   // Acompanhamento
-  observacoes    String?
-  ultimaAcao     String?
-  proximaAcao    String?
+  observacoes         String?
+  ultimaAcao          String?
+  proximaAcao         String?
   // Historico de acoes anteriores (JSON array: [{data, acao}])
-  historicoAcoes String?
+  historicoAcoes      String?
   // Anexos (JSON array: [{nome, url, data}])
-  anexos         String?
+  anexos              String?
   // Comentarios do engenheiro (JSON array: [{id, autor, texto, criadoEm}])
-  comentarios    String?
+  comentarios         String?
   // Validacao de visita tecnica (engenheiro marca quando visita aconteceu — Yuri
   // usa pra liberar pagamento da visita sem ter que perguntar no grupo)
-  visitaValidada Boolean  @default(false)
+  visitaValidada      Boolean  @default(false)
   // Bloqueio atual (impede avanco de etapa). Key de MOTIVOS_BLOQUEIO em
   // src/lib/setor-tecnico.ts ou null.
-  bloqueioStatus String?
+  bloqueioStatus      String?
   // Checklist de documentos exigidos antes de virar etapa INSTALACAO
   // (JSON: [{key, label, concluido}])
   checklistDocumentos String?
   // Datas-chave da fase instalacao (preenchidas pelo engenheiro)
-  dataVisita         String? // "YYYY-MM-DD"
-  dataInstalacao     String? // "YYYY-MM-DD"
-  dataRedeLigada     String? // "YYYY-MM-DD"
+  dataVisita          String? // "YYYY-MM-DD"
+  dataInstalacao      String? // "YYYY-MM-DD"
+  dataRedeLigada      String? // "YYYY-MM-DD"
   // Controle
-  ativo          Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  ativo               Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   @@index([ativo, etapa])
   @@index([ativo, etapaInstalacao])
@@ -431,6 +443,8 @@ model SimulacaoVenda {
   vendaSaudavel        Boolean
   mesReferencia        String // "2026-01" para filtrar por mês
   createdAt            DateTime @default(now())
+
+  @@index([vendedorId, mesReferencia]) // histórico de simulações do vendedor no mês
 }
 
 // Notificações do sistema (nova venda, comissão paga, etc.)
@@ -444,6 +458,8 @@ model Notificacao {
   vendaId   String?
   venda     Venda?   @relation(fields: [vendaId], references: [id])
   createdAt DateTime @default(now())
+
+  @@index([userId, lida]) // sininho de notificações carrega em toda página
 }
 
 // ============================================================
@@ -577,7 +593,7 @@ model PrecoMaterial {
   chave     String   @unique // "CABO_6MM", "CABO_10MM", "ELETRODUTO_MEIA", "ELETRODUTO_UMA", "DPS", "DISJUNTOR", "QUADRO"
   label     String
   precoUnit Float
-  unidade   String   // "m" (por metro) | "un" (por unidade)
+  unidade   String // "m" (por metro) | "un" (por unidade)
   ativo     Boolean  @default(true)
   updatedAt DateTime @updatedAt
 }
