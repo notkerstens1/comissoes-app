@@ -16,10 +16,10 @@ describe("rankByVendas", () => {
     expect(r.map((x) => x.posicao)).toEqual([1, 2, 3]);
   });
 
-  it("calcula progresso como totalVendido/meta", () => {
-    const [x] = rankByVendas([base({ id: "a", qtdVendas: 1, totalVendido: 60000 })], 120000);
-    expect(x.progresso).toBeCloseTo(0.5);
-    expect(x.meta).toBe(120000);
+  it("calcula progresso como qtdVendas/meta (meta por quantidade de vendas)", () => {
+    const [x] = rankByVendas([base({ id: "a", qtdVendas: 4, totalVendido: 60000 })], 8);
+    expect(x.progresso).toBeCloseTo(0.5); // 4 vendas / meta 8
+    expect(x.meta).toBe(8);
   });
 
   it("progresso 0 quando meta é 0", () => {
@@ -30,7 +30,7 @@ describe("rankByVendas", () => {
 
 describe("diffRanking", () => {
   const ranked = (over: Partial<RankedVendedor> & { id: string }): RankedVendedor => ({
-    nome: over.id, totalVendido: 0, qtdVendas: 0, ticketMedio: 0, margemMedia: 0, posicao: 1, meta: 120000, progresso: 0, ...over,
+    nome: over.id, totalVendido: 0, qtdVendas: 0, ticketMedio: 0, margemMedia: 0, posicao: 1, meta: 8, progresso: 0, ...over,
   });
 
   it("detecta nova venda quando qtdVendas aumenta", () => {
@@ -41,8 +41,8 @@ describe("diffRanking", () => {
   });
 
   it("detecta meta batida quando progresso cruza 1.0", () => {
-    const prev = [ranked({ id: "a", qtdVendas: 1, totalVendido: 100000, progresso: 100000 / 120000, posicao: 1 })];
-    const next = [ranked({ id: "a", qtdVendas: 2, totalVendido: 130000, progresso: 130000 / 120000, posicao: 1 })];
+    const prev = [ranked({ id: "a", qtdVendas: 7, totalVendido: 100000, progresso: 7 / 8, posicao: 1 })];
+    const next = [ranked({ id: "a", qtdVendas: 9, totalVendido: 130000, progresso: 9 / 8, posicao: 1 })];
     const ev = diffRanking(prev, next);
     expect(ev.some((e) => e.kind === "meta" && e.id === "a")).toBe(true);
   });
@@ -74,13 +74,13 @@ describe("buildDashboardRanking", () => {
     { vendedorId: "b", valorVenda: 130000, margem: 1.5 },
   ];
 
-  it("agrega vendas, ranqueia por quantidade e calcula meta/progresso", () => {
-    const { ranking, totais } = buildDashboardRanking(vendedores, vendas, 120000);
-    // Ana: 2 vendas / 120k; Bia: 1 venda / 130k → Ana lidera (mais vendas)
+  it("agrega vendas, ranqueia por quantidade e calcula meta/progresso (por contagem)", () => {
+    const { ranking, totais } = buildDashboardRanking(vendedores, vendas, 2);
+    // Ana: 2 vendas / meta 2; Bia: 1 venda / meta 2 → Ana lidera (mais vendas)
     expect(ranking[0].id).toBe("a");
     expect(ranking[0].qtdVendas).toBe(2);
-    expect(ranking[0].progresso).toBeCloseTo(1); // 120k/120k
-    expect(ranking[1].progresso).toBeCloseTo(130000 / 120000);
+    expect(ranking[0].progresso).toBeCloseTo(1); // 2 vendas / meta 2
+    expect(ranking[1].progresso).toBeCloseTo(0.5); // 1 venda / meta 2
     expect(totais.totalGeralVendas).toBe(3);
     expect(totais.totalGeralVendido).toBe(250000);
   });

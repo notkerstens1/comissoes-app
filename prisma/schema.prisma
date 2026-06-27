@@ -155,8 +155,9 @@ model Configuracao {
   volumeMinimoComissao    Float  @default(60000)
 
   // Metas (ranking)
-  metaVendasMes   Float @default(120000) // Meta mensal de vendas por vendedor (R$)
-  metaMargemMedia Float @default(1.8) // Meta de margem media por vendedor
+  metaVendasMes    Float @default(120000) // Meta mensal de vendas por vendedor (R$ — receita)
+  metaVendasQtdMes Int   @default(8) // Meta mensal de QUANTIDADE de vendas por vendedor (dashboard "meta batida")
+  metaMargemMedia  Float @default(1.8) // Meta de margem media por vendedor
 
   // Meta de receita mensal da empresa (soma das metas individuais) — usada
   // como base para calcular comissao do SUPERVISOR

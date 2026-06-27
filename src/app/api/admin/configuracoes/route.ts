@@ -63,6 +63,8 @@ export async function PUT(request: NextRequest) {
     percentualSupervisorAte80,
     percentualSupervisor80a100,
     percentualSupervisorAcima100,
+    // Meta de quantidade de vendas/mês por vendedor (dashboard "meta batida")
+    metaVendasQtdMes,
   } = body;
 
   // Validar fator multiplicador (1.6 a 1.8)
@@ -92,6 +94,7 @@ export async function PUT(request: NextRequest) {
       ...(percentualSupervisorAte80 !== undefined && { percentualSupervisorAte80 }),
       ...(percentualSupervisor80a100 !== undefined && { percentualSupervisor80a100 }),
       ...(percentualSupervisorAcima100 !== undefined && { percentualSupervisorAcima100 }),
+      ...(metaVendasQtdMes !== undefined && { metaVendasQtdMes: Math.max(1, Math.round(metaVendasQtdMes)) }),
     },
     create: {
       id: "config_principal",
@@ -111,6 +114,7 @@ export async function PUT(request: NextRequest) {
       percentualSupervisorAte80: percentualSupervisorAte80 ?? 0,
       percentualSupervisor80a100: percentualSupervisor80a100 ?? 0.008,
       percentualSupervisorAcima100: percentualSupervisorAcima100 ?? 0.01,
+      metaVendasQtdMes: metaVendasQtdMes !== undefined ? Math.max(1, Math.round(metaVendasQtdMes)) : 8,
     },
   });
 

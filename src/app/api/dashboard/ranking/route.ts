@@ -43,9 +43,11 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  // Buscar meta de vendas da configuração
+  // Buscar meta de vendas da configuração.
+  // "Meta batida" no dashboard conta por QUANTIDADE de vendas/mês por vendedor
+  // (não por receita). Valor em R$ (metaVendasMes) é usado no painel do diretor.
   const config = await prisma.configuracao.findFirst();
-  const meta = config?.metaVendasMes ?? 120000;
+  const meta = config?.metaVendasQtdMes ?? 8;
 
   // Calcular ranking e totais via helper
   const { ranking, totais } = buildDashboardRanking(

@@ -9,8 +9,8 @@ export interface VendedorVendas {
 
 export interface RankedVendedor extends VendedorVendas {
   posicao: number;
-  meta: number;
-  progresso: number; // totalVendido / meta (ratio; pode passar de 1)
+  meta: number; // meta de QUANTIDADE de vendas no período
+  progresso: number; // qtdVendas / meta (ratio; pode passar de 1)
 }
 
 export type LiveEventKind = "sale" | "meta" | "lead";
@@ -30,7 +30,7 @@ export function rankByVendas(vendedores: VendedorVendas[], meta: number): Ranked
       ...v,
       posicao: i + 1,
       meta,
-      progresso: meta > 0 ? v.totalVendido / meta : 0,
+      progresso: meta > 0 ? v.qtdVendas / meta : 0,
     }));
 }
 

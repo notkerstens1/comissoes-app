@@ -26,6 +26,7 @@ export default function ConfiguracoesPage() {
     percentualSupervisorAte80: 0,
     percentualSupervisor80a100: 0.008,
     percentualSupervisorAcima100: 0.01,
+    metaVendasQtdMes: 8,
   });
 
   // Displays para campos monetarios
@@ -110,6 +111,30 @@ export default function ConfiguracoesPage() {
       />
 
       <form onSubmit={salvar} className="space-y-6">
+        {/* Meta do dashboard (ranking ao vivo) */}
+        <div className="bg-liv-surface rounded-2xl p-6 border border-liv-line space-y-3">
+          <div className="flex items-center gap-2 mb-1">
+            <Target className="w-5 h-5 text-liv-sage" />
+            <h2 className="font-semibold text-liv-ink">Meta do Dashboard</h2>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-liv-muted mb-1">
+              Meta de vendas por vendedor (qtd/mês)
+            </label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={config.metaVendasQtdMes ?? 8}
+              onChange={(e) => setConfig({ ...config, metaVendasQtdMes: parseInt(e.target.value) || 0 })}
+              className="w-full px-4 py-2.5 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink focus:ring-2 focus:ring-liv-sage focus:border-liv-sage outline-none"
+            />
+            <p className="text-xs text-liv-faint mt-1">
+              Quantas vendas no mês contam como &quot;meta batida&quot; no ranking ao vivo (por vendedor, na visão Mês).
+            </p>
+          </div>
+        </div>
+
         {/* Parametros de Comissao */}
         <div className="bg-liv-surface rounded-2xl p-6 border border-liv-line space-y-5">
           <div className="flex items-center gap-2 mb-2">
