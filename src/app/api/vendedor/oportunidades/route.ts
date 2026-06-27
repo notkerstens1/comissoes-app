@@ -76,10 +76,15 @@ export async function GET(request: NextRequest) {
       }).length
     : 0;
 
-  // Se nao for admin/diretor, esconder notaAdmin dos registros
-  const registrosResponse = isAdmin(role)
-    ? registros
-    : registros.map(({ notaAdmin: _notaAdmin, ...rest }) => rest);
+  // Tira o base64 da imagem da listagem (payload pesado) → só presença (temImagem);
+  // a imagem real carrega sob demanda via GET /api/sdr/registros/[id].
+  // notaAdmin continua visível só para admin/diretor.
+  const podeVerNota = isAdmin(role);
+  const registrosResponse = registros.map(({ imagemUrl, notaAdmin, ...rest }) => ({
+    ...rest,
+    temImagem: !!imagemUrl,
+    ...(podeVerNota ? { notaAdmin } : {}),
+  }));
 
   return NextResponse.json({ registros: registrosResponse, totalForecast, totalPonderado, alertas5dias });
 }

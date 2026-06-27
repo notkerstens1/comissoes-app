@@ -26,6 +26,7 @@ import {
 import { formatCurrency } from "@/lib/utils";
 import { isAdmin as checkAdmin } from "@/lib/roles";
 import { PageHeader } from "@/components/ui/page-header";
+import { DocumentoAnexado } from "@/components/DocumentoAnexado";
 
 const ESTAGIOS = [
   { key: "REUNIAO", label: "Reuniao", cor: "bg-liv-info/12 text-liv-info" },
@@ -102,7 +103,7 @@ type Registro = {
   origemRegistro?: string;
   // Campos SDR visíveis ao vendedor
   consideracoes: string | null;
-  imagemUrl: string | null;
+  temImagem: boolean;
   motivoNaoCompareceu: string | null;
   // Nota do supervisor (apenas admin/diretor)
   notaAdmin?: string | null;
@@ -1237,20 +1238,15 @@ export default function OportunidadesPage() {
                                     <p className="text-sm text-liv-muted whitespace-pre-wrap">{r.consideracoes}</p>
                                   </div>
                                 )}
-                                {r.imagemUrl && (
+                                {r.temImagem && (
                                   <div className="bg-liv-surface-2 rounded-lg p-3">
                                     <p className="text-[11px] text-liv-faint uppercase tracking-wider mb-2 flex items-center gap-1">
                                       <ImageIcon className="w-3 h-3" /> Documento Anexado (Conta de Luz / Documento)
                                     </p>
-                                    <img
-                                      src={r.imagemUrl}
-                                      alt="Documento do cliente"
-                                      className="max-w-xs max-h-64 rounded-lg border border-liv-line cursor-pointer hover:opacity-80 transition"
-                                      onClick={() => window.open(r.imagemUrl!, "_blank")}
-                                    />
+                                    <DocumentoAnexado registroId={r.id} />
                                   </div>
                                 )}
-                                {!r.consideracoes && !r.imagemUrl && !r.motivoNaoCompareceu && (
+                                {!r.consideracoes && !r.temImagem && !r.motivoNaoCompareceu && (
                                   <p className="text-xs text-liv-faint italic">Nenhuma informacao adicional registrada pela SDR.</p>
                                 )}
 

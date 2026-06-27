@@ -38,7 +38,11 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(registros);
+  // Não trafegar o base64 da imagem na listagem (payload pesado) — só a presença.
+  // A imagem real é carregada sob demanda via GET /api/sdr/registros/[id].
+  const slim = registros.map(({ imagemUrl, ...r }) => ({ ...r, temImagem: !!imagemUrl }));
+
+  return NextResponse.json(slim);
 }
 
 // POST - Criar novo registro SDR

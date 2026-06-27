@@ -27,6 +27,7 @@ import {
 import { MOTIVOS_NAO_COMPARECEU, MOTIVOS_FINALIZACAO, COLUNAS_KANBAN } from "@/lib/sdr";
 import type { StatusLead } from "@/lib/sdr";
 import { PageHeader } from "@/components/ui/page-header";
+import { DocumentoAnexado } from "@/components/DocumentoAnexado";
 
 interface Vendedora {
   id: string;
@@ -45,7 +46,7 @@ interface Registro {
   motivoNaoCompareceu: string | null;
   motivoFinalizacao: string | null;
   consideracoes: string | null;
-  imagemUrl: string | null;
+  temImagem: boolean;
   vendaVinculadaId: string | null;
   vendaVinculada: {
     id: string;
@@ -472,19 +473,13 @@ export default function RegistrosSDRPage() {
                 </div>
               )}
 
-              {detalheRegistro.imagemUrl && (
+              {detalheRegistro.temImagem && (
                 <div className="bg-liv-surface-2 rounded-lg p-4 border border-liv-line">
                   <div className="flex items-center gap-2 mb-2">
                     <Image className="w-3.5 h-3.5 text-liv-faint" />
                     <p className="text-xs text-liv-faint">Documento Anexado</p>
                   </div>
-                  {detalheRegistro.imagemUrl.startsWith("data:image") ? (
-                    <img src={detalheRegistro.imagemUrl} alt="Documento" className="max-w-full rounded-lg border border-liv-line object-contain max-h-64" />
-                  ) : (
-                    <a href={detalheRegistro.imagemUrl} target="_blank" rel="noreferrer" className="text-sm text-liv-sage hover:underline flex items-center gap-1">
-                      <Paperclip className="w-3.5 h-3.5" /> Ver documento
-                    </a>
-                  )}
+                  <DocumentoAnexado registroId={detalheRegistro.id} />
                 </div>
               )}
 
@@ -917,7 +912,7 @@ export default function RegistrosSDRPage() {
                                 <div className="min-w-0 flex-1">
                                   <div className="flex items-center gap-1.5">
                                     <h4 className="font-medium text-sm text-liv-ink truncate">{r.nomeCliente}</h4>
-                                    {r.imagemUrl && <Paperclip className="w-3 h-3 text-liv-faint flex-shrink-0" />}
+                                    {r.temImagem && <Paperclip className="w-3 h-3 text-liv-faint flex-shrink-0" />}
                                   </div>
                                   <p className="text-[11px] text-liv-faint mt-0.5">
                                     {r.vendedora.nome} · {new Date(r.dataReuniao + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
