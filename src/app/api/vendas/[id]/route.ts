@@ -54,6 +54,7 @@ export async function PUT(
     dataConversao,
     motivo,
     excecao,
+    atipica,
     valorVenda: novoValorVenda,
     custoEquipamentos: novoCustoEquipamentos,
     // Campos basicos editaveis (diretor/admin/financeiro)
@@ -279,7 +280,7 @@ export async function PUT(
       "valorVenda", "custoEquipamentos", "margem", "over", "comissaoOver", "comissaoVenda", "comissaoTotal",
       "quantidadePlacas", "quantidadeInversores", "custoInstalacao", "custoVisitaTecnica",
       "custoCosern", "custoTrtCrea", "custoEngenheiro", "custoMaterialCA", "custoImposto",
-      "percentualComissaoOverride", "lucroLiquido", "margemLucroLiquido", "dataConversao", "status", "excecao",
+      "percentualComissaoOverride", "lucroLiquido", "margemLucroLiquido", "dataConversao", "status", "excecao", "atipica",
       "cliente", "fonte", "tipoVenda", "distribuidora", "formaPagamento", "kwp",
     ];
     const alteracoes: { campo: string; de: unknown; para: unknown }[] = [];
@@ -310,6 +311,11 @@ export async function PUT(
   // ── Exceção ──
   if (excecao !== undefined) {
     updateData.excecao = excecao;
+  }
+
+  // ── Venda atípica (fora dos indicadores da diretoria) ──
+  if (atipica !== undefined) {
+    updateData.atipica = Boolean(atipica);
   }
 
   // Safety net: se qualquer ramo tocou comissaoVenda ou comissaoOver,

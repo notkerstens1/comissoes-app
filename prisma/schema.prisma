@@ -85,6 +85,10 @@ model Venda {
 
   // Exceção de margem (max 2/mes por vendedor)
   excecao             Boolean @default(false)
+  // Venda atipica / excecao operacional (ex: pagamento a vista declarado, usina demo).
+  // Fica FORA dos indicadores de performance comercial e da margem media da diretoria —
+  // distorce a media. NAO afeta comissao nem o calculo da propria venda; so a agregacao.
+  atipica             Boolean @default(false)
   // Controle de pagamento separado
   comissaoVendaPaga   Boolean @default(false)
   comissaoOverPaga    Boolean @default(false)

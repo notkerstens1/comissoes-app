@@ -73,6 +73,7 @@ interface VendaFinanceira {
   lucroLiquido: number;
   margemLucroLiquido: number;
   margem: number;
+  atipica?: boolean;
   status: string;
   dataConversao: string;
   orcamentoUrl: string | null;
@@ -104,6 +105,11 @@ interface DadosFinanceiros {
     resultadoOperacional?: number;
     margemReal?: number;
     pontoEquilibrio?: number;
+    atipicas?: {
+      quantidade: number;
+      faturamento: number;
+      lucroLiquido: number;
+    };
   };
   comparacao: {
     mesAnterior: string;
@@ -439,6 +445,22 @@ export default function DiretorDashboardPage() {
         </div>
       </div>
 
+      {/* Vendas atipicas (fora dos indicadores acima) */}
+      {r?.atipicas && r.atipicas.quantidade > 0 && (
+        <div className="bg-liv-info/8 border border-liv-info/20 rounded-xl p-5">
+          <div className="flex items-center gap-2 mb-1">
+            <AlertTriangle className="w-5 h-5 text-liv-info" />
+            <h3 className="font-semibold text-liv-info">
+              {r.atipicas.quantidade} venda{r.atipicas.quantidade > 1 ? "s" : ""} atipica{r.atipicas.quantidade > 1 ? "s" : ""} (fora dos indicadores)
+            </h3>
+          </div>
+          <p className="text-sm text-liv-muted tabular-nums">
+            Faturamento {formatCurrency(r.atipicas.faturamento)} · Lucro {formatCurrency(r.atipicas.lucroLiquido)}.
+            Excecao operacional — nao entra na margem media nem no ticket pra nao distorcer a leitura.
+          </p>
+        </div>
+      )}
+
       {/* Alerta de Margem */}
       {r?.alertaMargemLucro && r?.mensagemAlertaLucro && (
         <div className="bg-liv-gold/8 border border-liv-gold/20 rounded-xl p-5">
@@ -543,7 +565,14 @@ export default function DiretorDashboardPage() {
                           : "hover:bg-liv-surface-2"
                       }
                     >
-                      <td className="px-4 py-3 font-medium text-liv-ink whitespace-nowrap">{v.cliente}</td>
+                      <td className="px-4 py-3 font-medium text-liv-ink whitespace-nowrap">
+                        {v.cliente}
+                        {v.atipica && (
+                          <span className="ml-2 inline-block px-2 py-0.5 text-[10px] rounded-full font-medium bg-liv-info/15 text-liv-info align-middle">
+                            atipica
+                          </span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-liv-muted whitespace-nowrap">{v.vendedor}</td>
                       <td className="px-4 py-3 text-right whitespace-nowrap tabular-nums">{formatCurrency(v.valorVenda)}</td>
                       <td className="px-4 py-3 text-right text-liv-muted whitespace-nowrap tabular-nums">{formatCurrency(v.custoEquipamentos)}</td>

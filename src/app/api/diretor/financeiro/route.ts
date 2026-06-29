@@ -36,17 +36,23 @@ export async function GET(request: NextRequest) {
     orderBy: { dataConversao: "desc" },
   });
 
-  // Calcular resumo agregado
-  const faturamentoTotal = vendas.reduce((s, v) => s + v.valorVenda, 0);
-  const custoEquipamentosTotal = vendas.reduce((s, v) => s + v.custoEquipamentos, 0);
-  const custoInstalacaoTotal = vendas.reduce((s, v) => s + (v.custoInstalacao ?? 0), 0);
-  const custoVisitaTecnicaTotal = vendas.reduce((s, v) => s + (v.custoVisitaTecnica ?? 0), 0);
-  const custoCosernTotal = vendas.reduce((s, v) => s + (v.custoCosern ?? 0), 0);
-  const custoTrtCreaTotal = vendas.reduce((s, v) => s + (v.custoTrtCrea ?? 0), 0);
-  const custoEngenheiroTotal = vendas.reduce((s, v) => s + (v.custoEngenheiro ?? 0), 0);
-  const custoMaterialCATotal = vendas.reduce((s, v) => s + (v.custoMaterialCA ?? 0), 0);
-  const custoImpostoTotal = vendas.reduce((s, v) => s + (v.custoImposto ?? 0), 0);
-  const comissaoVendedorTotal = vendas.reduce((s, v) => s + (v.comissaoVendedorCusto ?? v.comissaoTotal), 0);
+  // Vendas atipicas (excecao operacional: pagamento a vista declarado, usina demo)
+  // ficam FORA dos indicadores de performance/margem — distorcem a media. Aparecem
+  // num bloco separado pra transparencia, nunca somem.
+  const vendasNormais = vendas.filter((v) => !v.atipica);
+  const vendasAtipicas = vendas.filter((v) => v.atipica);
+
+  // Calcular resumo agregado (apenas operacao recorrente — sem atipicas)
+  const faturamentoTotal = vendasNormais.reduce((s, v) => s + v.valorVenda, 0);
+  const custoEquipamentosTotal = vendasNormais.reduce((s, v) => s + v.custoEquipamentos, 0);
+  const custoInstalacaoTotal = vendasNormais.reduce((s, v) => s + (v.custoInstalacao ?? 0), 0);
+  const custoVisitaTecnicaTotal = vendasNormais.reduce((s, v) => s + (v.custoVisitaTecnica ?? 0), 0);
+  const custoCosernTotal = vendasNormais.reduce((s, v) => s + (v.custoCosern ?? 0), 0);
+  const custoTrtCreaTotal = vendasNormais.reduce((s, v) => s + (v.custoTrtCrea ?? 0), 0);
+  const custoEngenheiroTotal = vendasNormais.reduce((s, v) => s + (v.custoEngenheiro ?? 0), 0);
+  const custoMaterialCATotal = vendasNormais.reduce((s, v) => s + (v.custoMaterialCA ?? 0), 0);
+  const custoImpostoTotal = vendasNormais.reduce((s, v) => s + (v.custoImposto ?? 0), 0);
+  const comissaoVendedorTotal = vendasNormais.reduce((s, v) => s + (v.comissaoVendedorCusto ?? v.comissaoTotal), 0);
 
   const custoTotalOperacional =
     custoEquipamentosTotal + custoInstalacaoTotal + custoVisitaTecnicaTotal +
@@ -54,7 +60,14 @@ export async function GET(request: NextRequest) {
 
   const lucroLiquidoTotal = faturamentoTotal - custoTotalOperacional;
   const margemLucroMedia = faturamentoTotal > 0 ? lucroLiquidoTotal / faturamentoTotal : 0;
-  const ticketMedio = vendas.length > 0 ? faturamentoTotal / vendas.length : 0;
+  const ticketMedio = vendasNormais.length > 0 ? faturamentoTotal / vendasNormais.length : 0;
+
+  // Bloco separado das atipicas (transparencia, fora dos indicadores)
+  const atipicas = {
+    quantidade: vendasAtipicas.length,
+    faturamento: vendasAtipicas.reduce((s, v) => s + v.valorVenda, 0),
+    lucroLiquido: vendasAtipicas.reduce((s, v) => s + (v.lucroLiquido ?? 0), 0),
+  };
 
   // Camada de custo fixo (resultado REAL da empresa, nivel mes — nao por venda).
   // lucroLiquidoTotal aqui = margem de contribuicao (faturamento - custos variaveis).
@@ -90,8 +103,9 @@ export async function GET(request: NextRequest) {
     where: { mesReferencia: mesAnterior },
   });
 
-  const faturamentoAnterior = vendasMesAnterior.reduce((s, v) => s + v.valorVenda, 0);
-  const lucroAnterior = vendasMesAnterior.reduce((s, v) => s + (v.lucroLiquido ?? 0), 0);
+  const vendasAnteriorNormais = vendasMesAnterior.filter((v) => !v.atipica);
+  const faturamentoAnterior = vendasAnteriorNormais.reduce((s, v) => s + v.valorVenda, 0);
+  const lucroAnterior = vendasAnteriorNormais.reduce((s, v) => s + (v.lucroLiquido ?? 0), 0);
 
   return NextResponse.json({
     mes,
@@ -109,7 +123,7 @@ export async function GET(request: NextRequest) {
       custoTotalOperacional,
       lucroLiquidoTotal,
       margemLucroMedia,
-      quantidadeVendas: vendas.length,
+      quantidadeVendas: vendasNormais.length,
       ticketMedio,
       alertaMargemLucro,
       mensagemAlertaLucro,
@@ -119,6 +133,8 @@ export async function GET(request: NextRequest) {
       resultadoOperacional,
       margemReal,
       pontoEquilibrio,
+      // Vendas atipicas (fora dos indicadores acima)
+      atipicas,
     },
     comparacao: {
       mesAnterior,
@@ -154,6 +170,7 @@ export async function GET(request: NextRequest) {
       percentualComissaoOverride: v.percentualComissaoOverride,
       margem: v.margem,
       over: v.over,
+      atipica: v.atipica,
       status: v.status,
       dataConversao: v.dataConversao,
       orcamentoUrl: v.orcamentoUrl,
