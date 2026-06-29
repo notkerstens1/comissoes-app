@@ -89,6 +89,10 @@ model Venda {
   // Fica FORA dos indicadores de performance comercial e da margem media da diretoria —
   // distorce a media. NAO afeta comissao nem o calculo da propria venda; so a agregacao.
   atipica             Boolean @default(false)
+  // Venda bloqueada pra edicao (ex: excecao com economia manual que o recalculo
+  // do app sobrescreveria). Quando true, o PUT rejeita qualquer alteracao —
+  // so o DIRETOR pode destravar (enviar bloqueada=false).
+  bloqueada           Boolean @default(false)
   // Controle de pagamento separado
   comissaoVendaPaga   Boolean @default(false)
   comissaoOverPaga    Boolean @default(false)

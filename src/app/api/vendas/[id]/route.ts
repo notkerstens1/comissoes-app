@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isAdmin, canEditVenda } from "@/lib/roles";
+import { isAdmin, canEditVenda, isDiretor } from "@/lib/roles";
 import { PERCENTUAL_OVER_EXTERNA } from "@/lib/comissao";
 import { calcularCustosVenda, ConfiguracaoCustos } from "@/lib/custos";
 
@@ -55,6 +55,7 @@ export async function PUT(
     motivo,
     excecao,
     atipica,
+    bloqueada,
     valorVenda: novoValorVenda,
     custoEquipamentos: novoCustoEquipamentos,
     // Campos basicos editaveis (diretor/admin/financeiro)
@@ -70,7 +71,23 @@ export async function PUT(
     return NextResponse.json({ error: "Venda nao encontrada" }, { status: 404 });
   }
 
+  // ── Venda bloqueada: rejeita qualquer edicao. So o DIRETOR pode destravar
+  // (enviando bloqueada=false). Protege economias manuais (ex: venda de excecao)
+  // do recalculo automatico do app.
+  const querDestravar = bloqueada === false && isDiretor(session.user.role);
+  if (vendaAtual.bloqueada && !querDestravar) {
+    return NextResponse.json(
+      { error: "Venda bloqueada para edicao. Peca ao diretor para destravar." },
+      { status: 423 }
+    );
+  }
+
   const updateData: any = {};
+
+  // ── Bloquear / desbloquear (apenas diretor) ──
+  if (bloqueada !== undefined && isDiretor(session.user.role)) {
+    updateData.bloqueada = Boolean(bloqueada);
+  }
 
   // Qualquer admin pode atualizar status
   if (status !== undefined) {
@@ -280,7 +297,7 @@ export async function PUT(
       "valorVenda", "custoEquipamentos", "margem", "over", "comissaoOver", "comissaoVenda", "comissaoTotal",
       "quantidadePlacas", "quantidadeInversores", "custoInstalacao", "custoVisitaTecnica",
       "custoCosern", "custoTrtCrea", "custoEngenheiro", "custoMaterialCA", "custoImposto",
-      "percentualComissaoOverride", "lucroLiquido", "margemLucroLiquido", "dataConversao", "status", "excecao", "atipica",
+      "percentualComissaoOverride", "lucroLiquido", "margemLucroLiquido", "dataConversao", "status", "excecao", "atipica", "bloqueada",
       "cliente", "fonte", "tipoVenda", "distribuidora", "formaPagamento", "kwp",
     ];
     const alteracoes: { campo: string; de: unknown; para: unknown }[] = [];

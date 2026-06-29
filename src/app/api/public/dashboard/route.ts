@@ -160,9 +160,27 @@ export async function GET(request: NextRequest) {
     vendas: quantidadeVendas,
   };
 
+  // Lista de TODAS as vendas do mes (inclui atipicas, com flag) — pra conferencia
+  const listaVendas = vendasMes
+    .slice()
+    .sort((a, b) => b.dataConversao.getTime() - a.dataConversao.getTime())
+    .map((v) => ({
+      cliente: v.cliente,
+      vendedor: v.vendedor.nome,
+      valorVenda: v.valorVenda,
+      lucroLiquido: v.lucroLiquido ?? 0,
+      margemLucroLiquido: v.margemLucroLiquido ?? 0,
+      status: v.status,
+      fonte: v.fonte,
+      tipoVenda: v.tipoVenda,
+      atipica: v.atipica,
+      data: v.dataConversao.toISOString().slice(0, 10),
+    }));
+
   return NextResponse.json(
     {
       mes,
+      totalVendasMes: vendasMes.length,
       kpis: { faturamento, lucroLiquido, margemMedia, ticketMedio, quantidadeVendas, custoTotalOperacional },
       resultadoReal: { margemContribuicao, custoFixoMensal, resultadoOperacional, margemReal, pontoEquilibrio },
       unitEconomics: { ticketMedio, margemMediaPct: margemMedia, ltvV1, cacMaximo },
@@ -178,6 +196,7 @@ export async function GET(request: NextRequest) {
       closers,
       sdrs,
       canais,
+      vendas: listaVendas,
       _meta: { fonte: "comissoes-app", ltv: "v1 (lucro liquido medio por venda)", midiaPaga: "aguardando integracao Meta/CAPI" },
     },
     { headers: CORS }
