@@ -29,6 +29,52 @@ function getCurrentMonth(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
+function monthRange(mes: string): { since: string; until: string } {
+  const [y, m] = mes.split("-").map(Number);
+  const last = new Date(y, m, 0).getDate(); // m 1-based -> ultimo dia do mes
+  return { since: `${mes}-01`, until: `${mes}-${String(last).padStart(2, "0")}` };
+}
+
+// Busca insights do Meta Ads (server-side, token + appsecret_proof em env).
+// MQL = conversao custom CAPI (offsite_conversion.fb_pixel_custom). Falha vira
+// null -> a tela mostra "aguardando integracao Meta" sem quebrar.
+async function fetchMeta(mes: string) {
+  const token = process.env.META_SYSTEM_TOKEN;
+  const proof = process.env.META_APPSECRET_PROOF;
+  const acc = process.env.META_AD_ACCOUNT_ID;
+  if (!token || !proof || !acc) return null;
+  const { since, until } = monthRange(mes);
+  const tr = encodeURIComponent(JSON.stringify({ since, until }));
+  const base = `https://graph.facebook.com/v21.0/${acc}/insights`;
+  const common = `time_range=${tr}&access_token=${token}&appsecret_proof=${proof}`;
+  const pick = (actions: any[], type: string) => {
+    const a = (actions || []).find((x) => x.action_type === type);
+    return a ? Number(a.value) : 0;
+  };
+  try {
+    const [accRes, campRes] = await Promise.all([
+      fetch(`${base}?level=account&fields=spend,actions&${common}`).then((r) => r.json()),
+      fetch(`${base}?level=campaign&fields=campaign_name,spend,actions&${common}`).then((r) => r.json()),
+    ]);
+    if (accRes.error || campRes.error) return null;
+    const accRow = (accRes.data || [])[0] || {};
+    const spend = Number(accRow.spend || 0);
+    const leads = pick(accRow.actions, "lead");
+    const mql = pick(accRow.actions, "offsite_conversion.fb_pixel_custom");
+    const campanhas = (campRes.data || [])
+      .map((c: any) => {
+        const s = Number(c.spend || 0);
+        const l = pick(c.actions, "lead");
+        const m = pick(c.actions, "offsite_conversion.fb_pixel_custom");
+        return { nome: c.campaign_name, spend: s, leads: l, mql: m, cpl: l > 0 ? s / l : 0, cpmql: m > 0 ? s / m : 0 };
+      })
+      .sort((a: any, b: any) => b.spend - a.spend);
+    return { spend, leads, mql, cpl: leads > 0 ? spend / leads : 0, cpmql: mql > 0 ? spend / mql : 0, campanhas };
+  } catch {
+    return null;
+  }
+}
+
 function autorizado(request: NextRequest): boolean {
   const header = request.headers.get("authorization") || "";
   const bearer = header.toLowerCase().startsWith("bearer ")
@@ -151,14 +197,35 @@ export async function GET(request: NextRequest) {
     canais[canal].receita += v.valorVenda;
   }
 
-  // ---- Funil (parcial — topo depende de Meta/ChatClean, ainda nao integrado) ----
+  // ---- Meta Ads (investimento, leads, MQL via CAPI) ----
+  const meta = await fetchMeta(mes);
+
+  // ---- Funil ponta a ponta (topo do Meta + meio/fim do comissoes-app) ----
   const funil = {
-    investimento: null as number | null,
-    leads: null as number | null,
-    mql: null as number | null,
+    investimento: meta?.spend ?? null,
+    leads: meta?.leads ?? null,
+    mql: meta?.mql ?? null,
     reunioesRealizadas: registrosSDR.filter((r) => r.compareceu).length,
     vendas: quantidadeVendas,
   };
+
+  // ---- Aquisicao (mídia paga): por campanha + CAC/ROAS de tráfego ----
+  const vendasTrafego = canais.trafego.vendas;
+  const receitaTrafego = canais.trafego.receita;
+  const aquisicao = meta
+    ? {
+        spend: meta.spend,
+        leads: meta.leads,
+        mql: meta.mql,
+        cpl: meta.cpl,
+        cpmql: meta.cpmql,
+        cac: vendasTrafego > 0 ? meta.spend / vendasTrafego : null,
+        roas: meta.spend > 0 ? receitaTrafego / meta.spend : null,
+        vendasTrafego,
+        receitaTrafego,
+        campanhas: meta.campanhas,
+      }
+    : null;
 
   // Lista de TODAS as vendas do mes (inclui atipicas, com flag) — pra conferencia
   const listaVendas = vendasMes
@@ -193,11 +260,12 @@ export async function GET(request: NextRequest) {
         variacaoLucro: lucroAnterior > 0 ? ((lucroLiquido - lucroAnterior) / lucroAnterior) * 100 : 0,
       },
       funil,
+      aquisicao,
       closers,
       sdrs,
       canais,
       vendas: listaVendas,
-      _meta: { fonte: "comissoes-app", ltv: "v1 (lucro liquido medio por venda)", midiaPaga: "aguardando integracao Meta/CAPI" },
+      _meta: { fonte: "comissoes-app + Meta Ads", ltv: "v1 (lucro liquido medio por venda)", midiaPaga: meta ? "integrado (Meta Ads + CAPI)" : "indisponivel (checar token Meta)" },
     },
     { headers: CORS }
   );
