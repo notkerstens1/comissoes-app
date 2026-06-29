@@ -56,6 +56,18 @@ export async function GET(request: NextRequest) {
   const margemLucroMedia = faturamentoTotal > 0 ? lucroLiquidoTotal / faturamentoTotal : 0;
   const ticketMedio = vendas.length > 0 ? faturamentoTotal / vendas.length : 0;
 
+  // Camada de custo fixo (resultado REAL da empresa, nivel mes — nao por venda).
+  // lucroLiquidoTotal aqui = margem de contribuicao (faturamento - custos variaveis).
+  // Subtraindo o custo fixo mensal chegamos no resultado operacional real.
+  const config = await prisma.configuracao.findFirst();
+  const custoFixoMensal = config?.custoFixoMensal ?? 40000;
+  const margemContribuicao = lucroLiquidoTotal; // antes do custo fixo
+  const resultadoOperacional = margemContribuicao - custoFixoMensal;
+  const margemReal = faturamentoTotal > 0 ? resultadoOperacional / faturamentoTotal : 0;
+  // Ponto de equilibrio (em faturamento): quanto vender pra zerar o custo fixo,
+  // dada a margem de contribuicao percentual atual.
+  const pontoEquilibrio = margemLucroMedia > 0 ? custoFixoMensal / margemLucroMedia : 0;
+
   // Alertas
   let alertaMargemLucro = false;
   let mensagemAlertaLucro: string | null = null;
@@ -101,6 +113,12 @@ export async function GET(request: NextRequest) {
       ticketMedio,
       alertaMargemLucro,
       mensagemAlertaLucro,
+      // Camada de custo fixo / resultado real
+      custoFixoMensal,
+      margemContribuicao,
+      resultadoOperacional,
+      margemReal,
+      pontoEquilibrio,
     },
     comparacao: {
       mesAnterior,

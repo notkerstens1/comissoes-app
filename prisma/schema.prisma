@@ -163,6 +163,12 @@ model Configuracao {
   // como base para calcular comissao do SUPERVISOR
   metaReceitaMensal Float @default(360000) // R$ 360k = 3 vendedores x R$ 120k
 
+  // Custo fixo mensal da empresa (aluguel, salarios, estrutura) — usado para
+  // calcular o RESULTADO REAL e o PONTO DE EQUILIBRIO na visao da diretoria.
+  // Nao entra no lucroLiquido por venda (que e margem de contribuicao); entra
+  // so na agregacao mensal. Default R$ 40k (custo fixo ~R$33.9k + folga).
+  custoFixoMensal Float @default(40000)
+
   // Comissao do SUPERVISOR: percentual sobre receita mensal total da empresa,
   // aplicado em faixas conforme % da meta atingida
   percentualSupervisorAte80    Float @default(0.0) // < 80% da meta: 0%

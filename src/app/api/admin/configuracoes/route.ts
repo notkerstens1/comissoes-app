@@ -60,6 +60,8 @@ export async function PUT(request: NextRequest) {
     aliquotaImpostoPadrao,
     // Comissao do supervisor
     metaReceitaMensal,
+    // Custo fixo mensal (resultado real + ponto de equilibrio na diretoria)
+    custoFixoMensal,
     percentualSupervisorAte80,
     percentualSupervisor80a100,
     percentualSupervisorAcima100,
@@ -91,6 +93,7 @@ export async function PUT(request: NextRequest) {
       ...(custoMaterialCAPadrao !== undefined && { custoMaterialCAPadrao }),
       ...(aliquotaImpostoPadrao !== undefined && { aliquotaImpostoPadrao }),
       ...(metaReceitaMensal !== undefined && { metaReceitaMensal }),
+      ...(custoFixoMensal !== undefined && { custoFixoMensal: Math.max(0, custoFixoMensal) }),
       ...(percentualSupervisorAte80 !== undefined && { percentualSupervisorAte80 }),
       ...(percentualSupervisor80a100 !== undefined && { percentualSupervisor80a100 }),
       ...(percentualSupervisorAcima100 !== undefined && { percentualSupervisorAcima100 }),
@@ -111,6 +114,7 @@ export async function PUT(request: NextRequest) {
       custoMaterialCAPadrao: custoMaterialCAPadrao ?? 500,
       aliquotaImpostoPadrao: aliquotaImpostoPadrao ?? 0.06,
       metaReceitaMensal: metaReceitaMensal ?? 360000,
+      custoFixoMensal: custoFixoMensal ?? 40000,
       percentualSupervisorAte80: percentualSupervisorAte80 ?? 0,
       percentualSupervisor80a100: percentualSupervisor80a100 ?? 0.008,
       percentualSupervisorAcima100: percentualSupervisorAcima100 ?? 0.01,

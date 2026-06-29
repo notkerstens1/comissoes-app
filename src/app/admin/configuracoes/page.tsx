@@ -23,6 +23,7 @@ export default function ConfiguracoesPage() {
     custoEngenheiroPadrao: 400,
     aliquotaImpostoPadrao: 0.06,
     metaReceitaMensal: 360000,
+    custoFixoMensal: 40000,
     percentualSupervisorAte80: 0,
     percentualSupervisor80a100: 0.008,
     percentualSupervisorAcima100: 0.01,
@@ -39,6 +40,7 @@ export default function ConfiguracoesPage() {
     custoTrtCreaPadrao: "",
     custoEngenheiroPadrao: "",
     metaReceitaMensal: "",
+    custoFixoMensal: "",
   });
 
   const [loading, setLoading] = useState(true);
@@ -60,6 +62,7 @@ export default function ConfiguracoesPage() {
           custoTrtCreaPadrao: formatCurrencyInput(data.custoTrtCreaPadrao || 65),
           custoEngenheiroPadrao: formatCurrencyInput(data.custoEngenheiroPadrao || 400),
           metaReceitaMensal: formatCurrencyInput(data.metaReceitaMensal || 360000),
+          custoFixoMensal: formatCurrencyInput(data.custoFixoMensal || 40000),
         });
         setLoading(false);
       });
@@ -326,6 +329,20 @@ export default function ConfiguracoesPage() {
               autoComplete="off"
             />
             <p className="text-xs text-liv-faint mt-1">Soma das metas individuais. Atualize quando entrar/sair vendedor.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-liv-muted mb-1">Custo Fixo Mensal (R$)</label>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={displays.custoFixoMensal}
+              onChange={(e) => handleCurrencyField("custoFixoMensal", e.target.value)}
+              className="w-full px-4 py-2.5 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink focus:ring-2 focus:ring-liv-violet focus:border-liv-violet outline-none placeholder-liv-faint"
+              placeholder="Ex: 40.000,00"
+              autoComplete="off"
+            />
+            <p className="text-xs text-liv-faint mt-1">Aluguel, salarios e estrutura. Usado no resultado real e no ponto de equilibrio da diretoria.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

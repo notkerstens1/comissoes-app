@@ -99,6 +99,11 @@ interface DadosFinanceiros {
     ticketMedio: number;
     alertaMargemLucro: boolean;
     mensagemAlertaLucro: string | null;
+    custoFixoMensal?: number;
+    margemContribuicao?: number;
+    resultadoOperacional?: number;
+    margemReal?: number;
+    pontoEquilibrio?: number;
   };
   comparacao: {
     mesAnterior: string;
@@ -361,6 +366,77 @@ export default function DiretorDashboardPage() {
           }
           meta="Meta: 20% - 25%"
         />
+      </div>
+
+      {/* Resultado Real (inclui custo fixo) */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="font-semibold text-liv-ink">Resultado real da empresa</h2>
+          <span className="text-xs text-liv-muted tabular-nums">
+            Custo fixo {formatCurrency(r?.custoFixoMensal ?? 40000)}/mes · editavel em configuracoes
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Margem de Contribuicao */}
+          <StatCard
+            label="Margem de Contribuicao"
+            value={formatCurrency(r?.margemContribuicao ?? r?.lucroLiquidoTotal ?? 0)}
+            tone="default"
+            chart={
+              <div className="w-9 h-9 bg-liv-info/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <BarChart3 className="w-4 h-4 text-liv-info" />
+              </div>
+            }
+            meta={
+              <span className="tabular-nums">
+                {((r?.margemLucroMedia || 0) * 100).toFixed(1)}% · antes do custo fixo
+              </span>
+            }
+          />
+
+          {/* Custo Fixo */}
+          <StatCard
+            label="Custo Fixo Mensal"
+            value={formatCurrency(r?.custoFixoMensal ?? 40000)}
+            tone="negative"
+            chart={
+              <div className="w-9 h-9 bg-liv-danger/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Wallet className="w-4 h-4 text-liv-danger" />
+              </div>
+            }
+            meta="Aluguel, salarios, estrutura"
+          />
+
+          {/* Resultado Real */}
+          <StatCard
+            label="Resultado Real"
+            value={formatCurrency(r?.resultadoOperacional ?? 0)}
+            tone={(r?.resultadoOperacional ?? 0) >= 0 ? "positive" : "negative"}
+            chart={
+              <div className="w-9 h-9 bg-liv-sage/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <DollarSign className="w-4 h-4 text-liv-sage" />
+              </div>
+            }
+            meta={
+              <span className="tabular-nums">
+                Margem real {((r?.margemReal ?? 0) * 100).toFixed(1)}%
+              </span>
+            }
+          />
+
+          {/* Ponto de Equilibrio */}
+          <StatCard
+            label="Ponto de Equilibrio"
+            value={formatCurrency(r?.pontoEquilibrio ?? 0)}
+            tone="default"
+            chart={
+              <div className="w-9 h-9 bg-liv-gold/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Percent className="w-4 h-4 text-liv-gold" />
+              </div>
+            }
+            meta="Faturamento pra zerar o custo fixo"
+          />
+        </div>
       </div>
 
       {/* Alerta de Margem */}
