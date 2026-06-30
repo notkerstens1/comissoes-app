@@ -60,16 +60,43 @@ async function fetchMeta(mes: string) {
     const accRow = (accRes.data || [])[0] || {};
     const spend = Number(accRow.spend || 0);
     const leads = pick(accRow.actions, "lead");
-    const mql = pick(accRow.actions, "offsite_conversion.fb_pixel_custom");
     const campanhas = (campRes.data || [])
       .map((c: any) => {
         const s = Number(c.spend || 0);
         const l = pick(c.actions, "lead");
-        const m = pick(c.actions, "offsite_conversion.fb_pixel_custom");
-        return { nome: c.campaign_name, spend: s, leads: l, mql: m, cpl: l > 0 ? s / l : 0, cpmql: m > 0 ? s / m : 0 };
+        return { nome: c.campaign_name, spend: s, leads: l, cpl: l > 0 ? s / l : 0 };
       })
       .sort((a: any, b: any) => b.spend - a.spend);
-    return { spend, leads, mql, cpl: leads > 0 ? spend / leads : 0, cpmql: mql > 0 ? spend / mql : 0, campanhas };
+    return { spend, leads, cpl: leads > 0 ? spend / leads : 0, campanhas };
+  } catch {
+    return null;
+  }
+}
+
+// MQL real = reunioes/atendidos que os SDRs lancam na planilha LEADS_LIV,
+// aba "ATENDIDOS (MQL)". CPF negado na aba "CPF NEGADO". Planilha publica
+// (qualquer um com link) -> lemos o CSV via gviz, sem credencial. Cada linha
+// cujo id comeca com "l:" e um lead; conta por created_time do mes.
+async function fetchSheetMQL(mes: string) {
+  const sid = process.env.SHEET_MQL_ID || "1583JgQTfjs0ZEgnjwgahJNnkq3nGzVSjcGeH7eSC-Bk";
+  const contaTab = async (nome: string) => {
+    const url = `https://docs.google.com/spreadsheets/d/${sid}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(nome)}`;
+    const txt = await fetch(url).then((r) => r.text());
+    let count = 0;
+    let ultima = "";
+    for (const line of txt.split("\n")) {
+      if (!/^"?l:/.test(line)) continue;
+      const m = line.match(/(20\d\d-\d\d-\d\d)T/);
+      if (m && m[1].startsWith(mes)) {
+        count++;
+        if (m[1] > ultima) ultima = m[1];
+      }
+    }
+    return { count, ultima };
+  };
+  try {
+    const [mqlT, cpfT] = await Promise.all([contaTab("ATENDIDOS (MQL)"), contaTab("CPF NEGADO")]);
+    return { mql: mqlT.count, cpfNegado: cpfT.count, atualizadoAte: mqlT.ultima || null };
   } catch {
     return null;
   }
@@ -197,28 +224,32 @@ export async function GET(request: NextRequest) {
     canais[canal].receita += v.valorVenda;
   }
 
-  // ---- Meta Ads (investimento, leads, MQL via CAPI) ----
-  const meta = await fetchMeta(mes);
+  // ---- Meta Ads (investimento, leads) + MQL real da planilha SDR ----
+  const [meta, sheet] = await Promise.all([fetchMeta(mes), fetchSheetMQL(mes)]);
+  const mqlReal = sheet?.mql ?? null;
 
-  // ---- Funil ponta a ponta (topo do Meta + meio/fim do comissoes-app) ----
+  // ---- Funil ponta a ponta (Meta no topo, planilha SDR no MQL, comissoes-app no fim) ----
   const funil = {
     investimento: meta?.spend ?? null,
     leads: meta?.leads ?? null,
-    mql: meta?.mql ?? null,
+    mql: mqlReal,
     reunioesRealizadas: registrosSDR.filter((r) => r.compareceu).length,
     vendas: quantidadeVendas,
   };
 
   // ---- Aquisicao (mídia paga): por campanha + CAC/ROAS de tráfego ----
+  // MQL e CPMQL usam o MQL REAL da planilha (nao o sinal do Meta, que estava furado).
   const vendasTrafego = canais.trafego.vendas;
   const receitaTrafego = canais.trafego.receita;
   const aquisicao = meta
     ? {
         spend: meta.spend,
         leads: meta.leads,
-        mql: meta.mql,
+        mql: mqlReal,
         cpl: meta.cpl,
-        cpmql: meta.cpmql,
+        cpmql: mqlReal && mqlReal > 0 ? meta.spend / mqlReal : null,
+        cpfNegado: sheet?.cpfNegado ?? null,
+        mqlAtualizadoAte: sheet?.atualizadoAte ?? null,
         cac: vendasTrafego > 0 ? meta.spend / vendasTrafego : null,
         roas: meta.spend > 0 ? receitaTrafego / meta.spend : null,
         vendasTrafego,
@@ -265,7 +296,7 @@ export async function GET(request: NextRequest) {
       sdrs,
       canais,
       vendas: listaVendas,
-      _meta: { fonte: "comissoes-app + Meta Ads", ltv: "v1 (lucro liquido medio por venda)", midiaPaga: meta ? "integrado (Meta Ads + CAPI)" : "indisponivel (checar token Meta)" },
+      _meta: { fonte: "comissoes-app + Meta Ads + planilha SDR", ltv: "v1 (lucro liquido medio por venda)", mql: "planilha LEADS_LIV aba ATENDIDOS (MQL)", midiaPaga: meta ? "Meta Ads (investimento/leads)" : "indisponivel (checar token Meta)" },
     },
     { headers: CORS }
   );
