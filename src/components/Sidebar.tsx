@@ -77,6 +77,12 @@ export function Sidebar() {
     { href: "/admin/sdr/forecast", label: "Forecast", icon: TrendingUp },
   ];
 
+  // Supervisor de operacao: acessa as oportunidades dos SDRs pra ajustar
+  // comparecimento/comissao (cancelou/remarcou/no-show) — sem o resto do painel admin.
+  const menuSupervisorSDR = [
+    { href: "/sdr", label: "Oportunidades SDR", icon: ClipboardList },
+  ];
+
   const menuAdmin = [
     { href: "/admin", label: "Painel Admin", icon: Settings },
     { href: "/admin/faixas", label: "Faixas", icon: Layers },
@@ -220,8 +226,8 @@ export function Sidebar() {
             </>
           )}
 
-          {/* Menu SDR — SDR ve seus menus, Admin/Diretor ve admin SDR */}
-          {(sdr || admin) && (
+          {/* Menu SDR — SDR ve seus menus, Admin/Diretor ve admin SDR, Supervisor ve oportunidades */}
+          {(sdr || admin || isSupervisorRole) && (
             <>
               {!sdr && <div className="my-3 border-t border-liv-line" />}
               <p className="px-3 text-xs font-semibold text-liv-faint uppercase tracking-wider mb-2">
@@ -229,6 +235,7 @@ export function Sidebar() {
               </p>
               {sdr && renderMenuSection(menuSDR)}
               {admin && renderMenuSection(menuAdminSDR)}
+              {(isSupervisorRole || admin) && renderMenuSection(menuSupervisorSDR)}
             </>
           )}
 

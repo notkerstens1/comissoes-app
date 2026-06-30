@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { formatCurrency } from "@/lib/utils";
+import { isSDR } from "@/lib/roles";
 import { ClipboardList, Users, DollarSign, CheckCircle, Edit2, X, Save, Phone } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
 
@@ -25,6 +27,7 @@ interface Registro {
   motivoNaoCompareceu: string | null;
   motivoFinalizacao: string | null;
   consideracoes: string | null;
+  sdr: { nome: string };
   vendedora: { nome: string };
   vendaVinculada: { id: string; cliente: string; valorVenda: number } | null;
 }
@@ -49,6 +52,11 @@ const MOTIVOS_NAO_COMPARECEU = [
 ];
 
 export default function SDRDashboardPage() {
+  const { data: session } = useSession();
+  // SDR ve seu painel pessoal (ligacoes, comissao). Supervisor/Admin abrem a mesma
+  // tela so pra gerenciar as oportunidades dos SDRs — sem painel pessoal.
+  const ehSDR = isSDR(session?.user?.role);
+
   const [dados, setDados] = useState<DashboardData | null>(null);
   const [registros, setRegistros] = useState<Registro[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +77,7 @@ export default function SDRDashboardPage() {
   const [editStatusLead, setEditStatusLead] = useState("");
   const [editMotivoFinalizacao, setEditMotivoFinalizacao] = useState("");
   const [editMotivoNaoCompareceu, setEditMotivoNaoCompareceu] = useState("");
+  const [editDataReuniao, setEditDataReuniao] = useState("");
   const [editConsideracoes, setEditConsideracoes] = useState("");
   const [salvandoEdit, setSalvandoEdit] = useState(false);
 
@@ -128,6 +137,7 @@ export default function SDRDashboardPage() {
     setEditStatusLead(reg.statusLead);
     setEditMotivoFinalizacao(reg.motivoFinalizacao || "");
     setEditMotivoNaoCompareceu(reg.motivoNaoCompareceu || "");
+    setEditDataReuniao(reg.dataReuniao || "");
     setEditConsideracoes(reg.consideracoes || "");
   };
 
@@ -140,6 +150,9 @@ export default function SDRDashboardPage() {
         statusLead: editStatusLead,
         consideracoes: editConsideracoes,
       };
+      if (editDataReuniao) {
+        payload.dataReuniao = editDataReuniao;
+      }
       if (editStatusLead === "FINALIZADO") {
         payload.motivoFinalizacao = editMotivoFinalizacao;
       }
@@ -224,7 +237,10 @@ export default function SDRDashboardPage() {
                 <label className="block text-xs font-medium text-liv-muted mb-2">Compareceu?</label>
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setEditCompareceu(true)}
+                    onClick={() => {
+                      setEditCompareceu(true);
+                      setEditStatusLead("COMPARECEU");
+                    }}
                     className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
                       editCompareceu ? "bg-liv-sage/20 text-liv-sage border border-liv-sage/30" : "bg-liv-surface-2 text-liv-muted border border-liv-line"
                     }`}
@@ -232,7 +248,12 @@ export default function SDRDashboardPage() {
                     Sim
                   </button>
                   <button
-                    onClick={() => setEditCompareceu(false)}
+                    onClick={() => {
+                      setEditCompareceu(false);
+                      // Reuniao nao aconteceu: volta pra Agendado (remarcacao/no-show).
+                      // Se for cancelamento definitivo, e so trocar pra Finalizado abaixo.
+                      setEditStatusLead((prev) => (prev === "COMPARECEU" ? "AGENDADO" : prev));
+                    }}
                     className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
                       !editCompareceu ? "bg-liv-danger/20 text-liv-danger border border-liv-danger/30" : "bg-liv-surface-2 text-liv-muted border border-liv-line"
                     }`}
@@ -258,6 +279,22 @@ export default function SDRDashboardPage() {
                   </select>
                 </div>
               )}
+
+              {/* Data da reuniao — usar pra remarcacao (motivo "Remarcou") */}
+              <div>
+                <label className="block text-xs font-medium text-liv-muted mb-1">
+                  Data da reuniao
+                  {editMotivoNaoCompareceu === "Remarcou" && (
+                    <span className="text-liv-gold"> — nova data da remarcacao</span>
+                  )}
+                </label>
+                <input
+                  type="date"
+                  value={editDataReuniao}
+                  onChange={(e) => setEditDataReuniao(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink text-sm"
+                />
+              </div>
 
               {/* Status Lead */}
               <div>
@@ -327,7 +364,7 @@ export default function SDRDashboardPage() {
 
       <PageHeader
         eyebrow="Pré-venda · SDR"
-        title="Dashboard SDR"
+        title={ehSDR ? "Dashboard SDR" : "Oportunidades SDR"}
         subtitle={getNomeMes(mesAtual)}
         actions={
           <input
@@ -339,7 +376,10 @@ export default function SDRDashboardPage() {
         }
       />
 
-      {/* Ligacoes do dia */}
+      {/* Painel pessoal (ligacoes + comissao) — apenas para o proprio SDR.
+          Supervisor/Admin abrem so a lista de oportunidades pra gerenciar. */}
+      {ehSDR && (
+      <>
       <div className="bg-liv-sage/10 rounded-2xl p-5 border border-liv-sage/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-liv-sage/20 rounded-xl flex items-center justify-center">
@@ -412,12 +452,14 @@ export default function SDRDashboardPage() {
           </div>
         </div>
       </div>
+      </>
+      )}
 
       {/* Lista de Registros com Edicao */}
       <div>
         <h2 className="text-lg font-semibold text-liv-ink mb-3 flex items-center gap-2">
           <ClipboardList className="w-5 h-5 text-liv-sage" />
-          Meus Registros
+          {ehSDR ? "Meus Registros" : "Oportunidades dos SDRs"}
         </h2>
         {registros.length === 0 ? (
           <div className="bg-liv-surface rounded-2xl p-8 border border-liv-line text-center">
@@ -438,6 +480,7 @@ export default function SDRDashboardPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-3 text-xs text-liv-muted flex-wrap">
+                    {!ehSDR && <span className="text-liv-sage">SDR: {reg.sdr.nome}</span>}
                     <span>Vendedora: {reg.vendedora.nome}</span>
                     <span>Reuniao: {reg.dataReuniao}</span>
                     {reg.compareceu && <span className="text-liv-sage">Compareceu</span>}

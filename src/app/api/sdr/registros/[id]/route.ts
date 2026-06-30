@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isAdmin, isSDR } from "@/lib/roles";
+import { isSDR, canManageSdrRegistros } from "@/lib/roles";
 import { COMISSAO_REUNIAO } from "@/lib/sdr";
 
 // GET - Buscar registro por ID
@@ -54,38 +54,24 @@ export async function PUT(
     return NextResponse.json({ error: "Registro nao encontrado" }, { status: 404 });
   }
 
-  const admin = isAdmin(session.user.role);
+  const podeGerenciar = canManageSdrRegistros(session.user.role); // SUPERVISOR/ADMIN/DIRETOR
   const sdr = isSDR(session.user.role);
 
-  // Permissao: SDR so edita os proprios, Admin edita todos
+  // Permissao: SDR so edita os proprios; Supervisor/Admin/Diretor editam qualquer um
   if (sdr && registro.sdrId !== session.user.id) {
     return NextResponse.json({ error: "Sem permissao" }, { status: 403 });
   }
 
-  if (!sdr && !admin) {
+  if (!sdr && !podeGerenciar) {
     return NextResponse.json({ error: "Sem permissao" }, { status: 403 });
   }
 
   try {
     const body = await request.json();
-    const temVinculo = !!registro.vendaVinculadaId;
 
-    // Anti-manipulacao: SDR com vinculo so pode editar consideracoes e imagemUrl
-    if (sdr && temVinculo) {
-      const updateData: any = { consideracoes: body.consideracoes?.trim() || null };
-      if (body.imagemUrl !== undefined) updateData.imagemUrl = body.imagemUrl || null;
-      const updated = await prisma.registroSDR.update({
-        where: { id: params.id },
-        data: updateData,
-        include: {
-          sdr: { select: { nome: true } },
-          vendedora: { select: { nome: true } },
-        },
-      });
-      return NextResponse.json(updated);
-    }
-
-    // SDR sem vinculo OU Admin/Diretor: pode editar tudo
+    // SDR (no proprio registro) e Supervisor/Admin/Diretor: edicao completa.
+    // Inclui reverter "compareceu" (cancelou/remarcou/no-show) e zerar a comissao
+    // de uma reuniao que nao aconteceu — ate em lead ja vinculado a venda.
     const { nomeCliente, vendedoraId, dataReuniao, compareceu, motivoNaoCompareceu, consideracoes, statusLead, motivoFinalizacao, imagemUrl } = body;
 
     const data: any = {};
@@ -171,14 +157,14 @@ export async function DELETE(
     return NextResponse.json({ error: "Registro nao encontrado" }, { status: 404 });
   }
 
-  const admin = isAdmin(session.user.role);
+  const podeGerenciar = canManageSdrRegistros(session.user.role); // SUPERVISOR/ADMIN/DIRETOR
   const sdr = isSDR(session.user.role);
 
   if (sdr && registro.sdrId !== session.user.id) {
     return NextResponse.json({ error: "Sem permissao" }, { status: 403 });
   }
 
-  if (!sdr && !admin) {
+  if (!sdr && !podeGerenciar) {
     return NextResponse.json({ error: "Sem permissao" }, { status: 403 });
   }
 

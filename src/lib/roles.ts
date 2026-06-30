@@ -77,6 +77,16 @@ export function isSDR(role: string | undefined | null): boolean {
 }
 
 /**
+ * Verifica se o usuario pode gerenciar (editar/excluir) registros SDR de QUALQUER pessoa.
+ * SUPERVISOR, ADMIN e DIRETOR — papeis com autoridade pra ajustar a comissao de reuniao
+ * (ex.: marcar "nao compareceu / cancelou / remarcou" e zerar a comissao de uma reuniao
+ * que nao aconteceu). O SDR edita os proprios registros por outra via (ownership).
+ */
+export function canManageSdrRegistros(role: string | undefined | null): boolean {
+  return role === "ADMIN" || role === "DIRETOR" || role === "SUPERVISOR";
+}
+
+/**
  * Verifica se o usuario e operador de Pos Venda
  */
 export function isPosVenda(role: string | undefined | null): boolean {
