@@ -115,7 +115,35 @@ export function getLastMonthRange(): { start: string; end: string; label: string
 }
 
 // Gera range a partir de preset
-export type DatePreset = "current_week" | "7d" | "30d" | "current_month" | "last_month" | "custom";
+export type DatePreset = "current_week" | "7d" | "30d" | "current_month" | "last_month" | "month" | "custom";
+
+// Range de um mes especifico ("YYYY-MM"): 1o dia -> ultimo dia do mes
+export function getMonthRange(mesStr: string): { start: string; end: string; label: string } {
+  const base = parseISO(`${mesStr}-01T00:00:00`);
+  const start = startOfMonth(base);
+  const end = endOfMonth(base);
+  return {
+    start: formatDateStr(start),
+    end: formatDateStr(end),
+    label: getNomeMes(mesStr),
+  };
+}
+
+// Lista de meses recentes (do mes atual para tras, ate um piso), para seletor
+export function getRecentMonths(floor = "2026-01"): { value: string; label: string }[] {
+  const now = getNow();
+  const floorDate = parseISO(`${floor}-01T00:00:00`);
+  const out: { value: string; label: string }[] = [];
+  let cursor = startOfMonth(now);
+  let guard = 0;
+  while (cursor >= floorDate && guard < 36) {
+    const value = formatDateStr(cursor).slice(0, 7);
+    out.push({ value, label: getNomeMes(value) });
+    cursor = subMonths(cursor, 1);
+    guard++;
+  }
+  return out;
+}
 
 export function getRangeFromPreset(preset: DatePreset): { start: string; end: string; label: string } {
   switch (preset) {
@@ -153,7 +181,12 @@ export function getMesAtual(): string {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 }
 
-// Formata label para range customizado
+// Formata label para range customizado (blindado contra datas vazias/invalidas,
+// que ocorrem quando o <input type="date"> fica momentaneamente sem valor ao editar)
 export function formatCustomRangeLabel(startStr: string, endStr: string): string {
-  return `${format(parseISO(startStr), "dd/MM")} - ${format(parseISO(endStr), "dd/MM/yyyy")} (Personalizado)`;
+  if (!startStr || !endStr) return "Selecione o periodo";
+  const start = parseISO(startStr);
+  const end = parseISO(endStr);
+  if (isNaN(start.getTime()) || isNaN(end.getTime())) return "Selecione o periodo";
+  return `${format(start, "dd/MM")} - ${format(end, "dd/MM/yyyy")} (Personalizado)`;
 }

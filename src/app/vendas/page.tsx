@@ -7,7 +7,14 @@ import { isAdmin as checkAdmin, isVendedor as checkIsVendedor } from "@/lib/role
 import CurrencyInput from "@/components/CurrencyInput";
 import { EditVendaPanel, VendaEditavel } from "@/components/EditVendaPanel";
 import { DateRangeFilter, DatePreset } from "@/components/performance/DateRangeFilter";
-import { getRangeFromPreset, formatCustomRangeLabel } from "@/lib/dates";
+import {
+  getRangeFromPreset,
+  formatCustomRangeLabel,
+  getMonthRange,
+  getRecentMonths,
+  getMesAtual,
+  getNomeMes,
+} from "@/lib/dates";
 import {
   ShoppingCart,
   Plus,
@@ -27,6 +34,7 @@ import { PageHeader } from "@/components/ui/page-header";
 
 function buildPeriodoLabel(preset: DatePreset, start: string, end: string): string {
   if (preset === "custom") return formatCustomRangeLabel(start, end);
+  if (preset === "month") return getNomeMes(start.slice(0, 7));
   return getRangeFromPreset(preset).label;
 }
 
@@ -79,9 +87,12 @@ export default function VendasPage() {
   const [vendaEditando, setVendaEditando] = useState<VendaEditavel | null>(null);
   const [editPanelOpen, setEditPanelOpen] = useState(false);
   const [abaAtiva, setAbaAtiva] = useState<"vendas" | "extrato">("vendas");
-  // Filtro de periodo (preset + range customizado)
-  const [periodPreset, setPeriodPreset] = useState<DatePreset>("current_month");
-  const initialRange = getRangeFromPreset("current_month");
+  // Filtro de periodo (preset + range customizado). Padrao: seletor de mes,
+  // que e a forma mais estavel de navegar mes a mes (sem depender do range de datas).
+  const [periodPreset, setPeriodPreset] = useState<DatePreset>("month");
+  const [selectedMonth, setSelectedMonth] = useState(getMesAtual());
+  const monthOptions = getRecentMonths();
+  const initialRange = getMonthRange(getMesAtual());
   const [periodStart, setPeriodStart] = useState(initialRange.start);
   const [periodEnd, setPeriodEnd] = useState(initialRange.end);
   const periodoLabel = buildPeriodoLabel(periodPreset, periodStart, periodEnd);
@@ -461,10 +472,22 @@ export default function VendasPage() {
         startDate={periodStart}
         endDate={periodEnd}
         label={`Mostrando: ${periodoLabel} · ${vendas.length} venda${vendas.length === 1 ? "" : "s"}`}
-        presets={["current_month", "last_month", "30d", "7d", "current_week", "custom"]}
+        presets={["month", "30d", "7d", "current_week", "custom"]}
+        monthOptions={monthOptions}
+        selectedMonth={selectedMonth}
+        onMonthChange={(m) => {
+          setSelectedMonth(m);
+          const r = getMonthRange(m);
+          setPeriodStart(r.start);
+          setPeriodEnd(r.end);
+        }}
         onPresetChange={(p) => {
           setPeriodPreset(p);
-          if (p !== "custom") {
+          if (p === "month") {
+            const r = getMonthRange(selectedMonth);
+            setPeriodStart(r.start);
+            setPeriodEnd(r.end);
+          } else if (p !== "custom") {
             const r = getRangeFromPreset(p);
             setPeriodStart(r.start);
             setPeriodEnd(r.end);

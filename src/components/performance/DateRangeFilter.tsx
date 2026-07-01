@@ -14,6 +14,11 @@ interface DateRangeFilterProps {
   onPresetChange: (preset: DatePreset) => void;
   onCustomRangeChange: (start: string, end: string) => void;
   presets?: DatePreset[];
+  // Seletor de mes (opcional): quando informado e o preset "month" estiver ativo,
+  // renderiza um dropdown de meses em vez do range de datas.
+  monthOptions?: { value: string; label: string }[];
+  selectedMonth?: string;
+  onMonthChange?: (month: string) => void;
 }
 
 const presetLabels: Record<DatePreset, string> = {
@@ -22,6 +27,7 @@ const presetLabels: Record<DatePreset, string> = {
   "30d": "30 dias",
   current_month: "Mes atual",
   last_month: "Mes passado",
+  month: "Mes",
   custom: "Personalizado",
 };
 
@@ -35,6 +41,9 @@ export function DateRangeFilter({
   onPresetChange,
   onCustomRangeChange,
   presets: presetList = defaultPresets,
+  monthOptions,
+  selectedMonth,
+  onMonthChange,
 }: DateRangeFilterProps) {
   return (
     <div className="space-y-2">
@@ -53,6 +62,20 @@ export function DateRangeFilter({
             {presetLabels[p]}
           </button>
         ))}
+
+        {preset === "month" && monthOptions && onMonthChange && (
+          <select
+            value={selectedMonth ?? ""}
+            onChange={(e) => onMonthChange(e.target.value)}
+            className="ml-2 px-3 py-1.5 rounded-lg border border-liv-line bg-liv-surface text-liv-ink text-sm"
+          >
+            {monthOptions.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
+          </select>
+        )}
 
         {preset === "custom" && (
           <div className="flex items-center gap-2 ml-2">
