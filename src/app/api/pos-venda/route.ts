@@ -94,7 +94,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Nome do cliente obrigatorio" }, { status: 400 });
   }
 
-  const codigoLocalizador = await gerarCodigoLocalizadorUnico(prisma);
+  let codigoLocalizador: string | null = null;
+  try { codigoLocalizador = await gerarCodigoLocalizadorUnico(prisma); } catch (e) { console.error("codigo localizador:", e); }
 
   const registro = await prisma.posVenda.create({
     data: {
