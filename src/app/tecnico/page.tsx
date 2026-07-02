@@ -28,7 +28,7 @@ import {
   Search,
 } from "lucide-react";
 import { OperacaoNav } from "@/components/OperacaoNav";
-import { canAccessTecnico } from "@/lib/roles";
+import { canAccessTecnico, canEditVistoria } from "@/lib/roles";
 import {
   ETAPAS_PROJETO,
   ETAPAS_INSTALACAO,
@@ -48,11 +48,13 @@ type Comentario = { id: string; autor: string; texto: string; criadoEm: string }
 type RegistroTecnico = {
   id: string;
   nomeCliente: string;
+  codigoLocalizador?: string | null;
   telefone: string | null;
   email: string | null;
   vendedorNome: string | null;
   etapa: string;             // trilho PROJETO
   etapaInstalacao: string;   // trilho INSTALACAO
+  dataVistoria?: string | null;
   observacoes: string | null;
   ultimaAcao: string | null;
   proximaAcao: string | null;
@@ -441,6 +443,25 @@ export default function SetorTecnicoPage() {
     } catch { setErroMsg("Erro ao excluir comentario"); }
   }
 
+  async function handleSalvarDataVistoria(r: RegistroTecnico, valor: string) {
+    try {
+      const res = await fetch(`/api/setor-tecnico/${r.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dataVistoria: valor || null }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || "Erro ao salvar data de vistoria");
+        return;
+      }
+      await fetchRegistros();
+      await loadDetalhes(r.id);
+    } catch { setErroMsg("Erro ao salvar data de vistoria"); }
+  }
+
+  const podeEditarVistoria = canEditVistoria(session?.user?.role);
+
   // Contagens por aba (calculadas em cima do array completo)
   const countProjetos = filtrarPorAba(registros, "PROJETOS").length;
   const countProjetosConcluidos = filtrarPorAba(registros, "PROJETOS_CONCLUIDOS").length;
@@ -461,7 +482,9 @@ export default function SetorTecnicoPage() {
   const buscaNorm = buscaNome.trim().toLowerCase();
   if (buscaNorm) {
     clientesFiltrados = clientesFiltrados.filter((r) =>
-      (r.nomeCliente || "").toLowerCase().includes(buscaNorm),
+      (r.nomeCliente || "").toLowerCase().includes(buscaNorm) ||
+      (r.codigoLocalizador || "").toLowerCase().includes(buscaNorm) ||
+      (r.telefone || "").toLowerCase().includes(buscaNorm),
     );
   }
   clientesFiltrados = [...clientesFiltrados].sort(
@@ -638,7 +661,7 @@ export default function SetorTecnicoPage() {
             value={buscaNome}
             onChange={(e) => setBuscaNome(e.target.value)}
             className="w-full bg-liv-surface-2 border border-liv-line rounded-lg pl-9 pr-9 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
-            placeholder="Buscar cliente por nome..."
+            placeholder="Buscar por código, nome ou telefone..."
           />
           {buscaNome && (
             <button
@@ -729,6 +752,15 @@ export default function SetorTecnicoPage() {
                             <h3 className="text-lg font-bold text-liv-ink truncate">
                               {r.nomeCliente}
                             </h3>
+                            {r.codigoLocalizador && (
+                              <span
+                                onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(r.codigoLocalizador!); }}
+                                title="Copiar código do cliente"
+                                className="shrink-0 text-xs font-mono px-1.5 py-0.5 rounded bg-liv-surface-2 text-liv-muted hover:text-liv-ink border border-liv-line cursor-pointer"
+                              >
+                                #{r.codigoLocalizador}
+                              </span>
+                            )}
                             {r.telefone && (
                               <span className="hidden sm:flex items-center gap-1.5 text-sm text-liv-faint">
                                 <Phone className="w-3.5 h-3.5" />
@@ -1019,6 +1051,21 @@ export default function SetorTecnicoPage() {
                                 <Hammer className="w-4 h-4" />
                                 Instalacao concluida
                               </div>
+                            )}
+                          </div>
+
+                          {/* Data de vistoria (engenharia) — edicao exclusiva do engenheiro/diretor/admin */}
+                          <div className="mt-3 flex items-center gap-2 flex-wrap">
+                            <span className="text-xs text-liv-faint uppercase tracking-wider">Data de vistoria</span>
+                            {podeEditarVistoria ? (
+                              <input
+                                type="date"
+                                value={r.dataVistoria ?? ""}
+                                onChange={(e) => handleSalvarDataVistoria(r, e.target.value)}
+                                className="bg-liv-surface-2 border border-liv-line rounded-lg px-2 py-1 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                              />
+                            ) : (
+                              <span className="text-sm text-liv-muted tabular-nums">{r.dataVistoria ? formatDate(r.dataVistoria) : "—"}</span>
                             )}
                           </div>
 
