@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canAccessTecnico } from "@/lib/roles";
+import { gerarCodigoLocalizadorUnico } from "@/lib/codigo-localizador";
 
 // GET — listar registros do setor tecnico (payload enxuto: sem campos JSON pesados)
 // Campos pesados (anexos, comentarios, historicoAcoes) sao buscados sob demanda
@@ -79,9 +80,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Nome do cliente obrigatorio" }, { status: 400 });
   }
 
+  const codigoLocalizador = await gerarCodigoLocalizadorUnico(prisma);
+
   const registro = await prisma.setorTecnico.create({
     data: {
       nomeCliente: nomeCliente.trim(),
+      codigoLocalizador,
       telefone: telefone?.trim() || null,
       email: email?.trim() || null,
       etapa: etapa || "NOVO_PROJETO",

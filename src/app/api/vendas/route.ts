@@ -7,6 +7,7 @@ import { calcularCustosVenda, ConfiguracaoCustos } from "@/lib/custos";
 import { calcularCustoInstalacaoEstimado, type BitolaCabo } from "@/lib/margem-instalacao";
 import { isSupervisor } from "@/lib/roles";
 import { tentarVincularVendaSDR } from "@/lib/sdr-linking";
+import { gerarCodigoLocalizadorUnico } from "@/lib/codigo-localizador";
 
 // GET - Listar vendas do vendedor logado (ou todas se admin/diretor)
 export async function GET(request: NextRequest) {
@@ -244,11 +245,16 @@ export async function POST(request: NextRequest) {
     // Tentar vincular automaticamente a um registro SDR
     await tentarVincularVendaSDR(venda.id);
 
+    // Codigo localizador compartilhado entre os dois cards do mesmo cliente
+    let codigoLocalizador: string | null = null;
+    try { codigoLocalizador = await gerarCodigoLocalizadorUnico(prisma); } catch (e) { console.error("codigo localizador:", e); }
+
     // Auto-criar registro no Setor Tecnico
     try {
       await prisma.setorTecnico.create({
         data: {
           nomeCliente: cliente,
+          codigoLocalizador,
           vendaId: venda.id,
           vendedorNome: session.user.name || "",
           // Card nasce ja nos dois trilhos: Projetos (Novo Projeto) e
@@ -285,6 +291,7 @@ export async function POST(request: NextRequest) {
         data: {
           operadorId: operadorPV?.id ?? session.user.id,
           nomeCliente: cliente,
+          codigoLocalizador,
           vendaId: venda.id,
           etapa: "TRAMITES",
           proximoContato: prazoStr,
