@@ -143,6 +143,14 @@ export function canEditVenda(role: string | undefined | null): boolean {
 }
 
 /**
+ * Quem pode editar a data de vistoria (engenharia). Engenheiro (TECNICO) +
+ * superusuarios (ADMIN/DIRETOR). POS_VENDA ve mas nao edita.
+ */
+export function canEditVistoria(role: string | undefined | null): boolean {
+  return role === "TECNICO" || role === "ADMIN" || role === "DIRETOR";
+}
+
+/**
  * Verifica se o usuario pode acessar area financeira (FINANCEIRO, ADMIN ou DIRETOR)
  */
 export function canAccessFinanceiro(role: string | undefined | null): boolean {

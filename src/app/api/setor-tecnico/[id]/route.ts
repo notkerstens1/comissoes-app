@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { canAccessTecnico } from "@/lib/roles";
+import { canAccessTecnico, canEditVistoria } from "@/lib/roles";
 
 // GET — buscar registro completo (com campos pesados) sob demanda
 export async function GET(
@@ -51,7 +51,7 @@ export async function PUT(
     anexos, comentarios,
     // Novos campos da fase instalacao
     visitaValidada, bloqueioStatus, checklistDocumentos,
-    dataVisita, dataInstalacao, dataRedeLigada,
+    dataVisita, dataInstalacao, dataRedeLigada, dataVistoria,
   } = body;
 
   // Defesa em profundidade: arrays JSON nao sao mais aceitos no PUT generico
@@ -86,6 +86,10 @@ export async function PUT(
   if (dataVisita !== undefined) data.dataVisita = dataVisita?.trim() || null;
   if (dataInstalacao !== undefined) data.dataInstalacao = dataInstalacao?.trim() || null;
   if (dataRedeLigada !== undefined) data.dataRedeLigada = dataRedeLigada?.trim() || null;
+  // Data de vistoria: edicao exclusiva do engenheiro (TECNICO) + ADMIN/DIRETOR
+  if (dataVistoria !== undefined && canEditVistoria(session.user.role)) {
+    data.dataVistoria = dataVistoria?.trim() || null;
+  }
 
   // Historico de acoes: ao atualizar proximaAcao, salvar a anterior no historico
   if (proximaAcao !== undefined) {

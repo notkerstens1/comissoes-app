@@ -22,6 +22,7 @@ export async function GET() {
     select: {
       id: true,
       nomeCliente: true,
+      codigoLocalizador: true,
       telefone: true,
       conferido: true,
       dataConferido: true,

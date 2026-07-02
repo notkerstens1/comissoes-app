@@ -21,11 +21,13 @@ export async function GET() {
     select: {
       id: true,
       nomeCliente: true,
+      codigoLocalizador: true,
       telefone: true,
       email: true,
       vendedorNome: true,
       etapa: true,
       etapaInstalacao: true,
+      dataVistoria: true,
       observacoes: true,
       ultimaAcao: true,
       proximaAcao: true,
