@@ -44,6 +44,7 @@ import {
 type PosVendaRegistro = {
   id: string;
   nomeCliente: string;
+  codigoLocalizador?: string | null;
   telefone: string | null;
   conferido: boolean;
   dataConferido: string | null;
@@ -439,11 +440,13 @@ export default function PosVendaPage() {
     clientesFiltrados = clientesFiltrados.filter((r) => r.etapa === filterEtapa);
   }
 
-  // Busca por nome do cliente
+  // Busca por código localizador, nome ou telefone
   const buscaNorm = buscaNome.trim().toLowerCase();
   if (buscaNorm) {
     clientesFiltrados = clientesFiltrados.filter((r) =>
-      (r.nomeCliente || "").toLowerCase().includes(buscaNorm)
+      (r.nomeCliente || "").toLowerCase().includes(buscaNorm) ||
+      (r.codigoLocalizador || "").toLowerCase().includes(buscaNorm) ||
+      (r.telefone || "").toLowerCase().includes(buscaNorm)
     );
   }
 
@@ -728,7 +731,7 @@ export default function PosVendaPage() {
           value={buscaNome}
           onChange={(e) => setBuscaNome(e.target.value)}
           className="w-full bg-liv-surface-2 border border-liv-line rounded-lg pl-9 pr-9 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
-          placeholder="Buscar cliente por nome..."
+          placeholder="Buscar por código, nome ou telefone..."
         />
         {buscaNome && (
           <button
@@ -788,7 +791,7 @@ export default function PosVendaPage() {
           {clientesFiltrados.map((r) => {
             const isEditing = editingId === r.id;
             const vencido = r.proximoContato && r.proximoContato < hoje;
-            const cores = ETAPA_CORES[r.etapa];
+            const cores = ETAPA_CORES[r.etapa] ?? { bg: "bg-liv-surface-2", text: "text-liv-muted", border: "border-liv-line" };
             const isExpanded = expandedId === r.id;
             // Prefere count do servidor (lista enxuta); fallback para parse local quando detalhes ja carregados
             const anexosCount = r.anexosCount ?? (r.anexos ? safeJsonArrayLen(r.anexos) : 0);
@@ -799,10 +802,10 @@ export default function PosVendaPage() {
                 {/* Card */}
                 {!isEditing && (
                   <div
-                    className={`bg-liv-surface border-2 rounded-xl transition ${
+                    className={`bg-liv-surface border-2 border-l-4 rounded-xl transition ${
                       vencido
                         ? "border-liv-danger/50 shadow-lg shadow-liv-danger/10"
-                        : "border-liv-line hover:border-liv-surface-2"
+                        : `${cores.border} hover:opacity-95`
                     }`}
                   >
                     {/* === CABEÇALHO CLICÁVEL (sempre visível) === */}
@@ -823,6 +826,15 @@ export default function PosVendaPage() {
                           <h3 className="text-lg font-bold text-liv-ink truncate">
                             {r.nomeCliente}
                           </h3>
+                          {r.codigoLocalizador && (
+                            <span
+                              onClick={(e) => { e.stopPropagation(); navigator.clipboard?.writeText(r.codigoLocalizador!); }}
+                              title="Copiar código do cliente"
+                              className="shrink-0 text-xs font-mono px-1.5 py-0.5 rounded bg-liv-surface-2 text-liv-muted hover:text-liv-ink border border-liv-line cursor-pointer"
+                            >
+                              #{r.codigoLocalizador}
+                            </span>
+                          )}
                           {r.telefone && (
                             <span className="hidden sm:flex items-center gap-1.5 text-sm text-liv-faint">
                               <Phone className="w-3.5 h-3.5" />
