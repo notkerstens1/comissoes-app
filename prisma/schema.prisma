@@ -343,6 +343,7 @@ model PosVenda {
   // Dados do cliente
   nomeCliente         String
   telefone            String?
+  codigoLocalizador   String? // tag curta de 4 digitos, compartilhada com o card de engenharia
   // Vinculo opcional com venda do sistema
   vendaId             String?  @unique
   venda               Venda?   @relation(fields: [vendaId], references: [id])
@@ -388,6 +389,7 @@ model SetorTecnico {
   nomeCliente         String
   telefone            String?
   email               String?
+  codigoLocalizador   String? // tag curta de 4 digitos, compartilhada com o card de pos-venda
   // Vinculo com venda do sistema
   vendaId             String?  @unique
   venda               Venda?   @relation(fields: [vendaId], references: [id])
@@ -427,6 +429,7 @@ model SetorTecnico {
   dataVisita          String? // "YYYY-MM-DD"
   dataInstalacao      String? // "YYYY-MM-DD"
   dataRedeLigada      String? // "YYYY-MM-DD"
+  dataVistoria        String? // "YYYY-MM-DD" — vistoria da concessionaria (edicao exclusiva engenheiro)
   // Controle
   ativo               Boolean  @default(true)
   createdAt           DateTime @default(now())
