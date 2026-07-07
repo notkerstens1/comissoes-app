@@ -155,6 +155,15 @@ export function canEditVistoria(role: string | undefined | null): boolean {
 }
 
 /**
+ * Quem pode editar a data de instalacao. Diferente da vistoria: alem do
+ * engenheiro (TECNICO), o Pos-Venda tambem preenche (combinado com a equipe).
+ * FINANCEIRO tem acesso de leitura ao setor tecnico mas NAO edita datas.
+ */
+export function canEditInstalacao(role: string | undefined | null): boolean {
+  return role === "TECNICO" || role === "POS_VENDA" || role === "ADMIN" || role === "DIRETOR";
+}
+
+/**
  * Verifica se o usuario pode acessar area financeira (FINANCEIRO, ADMIN ou DIRETOR)
  */
 export function canAccessFinanceiro(role: string | undefined | null): boolean {

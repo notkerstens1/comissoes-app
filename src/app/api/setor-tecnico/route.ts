@@ -28,6 +28,7 @@ export async function GET() {
       etapa: true,
       etapaInstalacao: true,
       dataVistoria: true,
+      dataInstalacao: true,
       observacoes: true,
       ultimaAcao: true,
       proximaAcao: true,

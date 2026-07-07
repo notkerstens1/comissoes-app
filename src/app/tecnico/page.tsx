@@ -28,7 +28,7 @@ import {
   Search,
 } from "lucide-react";
 import { OperacaoNav } from "@/components/OperacaoNav";
-import { canAccessTecnico, canEditVistoria } from "@/lib/roles";
+import { canAccessTecnico, canEditVistoria, canEditInstalacao } from "@/lib/roles";
 import {
   ETAPAS_PROJETO,
   ETAPAS_INSTALACAO,
@@ -55,6 +55,7 @@ type RegistroTecnico = {
   etapa: string;             // trilho PROJETO
   etapaInstalacao: string;   // trilho INSTALACAO
   dataVistoria?: string | null;
+  dataInstalacao?: string | null;
   observacoes: string | null;
   ultimaAcao: string | null;
   proximaAcao: string | null;
@@ -460,7 +461,25 @@ export default function SetorTecnicoPage() {
     } catch { setErroMsg("Erro ao salvar data de vistoria"); }
   }
 
+  async function handleSalvarDataInstalacao(r: RegistroTecnico, valor: string) {
+    try {
+      const res = await fetch(`/api/setor-tecnico/${r.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dataInstalacao: valor || null }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || "Erro ao salvar data de instalacao");
+        return;
+      }
+      await fetchRegistros();
+      await loadDetalhes(r.id);
+    } catch { setErroMsg("Erro ao salvar data de instalacao"); }
+  }
+
   const podeEditarVistoria = canEditVistoria(session?.user?.role);
+  const podeEditarInstalacao = canEditInstalacao(session?.user?.role);
 
   // Contagens por aba (calculadas em cima do array completo)
   const countProjetos = filtrarPorAba(registros, "PROJETOS").length;
@@ -793,6 +812,16 @@ export default function SetorTecnicoPage() {
                                 {comentariosCount}
                               </span>
                             )}
+                            <span className="flex items-center gap-1 shrink-0" title="Data de vistoria">
+                              <Calendar className="w-3 h-3" />
+                              <span>Vist:</span>
+                              <span className={r.dataVistoria ? "text-liv-muted tabular-nums" : ""}>{r.dataVistoria ? formatDate(r.dataVistoria) : "—"}</span>
+                            </span>
+                            <span className="flex items-center gap-1 shrink-0" title="Data de instalacao">
+                              <Hammer className="w-3 h-3" />
+                              <span>Inst:</span>
+                              <span className={r.dataInstalacao ? "text-liv-muted tabular-nums" : ""}>{r.dataInstalacao ? formatDate(r.dataInstalacao) : "—"}</span>
+                            </span>
                           </div>
                         </div>
                         {/* Duas badges: trilho PROJETO + trilho INSTALACAO */}
@@ -1066,6 +1095,21 @@ export default function SetorTecnicoPage() {
                               />
                             ) : (
                               <span className="text-sm text-liv-muted tabular-nums">{r.dataVistoria ? formatDate(r.dataVistoria) : "—"}</span>
+                            )}
+                          </div>
+
+                          {/* Data de instalacao — engenheiro (TECNICO) + Pos-Venda podem editar */}
+                          <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            <span className="text-xs text-liv-faint uppercase tracking-wider">Data de instalacao</span>
+                            {podeEditarInstalacao ? (
+                              <input
+                                type="date"
+                                value={r.dataInstalacao ?? ""}
+                                onChange={(e) => handleSalvarDataInstalacao(r, e.target.value)}
+                                className="bg-liv-surface-2 border border-liv-line rounded-lg px-2 py-1 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                              />
+                            ) : (
+                              <span className="text-sm text-liv-muted tabular-nums">{r.dataInstalacao ? formatDate(r.dataInstalacao) : "—"}</span>
                             )}
                           </div>
 

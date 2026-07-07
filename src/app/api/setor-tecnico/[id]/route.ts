@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { canAccessTecnico, canEditVistoria } from "@/lib/roles";
+import { canAccessTecnico, canEditVistoria, canEditInstalacao } from "@/lib/roles";
 
 // GET — buscar registro completo (com campos pesados) sob demanda
 export async function GET(
@@ -84,7 +84,10 @@ export async function PUT(
       : JSON.stringify(checklistDocumentos);
   }
   if (dataVisita !== undefined) data.dataVisita = dataVisita?.trim() || null;
-  if (dataInstalacao !== undefined) data.dataInstalacao = dataInstalacao?.trim() || null;
+  // Data de instalacao: engenheiro (TECNICO) + Pos-Venda podem editar. FINANCEIRO nao.
+  if (dataInstalacao !== undefined && canEditInstalacao(session.user.role)) {
+    data.dataInstalacao = dataInstalacao?.trim() || null;
+  }
   if (dataRedeLigada !== undefined) data.dataRedeLigada = dataRedeLigada?.trim() || null;
   // Data de vistoria: edicao exclusiva do engenheiro (TECNICO) + ADMIN/DIRETOR
   if (dataVistoria !== undefined && canEditVistoria(session.user.role)) {
