@@ -37,6 +37,7 @@ export async function GET() {
       previsaoInstalacao: true,
       checklistSupervisao: true,
       prazoFinalizacao: true,
+      etiquetas: true,
       // anexos e tarefas selecionados apenas para calcular count (sao removidos do payload abaixo)
       anexos: true,
       tarefas: true,

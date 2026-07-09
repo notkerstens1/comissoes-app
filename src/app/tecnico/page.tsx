@@ -40,6 +40,8 @@ import {
 } from "@/lib/setor-tecnico";
 import { formatCurrency } from "@/lib/utils";
 import { PageHeader } from "@/components/ui/page-header";
+import { EtiquetasChips, EtiquetasSelector } from "@/components/Etiquetas";
+import { parseEtiquetas } from "@/lib/etiquetas";
 
 type Anexo = { nome: string; url: string; data: string };
 type HistoricoAcao = { data: string; acao: string };
@@ -62,6 +64,7 @@ type RegistroTecnico = {
   historicoAcoes?: string | null;
   anexos?: string | null;
   comentarios?: string | null;
+  etiquetas?: string | null;
   venda: {
     id: string;
     cliente: string;
@@ -301,6 +304,16 @@ export default function SetorTecnicoPage() {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ etapaInstalacao: proxima }),
+    });
+    await fetchRegistros();
+  }
+
+  // Toggle de etiqueta manual (append/remove server-side via endpoint dedicado)
+  async function handleToggleEtiqueta(id: string, key: string, action: "add" | "remove") {
+    await fetch(`/api/setor-tecnico/${id}/etiquetas`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, action }),
     });
     await fetchRegistros();
   }
@@ -746,6 +759,7 @@ export default function SetorTecnicoPage() {
               const anexos = parseAnexos(r.anexos);
               const historico = parseHistorico(r.historicoAcoes);
               const comentarios = parseComentarios(r.comentarios);
+              const etiquetas = parseEtiquetas(r.etiquetas);
               const proximaProjeto = getProximaEtapaProjeto(r.etapa);
               const proximaInstalacao = getProximaEtapaInstalacao(r.etapaInstalacao);
               const isExpanded = expandedId === r.id;
@@ -787,6 +801,11 @@ export default function SetorTecnicoPage() {
                               </span>
                             )}
                           </div>
+                          {etiquetas.length > 0 && (
+                            <div className="mt-1.5">
+                              <EtiquetasChips etiquetas={etiquetas} />
+                            </div>
+                          )}
                           <div className="flex items-center gap-4 mt-1 text-xs text-liv-faint">
                             {r.vendedorNome && (
                               <span className="flex items-center gap-1 shrink-0">
@@ -846,6 +865,14 @@ export default function SetorTecnicoPage() {
                       {/* Expandido */}
                       {isExpanded && (
                         <div className="px-5 pb-5 border-t border-liv-line">
+                          <div className="mt-4 mb-4">
+                            <p className="text-xs text-liv-faint font-semibold uppercase mb-2">Etiquetas</p>
+                            <EtiquetasSelector
+                              etiquetas={etiquetas}
+                              onToggle={(key, action) => handleToggleEtiqueta(r.id, key, action)}
+                              disabled={saving}
+                            />
+                          </div>
                           {r.venda && (
                             <div className="mt-4 mb-4 p-3 bg-liv-surface-2 rounded-lg border border-liv-line">
                               <p className="text-xs text-liv-faint font-semibold uppercase mb-2">Dados da Venda</p>

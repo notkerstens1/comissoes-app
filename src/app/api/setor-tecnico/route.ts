@@ -35,6 +35,7 @@ export async function GET() {
       ativo: true,
       createdAt: true,
       updatedAt: true,
+      etiquetas: true,
       // anexos e comentarios selecionados apenas para calcular count
       anexos: true,
       comentarios: true,

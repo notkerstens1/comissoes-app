@@ -33,6 +33,8 @@ import { useSession } from "next-auth/react";
 import { isAdmin as checkAdmin, isDiretor } from "@/lib/roles";
 import { OperacaoNav } from "@/components/OperacaoNav";
 import { PageHeader } from "@/components/ui/page-header";
+import { EtiquetasChips, EtiquetasSelector } from "@/components/Etiquetas";
+import { parseEtiquetas } from "@/lib/etiquetas";
 import {
   ETAPAS_POS_VENDA,
   ETAPA_CORES,
@@ -61,6 +63,7 @@ type PosVendaRegistro = {
   historicoAcoes?: string | null;
   tarefas?: string | null;
   anotacoes?: string | null;
+  etiquetas?: string | null;
   previsaoMaterial: string | null;
   previsaoInstalacao: string | null;
   // Counts vindos da listagem enxuta (sem precisar parsear JSON)
@@ -242,6 +245,16 @@ export default function PosVendaPage() {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ etapa: proxima }),
+    });
+    await fetchRegistros();
+  }
+
+  // Toggle de etiqueta manual (append/remove server-side via endpoint dedicado)
+  async function handleToggleEtiqueta(id: string, key: string, action: "add" | "remove") {
+    await fetch(`/api/pos-venda/${id}/etiquetas`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, action }),
     });
     await fetchRegistros();
   }
@@ -796,6 +809,7 @@ export default function PosVendaPage() {
             // Prefere count do servidor (lista enxuta); fallback para parse local quando detalhes ja carregados
             const anexosCount = r.anexosCount ?? (r.anexos ? safeJsonArrayLen(r.anexos) : 0);
             const tarefasCount = r.tarefasCount ?? (r.tarefas ? safeJsonArrayLen(r.tarefas) : 0);
+            const etiquetas = parseEtiquetas(r.etiquetas);
 
             return (
               <div key={r.id}>
@@ -842,6 +856,11 @@ export default function PosVendaPage() {
                             </span>
                           )}
                         </div>
+                        {etiquetas.length > 0 && (
+                          <div className="mt-1.5">
+                            <EtiquetasChips etiquetas={etiquetas} />
+                          </div>
+                        )}
                         {/* Resumo compacto */}
                         <div className="flex items-center gap-4 mt-1 text-xs text-liv-faint">
                           {r.proximaAcao && (
@@ -904,6 +923,15 @@ export default function PosVendaPage() {
                     {/* === CONTEÚDO EXPANDIDO === */}
                     {isExpanded && (
                       <div className="px-5 pb-5 pt-0 border-t border-liv-line">
+                    {/* Etiquetas */}
+                    <div className="mt-4 mb-4">
+                      <p className="text-xs text-liv-faint font-semibold uppercase mb-2">Etiquetas</p>
+                      <EtiquetasSelector
+                        etiquetas={etiquetas}
+                        onToggle={(key, action) => handleToggleEtiqueta(r.id, key, action)}
+                        disabled={saving}
+                      />
+                    </div>
                     {/* Conteúdo */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 mt-4">
                       {/* Coluna 1 */}

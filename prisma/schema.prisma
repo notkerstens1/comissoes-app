@@ -350,6 +350,9 @@ model PosVenda {
   // Etapa atual do funil pos-venda
   etapa               String   @default("TRAMITES")
   // "TRAMITES" | "AGUARDANDO_MATERIAL" | "VISITA_TECNICA" | "AGUARDANDO_VISTORIA" | "CADASTRAR_APP" | "ACOMPANHAMENTO_30" | "CLIENTE_FINALIZADO" | "MANUTENCOES"
+  // Etiquetas manuais paralelas a etapa (JSON array de keys de ETIQUETAS em
+  // src/lib/etiquetas.ts): FECHADO | TRAMITACAO | DEBITO. Multi-select.
+  etiquetas           String?
   // Acompanhamento
   ultimaAcao          String?
   proximaAcao         String?
@@ -425,6 +428,9 @@ model SetorTecnico {
   // Checklist de documentos exigidos antes de virar etapa INSTALACAO
   // (JSON: [{key, label, concluido}])
   checklistDocumentos String?
+  // Etiquetas manuais paralelas a etapa (JSON array de keys de ETIQUETAS em
+  // src/lib/etiquetas.ts): FECHADO | TRAMITACAO | DEBITO. Multi-select.
+  etiquetas           String?
   // Datas-chave da fase instalacao (preenchidas pelo engenheiro)
   dataVisita          String? // "YYYY-MM-DD"
   dataInstalacao      String? // "YYYY-MM-DD"
