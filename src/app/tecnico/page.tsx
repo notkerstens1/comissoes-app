@@ -28,7 +28,7 @@ import {
   Search,
 } from "lucide-react";
 import { OperacaoNav } from "@/components/OperacaoNav";
-import { canAccessTecnico, canEditVistoria, canEditInstalacao } from "@/lib/roles";
+import { canAccessTecnico, canEditVistoria, canEditInstalacao, canEditCustoMaterial } from "@/lib/roles";
 import {
   ETAPAS_PROJETO,
   ETAPAS_INSTALACAO,
@@ -65,6 +65,8 @@ type RegistroTecnico = {
   anexos?: string | null;
   comentarios?: string | null;
   etiquetas?: string | null;
+  custoMaterialReal?: number | null;
+  statusMaterial?: string | null;
   venda: {
     id: string;
     cliente: string;
@@ -142,6 +144,13 @@ function parseComentarios(raw: string | null | undefined): Comentario[] {
   if (!raw) return [];
   try { const p = JSON.parse(raw); return Array.isArray(p) ? p : []; } catch { return []; }
 }
+
+// Cores da margem do material (VERDE/AMARELO/VERMELHO — escolhido a mao pelo Pedro)
+const STATUS_MATERIAL_CORES: Record<string, { bg: string; text: string; border: string; dot: string }> = {
+  VERDE:    { bg: "bg-emerald-500/15", text: "text-emerald-300", border: "border-emerald-500/40", dot: "bg-emerald-400" },
+  AMARELO:  { bg: "bg-amber-500/15",   text: "text-amber-300",   border: "border-amber-500/40",   dot: "bg-amber-400"   },
+  VERMELHO: { bg: "bg-red-500/20",     text: "text-red-300",     border: "border-red-500/60",     dot: "bg-red-400"     },
+};
 
 // Filtra registros pra cada aba.
 // Regra (modelo dois trilhos):
@@ -493,6 +502,46 @@ export default function SetorTecnicoPage() {
 
   const podeEditarVistoria = canEditVistoria(session?.user?.role);
   const podeEditarInstalacao = canEditInstalacao(session?.user?.role);
+  const podeEditarCustoMaterial = canEditCustoMaterial(session?.user?.role);
+
+  // Salva o custo real do material (endpoint dedicado, so engenharia edita)
+  async function handleSalvarCustoMaterial(r: RegistroTecnico, valor: string) {
+    const v = valor.trim();
+    // Nao re-salva se nao mudou
+    const atual = r.custoMaterialReal != null ? String(r.custoMaterialReal) : "";
+    if (v === atual) return;
+    try {
+      const res = await fetch(`/api/setor-tecnico/${r.id}/custo-material`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ custoMaterialReal: v === "" ? null : v }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || "Erro ao salvar custo do material");
+        return;
+      }
+      await fetchRegistros();
+    } catch { setErroMsg("Erro ao salvar custo do material"); }
+  }
+
+  // Define/limpa a cor da margem do material (toggle manual)
+  async function handleSalvarStatusMaterial(r: RegistroTecnico, status: string) {
+    const novo = r.statusMaterial === status ? null : status;
+    try {
+      const res = await fetch(`/api/setor-tecnico/${r.id}/custo-material`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statusMaterial: novo }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || "Erro ao salvar cor do material");
+        return;
+      }
+      await fetchRegistros();
+    } catch { setErroMsg("Erro ao salvar cor do material"); }
+  }
 
   // Contagens por aba (calculadas em cima do array completo)
   const countProjetos = filtrarPorAba(registros, "PROJETOS").length;
@@ -831,6 +880,18 @@ export default function SetorTecnicoPage() {
                                 {comentariosCount}
                               </span>
                             )}
+                            {(r.custoMaterialReal != null || r.statusMaterial) && (
+                              <span
+                                title="Custo do material (CA)"
+                                className={`flex items-center gap-1 shrink-0 px-1.5 py-0.5 rounded-full text-[11px] font-bold border tabular-nums ${
+                                  r.statusMaterial
+                                    ? `${STATUS_MATERIAL_CORES[r.statusMaterial].bg} ${STATUS_MATERIAL_CORES[r.statusMaterial].text} ${STATUS_MATERIAL_CORES[r.statusMaterial].border}`
+                                    : "text-liv-muted border-liv-line"
+                                }`}
+                              >
+                                CA {r.custoMaterialReal != null ? formatCurrency(r.custoMaterialReal) : "—"}
+                              </span>
+                            )}
                             <span className="flex items-center gap-1 shrink-0" title="Data de vistoria">
                               <Calendar className="w-3 h-3" />
                               <span>Vist:</span>
@@ -1139,6 +1200,63 @@ export default function SetorTecnicoPage() {
                               <span className="text-sm text-liv-muted tabular-nums">{r.dataInstalacao ? formatDate(r.dataInstalacao) : "—"}</span>
                             )}
                           </div>
+
+                          {/* Custo do material CA — engenharia (Pedro) lanca; alimenta a Margem de Instalacao */}
+                          {(r.etapaInstalacao === "MATERIAL_COMPRADO" || r.custoMaterialReal != null || r.statusMaterial) && (
+                            <div className="mt-3 p-3 rounded-lg border border-liv-line bg-liv-surface-2">
+                              <p className="text-xs text-liv-faint uppercase tracking-wider mb-2">Custo do material (CA)</p>
+                              <div className="flex items-center gap-3 flex-wrap">
+                                {podeEditarCustoMaterial ? (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-sm text-liv-faint">R$</span>
+                                    <input
+                                      key={`custo-${r.id}-${r.custoMaterialReal ?? ""}`}
+                                      type="number"
+                                      step="0.01"
+                                      min="0"
+                                      inputMode="decimal"
+                                      defaultValue={r.custoMaterialReal != null ? String(r.custoMaterialReal) : ""}
+                                      onBlur={(e) => handleSalvarCustoMaterial(r, e.target.value)}
+                                      onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                                      placeholder="0,00"
+                                      className="w-28 bg-liv-surface border border-liv-line rounded-lg px-2 py-1 text-sm text-liv-ink text-right tabular-nums focus:border-liv-sage outline-none"
+                                    />
+                                  </div>
+                                ) : (
+                                  <span className="text-sm text-liv-ink font-semibold tabular-nums">
+                                    {r.custoMaterialReal != null ? formatCurrency(r.custoMaterialReal) : "—"}
+                                  </span>
+                                )}
+
+                                {/* Cor manual verde / amarelo / vermelho */}
+                                <div className="flex items-center gap-1.5">
+                                  {["VERDE", "AMARELO", "VERMELHO"].map((s) => {
+                                    const c = STATUS_MATERIAL_CORES[s];
+                                    const ativo = r.statusMaterial === s;
+                                    if (podeEditarCustoMaterial) {
+                                      return (
+                                        <button
+                                          key={s}
+                                          type="button"
+                                          onClick={() => handleSalvarStatusMaterial(r, s)}
+                                          title={s}
+                                          className={`w-6 h-6 rounded-full transition ${c.dot} ${
+                                            ativo ? "ring-2 ring-offset-2 ring-offset-liv-surface-2 ring-white/70 scale-110" : "opacity-40 hover:opacity-80"
+                                          }`}
+                                        />
+                                      );
+                                    }
+                                    return ativo ? (
+                                      <span key={s} className={`px-2 py-0.5 rounded-full text-[11px] font-bold border ${c.bg} ${c.text} ${c.border}`}>{s}</span>
+                                    ) : null;
+                                  })}
+                                </div>
+                              </div>
+                              <p className="text-[10px] text-liv-faint mt-2">
+                                Aparece na página Margem de Instalação. O detalhe do custo a mais vai no comentário.
+                              </p>
+                            </div>
+                          )}
 
                           {/* Alterar etapa manual + Editar + Remover */}
                           <div className="flex flex-wrap gap-2 mt-3">
