@@ -431,6 +431,12 @@ model SetorTecnico {
   // Etiquetas manuais paralelas a etapa (JSON array de keys de ETIQUETAS em
   // src/lib/etiquetas.ts): FECHADO | TRAMITACAO | DEBITO. Multi-select.
   etiquetas           String?
+  // === Custo do material CA (engenharia/Pedro) ===
+  // Custo real do material que o Pedro lanca no card ao chegar em MATERIAL_COMPRADO.
+  // Alimenta a pagina Margem de Instalacao (o "caixao de material"). So TECNICO edita.
+  custoMaterialReal   Float?
+  // Classificacao MANUAL da margem do material: VERDE | AMARELO | VERMELHO
+  statusMaterial      String?
   // Datas-chave da fase instalacao (preenchidas pelo engenheiro)
   dataVisita          String? // "YYYY-MM-DD"
   dataInstalacao      String? // "YYYY-MM-DD"

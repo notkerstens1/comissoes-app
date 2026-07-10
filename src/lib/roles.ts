@@ -164,6 +164,15 @@ export function canEditInstalacao(role: string | undefined | null): boolean {
 }
 
 /**
+ * Quem pode LANCAR o custo real do material CA e a cor (verde/amarelo/vermelho)
+ * no card. Pedido do Pedro: "isso aqui so pra mim" — so a engenharia (TECNICO)
+ * edita. Yuri (POS_VENDA) e demais so visualizam.
+ */
+export function canEditCustoMaterial(role: string | undefined | null): boolean {
+  return role === "TECNICO" || role === "ADMIN" || role === "DIRETOR";
+}
+
+/**
  * Verifica se o usuario pode acessar area financeira (FINANCEIRO, ADMIN ou DIRETOR)
  */
 export function canAccessFinanceiro(role: string | undefined | null): boolean {
