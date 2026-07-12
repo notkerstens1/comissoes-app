@@ -58,6 +58,8 @@ type RegistroTecnico = {
   etapaInstalacao: string;   // trilho INSTALACAO
   dataVistoria?: string | null;
   dataInstalacao?: string | null;
+  cidadeInstalacao?: string | null;
+  enderecoInstalacao?: string | null;
   observacoes: string | null;
   ultimaAcao: string | null;
   proximaAcao: string | null;
@@ -498,6 +500,23 @@ export default function SetorTecnicoPage() {
       await fetchRegistros();
       await loadDetalhes(r.id);
     } catch { setErroMsg("Erro ao salvar data de instalacao"); }
+  }
+
+  async function handleSalvarCampoInstalacao(r: RegistroTecnico, campo: "cidadeInstalacao" | "enderecoInstalacao", valor: string) {
+    try {
+      const res = await fetch(`/api/setor-tecnico/${r.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ [campo]: valor || null }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || "Erro ao salvar localizacao da instalacao");
+        return;
+      }
+      await fetchRegistros();
+      await loadDetalhes(r.id);
+    } catch { setErroMsg("Erro ao salvar localizacao da instalacao"); }
   }
 
   const podeEditarVistoria = canEditVistoria(session?.user?.role);
@@ -1200,6 +1219,37 @@ export default function SetorTecnicoPage() {
                               <span className="text-sm text-liv-muted tabular-nums">{r.dataInstalacao ? formatDate(r.dataInstalacao) : "—"}</span>
                             )}
                           </div>
+
+                          {/* Localizacao da instalacao — alimenta o Mapa de Usinas. Engenheiro preenche. */}
+                          <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            <span className="text-xs text-liv-faint uppercase tracking-wider">Cidade da instalacao</span>
+                            {podeEditarInstalacao ? (
+                              <input
+                                type="text"
+                                placeholder="ex: Natal"
+                                defaultValue={r.cidadeInstalacao ?? ""}
+                                onBlur={(e) => { if ((e.target.value || "") !== (r.cidadeInstalacao ?? "")) handleSalvarCampoInstalacao(r, "cidadeInstalacao", e.target.value); }}
+                                className="bg-liv-surface-2 border border-liv-line rounded-lg px-2 py-1 text-sm text-liv-ink focus:border-liv-sage outline-none w-40"
+                              />
+                            ) : (
+                              <span className="text-sm text-liv-muted">{r.cidadeInstalacao || "—"}</span>
+                            )}
+                            {r.cidadeInstalacao && (
+                              <span className="text-[10px] text-liv-faint" title="Aparece no Mapa de Usinas">no mapa ✓</span>
+                            )}
+                          </div>
+                          {podeEditarInstalacao && (
+                            <div className="mt-1 flex items-center gap-2 flex-wrap">
+                              <span className="text-xs text-liv-faint uppercase tracking-wider">Endereco (opcional)</span>
+                              <input
+                                type="text"
+                                placeholder="rua, numero, bairro"
+                                defaultValue={r.enderecoInstalacao ?? ""}
+                                onBlur={(e) => { if ((e.target.value || "") !== (r.enderecoInstalacao ?? "")) handleSalvarCampoInstalacao(r, "enderecoInstalacao", e.target.value); }}
+                                className="bg-liv-surface-2 border border-liv-line rounded-lg px-2 py-1 text-sm text-liv-ink focus:border-liv-sage outline-none flex-1 min-w-[180px]"
+                              />
+                            </div>
+                          )}
 
                           {/* Custo do material CA — engenharia (Pedro) lanca; alimenta a Margem de Instalacao */}
                           {(r.etapaInstalacao === "MATERIAL_COMPRADO" || r.custoMaterialReal != null || r.statusMaterial) && (

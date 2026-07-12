@@ -52,6 +52,8 @@ export async function PUT(
     // Novos campos da fase instalacao
     visitaValidada, bloqueioStatus, checklistDocumentos,
     dataVisita, dataInstalacao, dataRedeLigada, dataVistoria,
+    // Localizacao da instalacao (alimenta o Mapa de Usinas)
+    cidadeInstalacao, enderecoInstalacao,
   } = body;
 
   // Defesa em profundidade: arrays JSON nao sao mais aceitos no PUT generico
@@ -89,6 +91,13 @@ export async function PUT(
     data.dataInstalacao = dataInstalacao?.trim() || null;
   }
   if (dataRedeLigada !== undefined) data.dataRedeLigada = dataRedeLigada?.trim() || null;
+  // Cidade/endereco da instalacao: mesma permissao da data de instalacao (TECNICO + Pos-Venda)
+  if (cidadeInstalacao !== undefined && canEditInstalacao(session.user.role)) {
+    data.cidadeInstalacao = cidadeInstalacao?.trim() || null;
+  }
+  if (enderecoInstalacao !== undefined && canEditInstalacao(session.user.role)) {
+    data.enderecoInstalacao = enderecoInstalacao?.trim() || null;
+  }
   // Data de vistoria: edicao exclusiva do engenheiro (TECNICO) + ADMIN/DIRETOR
   if (dataVistoria !== undefined && canEditVistoria(session.user.role)) {
     data.dataVistoria = dataVistoria?.trim() || null;
