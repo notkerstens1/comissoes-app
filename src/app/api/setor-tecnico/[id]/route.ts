@@ -68,6 +68,24 @@ export async function PUT(
     );
   }
 
+  // Endereco da geradora e OBRIGATORIO para marcar a usina como instalada.
+  // Trava na transicao para uma etapa de instalacao concluida (nao bloqueia edicoes
+  // de cards que ja estao instalados). Alimenta o Mapa de Usinas.
+  const ETAPAS_INSTALADA = new Set(["INSTALACAO_CONCLUIDA", "SOLICITADO_VISTORIA", "REDE_LIGADA"]);
+  if (
+    etapaInstalacao !== undefined &&
+    ETAPAS_INSTALADA.has(etapaInstalacao) &&
+    !ETAPAS_INSTALADA.has(registro.etapaInstalacao)
+  ) {
+    const enderecoFinal = enderecoInstalacao !== undefined ? enderecoInstalacao : registro.enderecoInstalacao;
+    if (!enderecoFinal || !String(enderecoFinal).trim()) {
+      return NextResponse.json(
+        { error: "Informe o endereco da geradora antes de marcar a usina como instalada." },
+        { status: 400 },
+      );
+    }
+  }
+
   const data: any = {};
 
   if (nomeCliente !== undefined) data.nomeCliente = nomeCliente.trim();

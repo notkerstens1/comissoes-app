@@ -1234,21 +1234,27 @@ export default function SetorTecnicoPage() {
                             ) : (
                               <span className="text-sm text-liv-muted">{r.cidadeInstalacao || "—"}</span>
                             )}
-                            {r.cidadeInstalacao && (
-                              <span className="text-[10px] text-liv-faint" title="Aparece no Mapa de Usinas">no mapa ✓</span>
-                            )}
                           </div>
-                          {podeEditarInstalacao && (
-                            <div className="mt-1 flex items-center gap-2 flex-wrap">
-                              <span className="text-xs text-liv-faint uppercase tracking-wider">Endereco (opcional)</span>
+                          {/* Endereco da geradora — OBRIGATORIO para marcar como instalada */}
+                          <div className="mt-1 flex items-center gap-2 flex-wrap">
+                            <span className="text-xs text-liv-faint uppercase tracking-wider">Endereco da geradora <span className="text-red-400">*</span></span>
+                            {podeEditarInstalacao ? (
                               <input
                                 type="text"
                                 placeholder="rua, numero, bairro"
                                 defaultValue={r.enderecoInstalacao ?? ""}
                                 onBlur={(e) => { if ((e.target.value || "") !== (r.enderecoInstalacao ?? "")) handleSalvarCampoInstalacao(r, "enderecoInstalacao", e.target.value); }}
-                                className="bg-liv-surface-2 border border-liv-line rounded-lg px-2 py-1 text-sm text-liv-ink focus:border-liv-sage outline-none flex-1 min-w-[180px]"
+                                className={`bg-liv-surface-2 border rounded-lg px-2 py-1 text-sm text-liv-ink focus:border-liv-sage outline-none flex-1 min-w-[200px] ${r.enderecoInstalacao ? "border-liv-line" : "border-red-400/60"}`}
                               />
-                            </div>
+                            ) : (
+                              <span className="text-sm text-liv-muted">{r.enderecoInstalacao || "—"}</span>
+                            )}
+                            {r.enderecoInstalacao && (
+                              <span className="text-[10px] text-liv-faint" title="Aparece no Mapa de Usinas">no mapa ✓</span>
+                            )}
+                          </div>
+                          {["INSTALACAO_CONCLUIDA","SOLICITADO_VISTORIA","REDE_LIGADA"].includes(r.etapaInstalacao) && !r.enderecoInstalacao && (
+                            <p className="mt-1 text-xs text-red-400">⚠ Falta o endereco da geradora desta usina — preencha para aparecer no mapa.</p>
                           )}
 
                           {/* Custo do material CA — engenharia (Pedro) lanca; alimenta a Margem de Instalacao */}
