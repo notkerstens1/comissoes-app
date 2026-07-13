@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canAccessTecnico, canEditVistoria, canEditInstalacao } from "@/lib/roles";
+import { geocodeEndereco } from "@/lib/geocode";
 
 // GET — buscar registro completo (com campos pesados) sob demanda
 export async function GET(
@@ -121,6 +122,20 @@ export async function PUT(
   }
   if (enderecoInstalacao !== undefined && canEditInstalacao(session.user.role)) {
     data.enderecoInstalacao = enderecoInstalacao?.trim() || null;
+    // Ao salvar o endereco, geocodifica (Nominatim) pra plotar o pin exato no mapa
+    // e auto-preencher a cidade. Best-effort: falha nao bloqueia o salvamento.
+    if (data.enderecoInstalacao) {
+      const cidadeRef = data.cidadeInstalacao ?? registro.cidadeInstalacao;
+      const geo = await geocodeEndereco(data.enderecoInstalacao, cidadeRef);
+      if (geo) {
+        data.latitude = geo.lat;
+        data.longitude = geo.lon;
+        if (!cidadeRef && geo.cidade) data.cidadeInstalacao = geo.cidade;
+      }
+    } else {
+      data.latitude = null;
+      data.longitude = null;
+    }
   }
   // Data de vistoria: edicao exclusiva do engenheiro (TECNICO) + ADMIN/DIRETOR
   if (dataVistoria !== undefined && canEditVistoria(session.user.role)) {

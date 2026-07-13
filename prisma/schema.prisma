@@ -445,8 +445,10 @@ model SetorTecnico {
   // Instalador responsavel pela execucao em campo (Pedro preenche no card)
   nomeInstalador      String?
   // Localizacao da instalacao — alimenta o Mapa de Usinas. Engenheiro preenche ao concluir.
-  cidadeInstalacao    String? // cidade da usina (ex: "Natal") — usada pra plotar no mapa
-  enderecoInstalacao  String? // rua/numero/bairro (opcional) — pra geocoding preciso depois
+  cidadeInstalacao    String? // cidade da usina (ex: "Natal") — auto-preenchida pelo geocoding
+  enderecoInstalacao  String? // rua/numero/bairro — OBRIGATORIO pra marcar instalada
+  latitude            Float?  // geocodificada do endereco (Nominatim) no salvamento
+  longitude           Float?  // idem — usada pra plotar o pin exato no mapa
   // Controle
   ativo               Boolean  @default(true)
   createdAt           DateTime @default(now())
