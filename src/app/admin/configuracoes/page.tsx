@@ -21,6 +21,8 @@ export default function ConfiguracoesPage() {
     custoCosernPadrao: 70,
     custoTrtCreaPadrao: 65,
     custoEngenheiroPadrao: 400,
+    custoMaterialCAAte7kw: 550,
+    custoMaterialCAAcima7kw: 700,
     aliquotaImpostoPadrao: 0.06,
     metaReceitaMensal: 360000,
     custoFixoMensal: 40000,
@@ -39,6 +41,8 @@ export default function ConfiguracoesPage() {
     custoCosernPadrao: "",
     custoTrtCreaPadrao: "",
     custoEngenheiroPadrao: "",
+    custoMaterialCAAte7kw: "",
+    custoMaterialCAAcima7kw: "",
     metaReceitaMensal: "",
     custoFixoMensal: "",
   });
@@ -61,6 +65,8 @@ export default function ConfiguracoesPage() {
           custoCosernPadrao: formatCurrencyInput(data.custoCosernPadrao || 70),
           custoTrtCreaPadrao: formatCurrencyInput(data.custoTrtCreaPadrao || 65),
           custoEngenheiroPadrao: formatCurrencyInput(data.custoEngenheiroPadrao || 400),
+          custoMaterialCAAte7kw: formatCurrencyInput(data.custoMaterialCAAte7kw || 550),
+          custoMaterialCAAcima7kw: formatCurrencyInput(data.custoMaterialCAAcima7kw || 700),
           metaReceitaMensal: formatCurrencyInput(data.metaReceitaMensal || 360000),
           custoFixoMensal: formatCurrencyInput(data.custoFixoMensal || 40000),
         });
@@ -287,6 +293,32 @@ export default function ConfiguracoesPage() {
                 autoComplete="off"
               />
               <p className="text-xs text-liv-faint mt-1">Custo pago ao engenheiro por cada instalacao</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-liv-muted mb-1">Material CA ≤ 7 kW (R$)</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={displays.custoMaterialCAAte7kw}
+                onChange={(e) => handleCurrencyField("custoMaterialCAAte7kw", e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink focus:ring-2 focus:ring-liv-gold focus:border-liv-gold outline-none placeholder-liv-faint"
+                placeholder="Ex: 550,00"
+                autoComplete="off"
+              />
+              <p className="text-xs text-liv-faint mt-1">Estimado de material CA para inversor ate 7 kW (Margem de Instalacao)</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-liv-muted mb-1">Material CA &gt; 7 kW (R$)</label>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={displays.custoMaterialCAAcima7kw}
+                onChange={(e) => handleCurrencyField("custoMaterialCAAcima7kw", e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink focus:ring-2 focus:ring-liv-gold focus:border-liv-gold outline-none placeholder-liv-faint"
+                placeholder="Ex: 700,00"
+                autoComplete="off"
+              />
+              <p className="text-xs text-liv-faint mt-1">Estimado de material CA para inversor acima de 7 kW (Margem de Instalacao)</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-liv-muted mb-1">Aliquota Imposto</label>

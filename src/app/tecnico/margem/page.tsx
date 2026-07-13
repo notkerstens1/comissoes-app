@@ -8,6 +8,11 @@ import { formatCurrency } from "@/lib/utils";
 import { canAccessTecnico } from "@/lib/roles";
 import { PageHeader } from "@/components/ui/page-header";
 import { getLabelInstalacao } from "@/lib/setor-tecnico";
+import { FAIXAS_INVERSOR_CA } from "@/lib/margem-instalacao";
+
+const FAIXA_LABEL: Record<string, string> = Object.fromEntries(
+  FAIXAS_INVERSOR_CA.map((f) => [f.key, f.label])
+);
 
 interface CardMaterial {
   id: string;
@@ -18,6 +23,8 @@ interface CardMaterial {
   etapaInstalacao: string;
   custoMaterialReal: number | null;
   statusMaterial: "VERDE" | "AMARELO" | "VERMELHO" | null;
+  faixaInversorCA: "ATE_7KW" | "ACIMA_7KW" | null;
+  estimado: number;
   venda: { cliente: string; valorVenda: number; cidadeInstalacao: string | null } | null;
 }
 
@@ -125,7 +132,7 @@ export default function MargemPage() {
             <Card
               label="Total estimado"
               value={formatCurrency(resumo.totalEstimado)}
-              hint={`padrão ${formatCurrency(resumo.padraoUnitario)}/card`}
+              hint={`por faixa do inversor · ${formatCurrency(resumo.padraoUnitario)} s/ faixa`}
             />
             <Card label="Total real (CA)" value={formatCurrency(resumo.totalReal)} hint={`${resumo.comCusto} lançados`} />
             <Card
@@ -199,7 +206,16 @@ export default function MargemPage() {
                       </td>
                       <td className="px-4 py-3 text-liv-muted">{getLabelInstalacao(c.etapaInstalacao)}</td>
                       <td className="px-4 py-3 text-right text-liv-faint tabular-nums">
-                        {c.custoMaterialReal != null ? formatCurrency(resumo?.padraoUnitario ?? 500) : "-"}
+                        {c.custoMaterialReal != null ? (
+                          <>
+                            {formatCurrency(c.estimado)}
+                            <span className="block text-[10px] text-liv-faint">
+                              {c.faixaInversorCA ? FAIXA_LABEL[c.faixaInversorCA] : "padrão"}
+                            </span>
+                          </>
+                        ) : (
+                          "-"
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right">
                         {c.custoMaterialReal != null ? (

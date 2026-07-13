@@ -38,6 +38,7 @@ export async function GET() {
       etiquetas: true,
       custoMaterialReal: true,
       statusMaterial: true,
+      faixaInversorCA: true,
       // anexos e comentarios selecionados apenas para calcular count
       anexos: true,
       comentarios: true,

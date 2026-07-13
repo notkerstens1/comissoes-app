@@ -195,7 +195,9 @@ model Configuracao {
   custoCosernPadrao        Float @default(70) // 2 x R$35
   custoTrtCreaPadrao       Float @default(65) // R$65 fixo
   custoEngenheiroPadrao    Float @default(400) // R$400 por instalacao (engenheiro)
-  custoMaterialCAPadrao    Float @default(500) // R$500 material CA
+  custoMaterialCAPadrao    Float @default(500) // R$500 material CA (fallback: card sem faixa de inversor)
+  custoMaterialCAAte7kw    Float @default(550) // material CA, inversor <= 7 kW
+  custoMaterialCAAcima7kw  Float @default(700) // material CA, inversor > 7 kW
   aliquotaImpostoPadrao    Float @default(0.06) // 6%
 }
 
@@ -437,6 +439,10 @@ model SetorTecnico {
   custoMaterialReal   Float?
   // Classificacao MANUAL da margem do material: VERDE | AMARELO | VERMELHO
   statusMaterial      String?
+  // Faixa de potencia do inversor (classificacao MANUAL do Pedro, lida do PDF do
+  // pedido). Resolve o custo ESTIMADO de material CA na Margem de Instalacao.
+  // Valores: ATE_7KW | ACIMA_7KW. Null = sem faixa, cai no padrao (R$500).
+  faixaInversorCA     String?
   // Datas-chave da fase instalacao (preenchidas pelo engenheiro)
   dataVisita          String? // "YYYY-MM-DD"
   dataInstalacao      String? // "YYYY-MM-DD"

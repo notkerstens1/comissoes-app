@@ -3,8 +3,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { canEditCustoMaterial } from "@/lib/roles";
+import { FAIXAS_INVERSOR_CA } from "@/lib/margem-instalacao";
 
 const STATUS_VALIDOS = ["VERDE", "AMARELO", "VERMELHO"];
+const FAIXAS_VALIDAS = FAIXAS_INVERSOR_CA.map((f) => f.key) as string[];
 
 // PUT — lanca o custo real do material CA e a cor (manual) no card.
 // Restrito a engenharia (TECNICO/ADMIN/DIRETOR) — "isso aqui so pra mim" (Pedro).
@@ -27,7 +29,11 @@ export async function PUT(
   if (!registro) return NextResponse.json({ error: "Registro nao encontrado" }, { status: 404 });
 
   const body = await request.json().catch(() => ({}));
-  const data: { custoMaterialReal?: number | null; statusMaterial?: string | null } = {};
+  const data: {
+    custoMaterialReal?: number | null;
+    statusMaterial?: string | null;
+    faixaInversorCA?: string | null;
+  } = {};
 
   if ("custoMaterialReal" in body) {
     const v = body.custoMaterialReal;
@@ -53,6 +59,17 @@ export async function PUT(
     }
   }
 
+  if ("faixaInversorCA" in body) {
+    const f = body.faixaInversorCA;
+    if (f === null || f === "" || f === undefined) {
+      data.faixaInversorCA = null;
+    } else if (FAIXAS_VALIDAS.includes(f)) {
+      data.faixaInversorCA = f;
+    } else {
+      return NextResponse.json({ error: "Faixa invalida" }, { status: 400 });
+    }
+  }
+
   if (Object.keys(data).length === 0) {
     return NextResponse.json({ error: "Nada para atualizar" }, { status: 400 });
   }
@@ -60,7 +77,7 @@ export async function PUT(
   const updated = await prisma.setorTecnico.update({
     where: { id: params.id },
     data,
-    select: { id: true, custoMaterialReal: true, statusMaterial: true },
+    select: { id: true, custoMaterialReal: true, statusMaterial: true, faixaInversorCA: true },
   });
 
   return NextResponse.json({ ok: true, ...updated });
