@@ -442,6 +442,8 @@ model SetorTecnico {
   dataInstalacao      String? // "YYYY-MM-DD"
   dataRedeLigada      String? // "YYYY-MM-DD"
   dataVistoria        String? // "YYYY-MM-DD" — vistoria da concessionaria (edicao exclusiva engenheiro)
+  // Instalador responsavel pela execucao em campo (Pedro preenche no card)
+  nomeInstalador      String?
   // Localizacao da instalacao — alimenta o Mapa de Usinas. Engenheiro preenche ao concluir.
   cidadeInstalacao    String? // cidade da usina (ex: "Natal") — usada pra plotar no mapa
   enderecoInstalacao  String? // rua/numero/bairro (opcional) — pra geocoding preciso depois

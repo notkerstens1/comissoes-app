@@ -52,6 +52,8 @@ export async function PUT(
     // Novos campos da fase instalacao
     visitaValidada, bloqueioStatus, checklistDocumentos,
     dataVisita, dataInstalacao, dataRedeLigada, dataVistoria,
+    // Instalador responsavel (Pedro preenche no card)
+    nomeInstalador,
     // Localizacao da instalacao (alimenta o Mapa de Usinas)
     cidadeInstalacao, enderecoInstalacao,
   } = body;
@@ -109,6 +111,10 @@ export async function PUT(
     data.dataInstalacao = dataInstalacao?.trim() || null;
   }
   if (dataRedeLigada !== undefined) data.dataRedeLigada = dataRedeLigada?.trim() || null;
+  // Nome do instalador: mesma permissao da data de instalacao (TECNICO + Pos-Venda)
+  if (nomeInstalador !== undefined && canEditInstalacao(session.user.role)) {
+    data.nomeInstalador = nomeInstalador?.trim() || null;
+  }
   // Cidade/endereco da instalacao: mesma permissao da data de instalacao (TECNICO + Pos-Venda)
   if (cidadeInstalacao !== undefined && canEditInstalacao(session.user.role)) {
     data.cidadeInstalacao = cidadeInstalacao?.trim() || null;

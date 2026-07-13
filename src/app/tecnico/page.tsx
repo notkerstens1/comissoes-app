@@ -58,6 +58,7 @@ type RegistroTecnico = {
   etapaInstalacao: string;   // trilho INSTALACAO
   dataVistoria?: string | null;
   dataInstalacao?: string | null;
+  nomeInstalador?: string | null;
   cidadeInstalacao?: string | null;
   enderecoInstalacao?: string | null;
   observacoes: string | null;
@@ -502,7 +503,7 @@ export default function SetorTecnicoPage() {
     } catch { setErroMsg("Erro ao salvar data de instalacao"); }
   }
 
-  async function handleSalvarCampoInstalacao(r: RegistroTecnico, campo: "cidadeInstalacao" | "enderecoInstalacao", valor: string) {
+  async function handleSalvarCampoInstalacao(r: RegistroTecnico, campo: "cidadeInstalacao" | "enderecoInstalacao" | "nomeInstalador", valor: string) {
     try {
       const res = await fetch(`/api/setor-tecnico/${r.id}`, {
         method: "PUT",
@@ -1217,6 +1218,22 @@ export default function SetorTecnicoPage() {
                               />
                             ) : (
                               <span className="text-sm text-liv-muted tabular-nums">{r.dataInstalacao ? formatDate(r.dataInstalacao) : "—"}</span>
+                            )}
+                          </div>
+
+                          {/* Nome do instalador — Pedro preenche quem executou em campo */}
+                          <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            <span className="text-xs text-liv-faint uppercase tracking-wider">Instalador</span>
+                            {podeEditarInstalacao ? (
+                              <input
+                                type="text"
+                                placeholder="nome do instalador"
+                                defaultValue={r.nomeInstalador ?? ""}
+                                onBlur={(e) => { if ((e.target.value || "") !== (r.nomeInstalador ?? "")) handleSalvarCampoInstalacao(r, "nomeInstalador", e.target.value); }}
+                                className="bg-liv-surface-2 border border-liv-line rounded-lg px-2 py-1 text-sm text-liv-ink focus:border-liv-sage outline-none w-48"
+                              />
+                            ) : (
+                              <span className="text-sm text-liv-muted">{r.nomeInstalador || "—"}</span>
                             )}
                           </div>
 
