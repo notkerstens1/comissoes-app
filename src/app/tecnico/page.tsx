@@ -39,6 +39,7 @@ import {
   ETAPA_TECNICO_CORES,
 } from "@/lib/setor-tecnico";
 import { formatCurrency } from "@/lib/utils";
+import { FAIXAS_INVERSOR_CA } from "@/lib/margem-instalacao";
 import { PageHeader } from "@/components/ui/page-header";
 import { EtiquetasChips, EtiquetasSelector } from "@/components/Etiquetas";
 import { parseEtiquetas } from "@/lib/etiquetas";
@@ -70,6 +71,7 @@ type RegistroTecnico = {
   etiquetas?: string | null;
   custoMaterialReal?: number | null;
   statusMaterial?: string | null;
+  faixaInversorCA?: string | null;
   venda: {
     id: string;
     cliente: string;
@@ -561,6 +563,25 @@ export default function SetorTecnicoPage() {
       }
       await fetchRegistros();
     } catch { setErroMsg("Erro ao salvar cor do material"); }
+  }
+
+  // Define/limpa a faixa de potencia do inversor (toggle manual — resolve o
+  // estimado de material CA na Margem de Instalacao)
+  async function handleSalvarFaixaInversor(r: RegistroTecnico, faixa: string) {
+    const novo = r.faixaInversorCA === faixa ? null : faixa;
+    try {
+      const res = await fetch(`/api/setor-tecnico/${r.id}/custo-material`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ faixaInversorCA: novo }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setErroMsg(err.error || "Erro ao salvar faixa do inversor");
+        return;
+      }
+      await fetchRegistros();
+    } catch { setErroMsg("Erro ao salvar faixa do inversor"); }
   }
 
   // Contagens por aba (calculadas em cima do array completo)
@@ -1325,6 +1346,35 @@ export default function SetorTecnicoPage() {
                                   })}
                                 </div>
                               </div>
+
+                              {/* Faixa do inversor — define o estimado (550/700) na Margem. Pedro le do pedido. */}
+                              <div className="mt-3 flex items-center gap-2 flex-wrap">
+                                <span className="text-[11px] text-liv-faint uppercase tracking-wider">Inversor</span>
+                                {FAIXAS_INVERSOR_CA.map((f) => {
+                                  const ativo = r.faixaInversorCA === f.key;
+                                  const rotulo = `${f.label} · R$${f.padrao}`;
+                                  if (podeEditarCustoMaterial) {
+                                    return (
+                                      <button
+                                        key={f.key}
+                                        type="button"
+                                        onClick={() => handleSalvarFaixaInversor(r, f.key)}
+                                        className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition ${
+                                          ativo
+                                            ? "bg-liv-sage/20 text-liv-ink border-liv-sage"
+                                            : "bg-liv-surface text-liv-faint border-liv-line hover:text-liv-ink"
+                                        }`}
+                                      >
+                                        {rotulo}
+                                      </button>
+                                    );
+                                  }
+                                  return ativo ? (
+                                    <span key={f.key} className="px-2.5 py-1 rounded-lg text-[11px] font-semibold border bg-liv-sage/20 text-liv-ink border-liv-sage">{rotulo}</span>
+                                  ) : null;
+                                })}
+                              </div>
+
                               <p className="text-[10px] text-liv-faint mt-2">
                                 Aparece na página Margem de Instalação. O detalhe do custo a mais vai no comentário.
                               </p>

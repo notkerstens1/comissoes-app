@@ -99,6 +99,43 @@ export function sugerirBitolaCabo(
 
 export type StatusMargem = "VERDE" | "AMARELO" | "VERMELHO";
 
+// ============================================================
+// FAIXA DE INVERSOR -> custo ESTIMADO de material CA
+// ============================================================
+// O custo de material CA varia com a potencia do inversor (bitola do cabo).
+// O Pedro classifica manualmente a faixa no card (le do PDF do pedido) e o
+// estimado da Margem de Instalacao resolve 550/700 ao vivo a partir da config.
+export type FaixaInversorCA = "ATE_7KW" | "ACIMA_7KW";
+
+export const FAIXAS_INVERSOR_CA: {
+  key: FaixaInversorCA;
+  label: string;
+  padrao: number;
+}[] = [
+  { key: "ATE_7KW", label: "≤ 7 kW", padrao: 550 },
+  { key: "ACIMA_7KW", label: "> 7 kW", padrao: 700 },
+];
+
+export interface ConfigCustoMaterialCA {
+  custoMaterialCAPadrao: number;
+  custoMaterialCAAte7kw: number;
+  custoMaterialCAAcima7kw: number;
+}
+
+/**
+ * Resolve o custo estimado de material CA de um card a partir da faixa do
+ * inversor e da config. Fallback pro padrao flat (R$500) quando a faixa nao
+ * foi marcada. Fonte unica usada pela API da Margem e pela UI.
+ */
+export function resolverEstimadoMaterialCA(
+  faixa: string | null | undefined,
+  config: Partial<ConfigCustoMaterialCA>
+): number {
+  if (faixa === "ATE_7KW") return config.custoMaterialCAAte7kw ?? 550;
+  if (faixa === "ACIMA_7KW") return config.custoMaterialCAAcima7kw ?? 700;
+  return config.custoMaterialCAPadrao ?? 500;
+}
+
 /**
  * Classifica o status da margem da instalacao apos a execucao (custo real).
  * Permite override por observacao (ex: estourou mas foi negociado com cliente
