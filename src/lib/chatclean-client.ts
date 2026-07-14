@@ -19,9 +19,9 @@ export interface PipelineStep {
 
 export interface Opportunity {
   id: number;
-  value?: number;
+  value?: number | string; // a API devolve como string ("18000.00")
   status?: "open" | "won" | "lost";
-  responsibleId?: string;
+  responsibleId?: string | number; // a API devolve como número
   userId?: string;
   pipelineStepId?: number;
   contact?: { id?: number; name?: string; number?: string; [k: string]: any };

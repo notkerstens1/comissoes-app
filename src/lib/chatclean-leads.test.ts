@@ -25,6 +25,16 @@ describe("scoreOportunidade", () => {
     const r = scoreOportunidade({ id: 1, status: "lost", value: 50000 });
     expect(r.icpClasse).toBe("frio");
   });
+
+  it("value string da API é coagido: '18000.00' aberto = morno", () => {
+    const r = scoreOportunidade({ status: "open", value: "18000.00" as any });
+    expect(r.icpScore).toBeGreaterThanOrEqual(60);
+  });
+
+  it("value string '0.00' aberto = frio", () => {
+    const r = scoreOportunidade({ status: "open", value: "0.00" as any });
+    expect(r.icpClasse).toBe("frio");
+  });
 });
 
 describe("mapearOportunidadeParaLead", () => {
@@ -55,5 +65,28 @@ describe("mapearOportunidadeParaLead", () => {
     const lead = mapearOportunidadeParaLead({ id: 7, status: "open" }, "LEAD");
     expect(lead.nome).toBe("Sem nome");
     expect(lead.telefone).toBeNull();
+  });
+
+  it("coage responsibleId numérico da API para string (vendedor é String no banco)", () => {
+    const lead = mapearOportunidadeParaLead(
+      { id: 1, responsibleId: 485 as any, status: "open", value: 0 },
+      "LEAD"
+    );
+    expect(lead.vendedor).toBe("485");
+    expect(typeof lead.vendedor).toBe("string");
+  });
+
+  it("coage value string da API para número (valorProposta é Float)", () => {
+    const lead = mapearOportunidadeParaLead(
+      { id: 1, status: "open", value: "18000.00" as any },
+      "Proposta"
+    );
+    expect(lead.valorProposta).toBe(18000);
+    expect(typeof lead.valorProposta).toBe("number");
+  });
+
+  it("valorProposta null quando não há value", () => {
+    const lead = mapearOportunidadeParaLead({ id: 1, status: "open" }, "LEAD");
+    expect(lead.valorProposta).toBeNull();
   });
 });

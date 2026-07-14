@@ -7,12 +7,19 @@ export interface LeadScore {
   icpClasse: string; // "quente_a" | "quente_b" | "morno" | "frio"
 }
 
+// A API do ChatClean devolve value como string ("18000.00") — coagir sempre.
+function numOrNull(v: unknown): number | null {
+  if (v === null || v === undefined || v === "") return null;
+  const n = Number(v);
+  return Number.isNaN(n) ? null : n;
+}
+
 // Score derivado do próprio funil: fechou > tem proposta > só aberto > perdido.
 export function scoreOportunidade(op: Pick<Opportunity, "status" | "value">): LeadScore {
   if (op.status === "lost") return { icpScore: 20, icpClasse: "frio" };
   if (op.status === "won") return { icpScore: 90, icpClasse: "quente_a" };
   // open
-  const value = op.value ?? 0;
+  const value = numOrNull(op.value) ?? 0;
   if (value > 0) return { icpScore: 65, icpClasse: "morno" };
   return { icpScore: 20, icpClasse: "frio" };
 }
@@ -42,8 +49,8 @@ export function mapearOportunidadeParaLead(op: Opportunity, etapaNome: string): 
     icpClasse,
     status: op.status || null,
     etapa: etapaNome || null,
-    vendedor: op.responsibleId || null,
-    valorProposta: op.value ?? null,
+    vendedor: op.responsibleId != null ? String(op.responsibleId) : null,
+    valorProposta: numOrNull(op.value),
     chatcleanCreatedAt: op.createdAt || null,
   };
 }
