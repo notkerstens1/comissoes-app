@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { isAdmin, isPosVenda } from "@/lib/roles";
 import { gerarCodigoLocalizadorUnico } from "@/lib/codigo-localizador";
+import { matchSetorTecnicoVinculado } from "@/lib/setor-tecnico-vinculo";
 
 // GET — listar registros de pos venda (payload enxuto: sem campos JSON pesados)
 // Campos pesados (anexos, tarefas, historicoAcoes, anotacoes) sao buscados sob demanda
@@ -48,11 +49,32 @@ export async function GET() {
     take: 500,
   });
 
+  // Endereco da geradora e uma so informacao, mantida no card do Setor Tecnico
+  // (fonte de verdade: SetorTecnico.enderecoInstalacao). O card de pos-venda le o
+  // mesmo valor via o vinculo por vendaId/codigoLocalizador, pra ninguem digitar
+  // o endereco duas vezes. Batch (1 query) pra evitar N+1 na lista.
+  const vendaIds = registros.map((r) => r.venda?.id).filter((v): v is string => !!v);
+  const codigos = registros.map((r) => r.codigoLocalizador).filter((c): c is string => !!c);
+  const setores =
+    vendaIds.length || codigos.length
+      ? await prisma.setorTecnico.findMany({
+          where: {
+            ativo: true,
+            OR: [{ vendaId: { in: vendaIds } }, { codigoLocalizador: { in: codigos } }],
+          },
+          select: { id: true, vendaId: true, codigoLocalizador: true, enderecoInstalacao: true },
+        })
+      : [];
+
   const slim = registros.map((r) => {
     const anexosCount = safeArrayLen(r.anexos);
     const tarefasCount = safeArrayLen(r.tarefas);
     const { anexos: _a, tarefas: _t, ...rest } = r;
-    return { ...rest, anexosCount, tarefasCount };
+    const vinculo = matchSetorTecnicoVinculado(
+      { vendaId: r.venda?.id ?? null, codigoLocalizador: r.codigoLocalizador },
+      setores,
+    );
+    return { ...rest, anexosCount, tarefasCount, enderecoInstalacao: vinculo?.enderecoInstalacao ?? null };
   });
 
   return NextResponse.json(slim);

@@ -5,6 +5,20 @@ Cada item aponta o "porquê" além do "o quê". Detalhe técnico completo fica n
 
 ## 2026-07-13
 
+### Pós-venda — Endereço da geradora sem digitar duas vezes
+- O endereço da geradora era digitado **duas vezes**: uma no fluxo do pós-venda e
+  outra no card de Engenharia (Setor Técnico). Eram dois lugares para a mesma info.
+- Agora o card de pós-venda tem um campo **Endereço da geradora** que lê e grava o
+  **mesmo** `SetorTecnico.enderecoInstalacao` (fonte de verdade única), ligado pelo
+  `vendaId` (fallback `codigoLocalizador`). Preenche num, aparece no outro.
+- Ao salvar pelo pós-venda, o endereço é **geocodificado** (Nominatim) igual ao lado
+  do técnico — o pin no Mapa de Usinas continua consistente. Sem coluna nova no banco
+  e sem migração (os endereços já viviam no card técnico).
+- Edge case: ~40% dos cards de pós-venda são legados **sem card de engenharia
+  vinculado** (sem `vendaId`/`codigoLocalizador`). Nesses, salvar endereço **retorna
+  erro na tela (409)** em vez de gravar em silêncio — o usuário sabe que não colou.
+  Cards do fluxo normal (venda fechada gera os dois cards) salvam normalmente.
+
 ### Setor técnico — Custo de material CA por faixa de inversor
 - A referência de custo de material CA na **Margem de Instalação** deixou de ser
   um R$500 fixo pra todo card e passou a ser **por faixa de potência do inversor**:

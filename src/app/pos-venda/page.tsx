@@ -27,6 +27,7 @@ import {
   Eye,
   Package,
   Hammer,
+  MapPin,
   Search,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -66,6 +67,10 @@ type PosVendaRegistro = {
   etiquetas?: string | null;
   previsaoMaterial: string | null;
   previsaoInstalacao: string | null;
+  // Endereco da geradora — fonte de verdade no card do Setor Tecnico vinculado.
+  // Editar aqui grava la (nao ha coluna de endereco no PosVenda). Vem no payload
+  // da lista e do detalhe.
+  enderecoInstalacao?: string | null;
   // Counts vindos da listagem enxuta (sem precisar parsear JSON)
   anexosCount?: number;
   tarefasCount?: number;
@@ -983,6 +988,40 @@ export default function PosVendaPage() {
                           </div>
                         )}
                       </div>
+                    </div>
+
+                    {/* Endereço da geradora — mesma info do card de Engenharia
+                        (Setor Técnico). Preenche aqui ou lá, aparece nos dois. */}
+                    <div className="mb-4 p-3 bg-liv-surface-2 rounded-lg border border-liv-line">
+                      <label className="flex items-center gap-1.5 text-xs text-liv-faint font-semibold uppercase mb-2">
+                        <MapPin className="w-3.5 h-3.5" />
+                        Endereço da geradora
+                      </label>
+                      <input
+                        type="text"
+                        defaultValue={r.enderecoInstalacao ?? ""}
+                        placeholder="Rua, número, bairro"
+                        onBlur={async (e) => {
+                          const val = e.target.value;
+                          if (val === (r.enderecoInstalacao ?? "")) return;
+                          setErroMsg("");
+                          const res = await fetch(`/api/pos-venda/${r.id}`, {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ enderecoInstalacao: val }),
+                          });
+                          if (!res.ok) {
+                            const err = await res.json().catch(() => ({}));
+                            setErroMsg(err.error || `Erro ${res.status} ao salvar o endereço`);
+                            return;
+                          }
+                          fetchRegistros();
+                        }}
+                        className="w-full bg-liv-bg border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+                      />
+                      <p className="mt-1.5 text-[11px] text-liv-faint">
+                        Mesmo endereço do card de Engenharia — preenchido uma vez só.
+                      </p>
                     </div>
 
                     {/* Previsões de Material e Instalação */}
