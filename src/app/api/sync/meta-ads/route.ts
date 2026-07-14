@@ -12,12 +12,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
   }
 
-  const accessToken = process.env.META_ACCESS_TOKEN;
-  const accountId = process.env.LIV_META_AD_ACCOUNT_ID;
+  const accessToken = process.env.META_SYSTEM_TOKEN || process.env.META_ACCESS_TOKEN;
+  const accountId = process.env.META_AD_ACCOUNT_ID || process.env.LIV_META_AD_ACCOUNT_ID;
 
   if (!accessToken || !accountId) {
     return NextResponse.json(
-      { error: "META_ACCESS_TOKEN ou LIV_META_AD_ACCOUNT_ID nao configurados" },
+      { error: "Token do Meta (META_SYSTEM_TOKEN) ou conta (META_AD_ACCOUNT_ID) nao configurados" },
       { status: 500 }
     );
   }
@@ -148,6 +148,9 @@ export async function GET() {
     lastSync: lastSync?.synced_at || null,
     lastDate: lastSync?.data || null,
     lastTraffic,
-    configured: !!(process.env.META_ACCESS_TOKEN && process.env.LIV_META_AD_ACCOUNT_ID),
+    configured: !!(
+      (process.env.META_SYSTEM_TOKEN || process.env.META_ACCESS_TOKEN) &&
+      (process.env.META_AD_ACCOUNT_ID || process.env.LIV_META_AD_ACCOUNT_ID)
+    ),
   });
 }

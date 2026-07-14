@@ -4,6 +4,12 @@
 const BASE_URL = "https://graph.facebook.com";
 const API_VERSION = "v25.0";
 
+// O app do Meta exige appsecret_proof em chamadas server-side. Injeta token + proof (do env) na query.
+function authQuery(accessToken: string): string {
+  const proof = process.env.META_APPSECRET_PROOF;
+  return `&access_token=${accessToken}${proof ? `&appsecret_proof=${proof}` : ""}`;
+}
+
 interface MetaInsights {
   spend: number;
   impressions: number;
@@ -77,7 +83,7 @@ export async function fetchAccountInsights(
 ): Promise<MetaInsights | null> {
   const fields = ["spend", "impressions", "reach", "clicks", "ctr", "cpc", "cpm", "actions", "cost_per_action_type"].join(",");
 
-  const url = `${BASE_URL}/${API_VERSION}/${accountId}/insights?fields=${fields}&date_preset=${datePreset}&access_token=${accessToken}`;
+  const url = `${BASE_URL}/${API_VERSION}/${accountId}/insights?fields=${fields}&date_preset=${datePreset}${authQuery(accessToken)}`;
 
   const res = await fetch(url);
   if (!res.ok) {
@@ -111,7 +117,7 @@ export async function fetchCampaignInsights(
     "cost_per_action_type",
   ].join(",");
 
-  const url = `${BASE_URL}/${API_VERSION}/${accountId}/insights?fields=${fields}&date_preset=${datePreset}&level=campaign&access_token=${accessToken}`;
+  const url = `${BASE_URL}/${API_VERSION}/${accountId}/insights?fields=${fields}&date_preset=${datePreset}&level=campaign${authQuery(accessToken)}`;
 
   const res = await fetch(url);
   if (!res.ok) {
@@ -151,7 +157,7 @@ export async function fetchAdsetInsights(
     "cost_per_action_type",
   ].join(",");
 
-  const url = `${BASE_URL}/${API_VERSION}/${accountId}/insights?fields=${fields}&date_preset=${datePreset}&level=adset&access_token=${accessToken}`;
+  const url = `${BASE_URL}/${API_VERSION}/${accountId}/insights?fields=${fields}&date_preset=${datePreset}&level=adset${authQuery(accessToken)}`;
 
   const res = await fetch(url);
   if (!res.ok) {
@@ -195,7 +201,7 @@ export async function fetchInsightsByDateRange(
   const url =
     `${BASE_URL}/${API_VERSION}/${accountId}/insights?fields=${fields}` +
     `&time_range={"since":"${startDate}","until":"${endDate}"}` +
-    `&time_increment=1&level=campaign&access_token=${accessToken}`;
+    `&time_increment=1&level=campaign${authQuery(accessToken)}`;
 
   const res = await fetch(url);
   if (!res.ok) {
