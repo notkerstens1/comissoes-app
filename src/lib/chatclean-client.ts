@@ -75,9 +75,17 @@ export class ChatCleanClient {
     const steps = await this.listarPipelineSteps();
     const todas: (Opportunity & { etapa: string })[] = [];
     for (const step of steps) {
-      const ops = await this.listarOportunidadesPorEtapa(step.id);
-      for (const op of ops) {
-        todas.push({ ...op, etapa: step.name, pipelineStepId: step.id });
+      // Resiliência: uma etapa que dá erro (500/404) não pode derrubar o sync inteiro — pula e segue.
+      try {
+        const ops = await this.listarOportunidadesPorEtapa(step.id);
+        for (const op of ops) {
+          todas.push({ ...op, etapa: step.name, pipelineStepId: step.id });
+        }
+      } catch (e) {
+        console.warn(
+          `ChatClean: etapa ${step.id} (${step.name}) falhou, pulando:`,
+          (e as Error).message
+        );
       }
     }
     return todas;

@@ -85,4 +85,28 @@ describe("ChatCleanClient", () => {
     expect(todas[0]).toMatchObject({ id: 1, etapa: "LEAD", pipelineStepId: 242 });
     expect(todas[1]).toMatchObject({ id: 2, etapa: "Reunião (SQL)", pipelineStepId: 250 });
   });
+
+  it("buscarTodasOportunidades é resiliente: se UMA etapa dá erro (500), pula e retorna o resto", async () => {
+    (fetch as any)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: [
+            { id: 242, name: "LEAD" },
+            { id: 999, name: "follow quebrado" },
+            { id: 250, name: "Reunião (SQL)" },
+          ],
+        }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: [{ id: 1 }] }) }) // 242 ok
+      .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) }) // 999 falha
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ data: [{ id: 3 }] }) }); // 250 ok
+
+    const client = new ChatCleanClient(config);
+    const todas = await client.buscarTodasOportunidades();
+
+    // não lança, e traz as 2 etapas que funcionaram (pula a 999)
+    expect(todas).toHaveLength(2);
+    expect(todas.map((o) => o.id).sort()).toEqual([1, 3]);
+  });
 });
