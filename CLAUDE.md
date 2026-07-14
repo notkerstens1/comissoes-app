@@ -41,7 +41,7 @@ Dashboard estilo Chief Revenue Officer que integra 5 fontes de dados externas.
 | Fonte | API Route | Lib | Modelo Prisma |
 |-------|-----------|-----|---------------|
 | Meta Ads | `/api/sync/meta-ads` | `src/lib/meta-api.ts` | MetaAdsCampaign |
-| Gronner CRM | `/api/sync/gronner` | `src/lib/gronner-client.ts` + `src/lib/lead-scoring.ts` | GronnerLead |
+| ChatClean CRM | `/api/sync/chatclean` | `src/lib/chatclean-client.ts` + `src/lib/chatclean-leads.ts` | ChatCleanLead |
 | Nibo (financeiro) | `/api/sync/nibo` | `src/lib/nibo-client.ts` | NiboRecord |
 | Instagram | `/api/sync/instagram` | `src/lib/instagram-api.ts` | InstagramDaily, InstagramPost |
 | YouTube | `/api/sync/youtube` | `src/lib/youtube-api.ts` | YouTubeDaily, YouTubeVideo |
@@ -62,7 +62,7 @@ Dashboard estilo Chief Revenue Officer que integra 5 fontes de dados externas.
 
 ### Envs Necessarias (Revenue Analytics)
 - META_ACCESS_TOKEN, LIV_META_AD_ACCOUNT_ID
-- GRONNER_URL, GRONNER_EMAIL, GRONNER_PASS
+- CHATCLEAN_BASE_URL, CHATCLEAN_API_ID, CHATCLEAN_TOKEN
 - NIBO_API_KEY
 - INSTAGRAM_ACCESS_TOKEN, INSTAGRAM_BUSINESS_ID
 - YOUTUBE_API_KEY, YOUTUBE_CHANNEL_ID
@@ -83,7 +83,7 @@ Dashboard estilo Chief Revenue Officer que integra 5 fontes de dados externas.
 6. **Admin/Supervisor** ve tudo nas oportunidades (filtro por vendedor)
 
 ## Banco de Dados (23 modelos)
-User, Venda, SolicitacaoMargem, Configuracao, DailyTraffic, DailyCommercial, FaixaComissao, RegistroSDR, LigacoesSDR, MetricasSDROverride, PendenciaVinculo, PosVenda, SetorTecnico, SimulacaoVenda, Notificacao, Campanha, MetaAdsCampaign, GronnerLead, NiboRecord, InstagramDaily, InstagramPost, YouTubeDaily, YouTubeVideo
+User, Venda, SolicitacaoMargem, Configuracao, DailyTraffic, DailyCommercial, FaixaComissao, RegistroSDR, LigacoesSDR, MetricasSDROverride, PendenciaVinculo, PosVenda, SetorTecnico, SimulacaoVenda, Notificacao, Campanha, MetaAdsCampaign, ChatCleanLead, NiboRecord, InstagramDaily, InstagramPost, YouTubeDaily, YouTubeVideo
 
 ## Campos Importantes (Venda)
 - orcamentoUrl: String? (base64 PDF, uploaded pelo vendedor ao fechar venda)
@@ -127,7 +127,7 @@ User, Venda, SolicitacaoMargem, Configuracao, DailyTraffic, DailyCommercial, Fai
 
 ## Ultima Atualizacao (29/03/2026)
 - Revenue Analytics (CRO): dashboard 360 com 4 abas
-- 5 syncs automatizados: Meta Ads, Gronner CRM, Nibo, Instagram, YouTube
+- 5 syncs automatizados: Meta Ads, CRM, Nibo, Instagram, YouTube (CRM migrado p/ ChatClean em jul/2026)
 - 8 novos modelos Prisma para dados externos
 - Lead scoring ICP portado de liv-automation (regex, sem Ollama)
 - Campo syncSource adicionado ao DailyTraffic
@@ -136,7 +136,7 @@ User, Venda, SolicitacaoMargem, Configuracao, DailyTraffic, DailyCommercial, Fai
 
 ## Notas para o Proximo Chat
 - `prisma db push` precisa ser rodado no ambiente com DATABASE_URL valida (Railway) para criar as novas tabelas
-- Envs de APIs externas (Meta, Gronner, Nibo, Instagram, YouTube) precisam ser configuradas no Railway
+- Envs de APIs externas (Meta, ChatClean, Nibo, Instagram, YouTube) precisam ser configuradas no Railway
 - O sync do Nibo requer plano Premium com API habilitada
 - Instagram usa mesmo token do Meta Business (mesmo app)
 - O arquivo comissoes-app esta em /Users/ERICK/PROJETOS/comissoes-app/
