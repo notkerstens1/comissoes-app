@@ -29,6 +29,18 @@ export interface Opportunity {
   [k: string]: any;
 }
 
+// Fallback: etapas do funil da LIV capturadas em 2026-07-14 (via /pipeline-steps quando funcionava).
+// Usado só quando o endpoint pipeline-steps do ChatClean está fora (bug do servidor deles).
+export const FALLBACK_PIPELINE_STEPS: PipelineStep[] = [
+  { id: 258, name: "Reunião (SQL)" }, { id: 264, name: "LEAD" }, { id: 246, name: "Reunião (SQL)" },
+  { id: 248, name: "Reunião (SQL)" }, { id: 274, name: "follow 1" }, { id: 242, name: "LEAD" },
+  { id: 250, name: "Reunião (SQL)" }, { id: 275, name: "follow 2" }, { id: 251, name: "Proposta" },
+  { id: 260, name: "Proposta" }, { id: 247, name: "Proposta" }, { id: 262, name: "Reunião Externo (SQL)" },
+  { id: 243, name: "QUALIFICADO (MQL)" }, { id: 265, name: "QUALIFICADO (MQL)" }, { id: 273, name: "follow" },
+  { id: 276, name: "follow 3" }, { id: 272, name: "follow" }, { id: 249, name: "Proposta" },
+  { id: 263, name: "Proposta Externo" }, { id: 277, name: "follow 4" }, { id: 278, name: "follow 5" },
+];
+
 export class ChatCleanClient {
   private baseUrl: string;
   private apiId: string;
@@ -72,7 +84,17 @@ export class ChatCleanClient {
   // Funil inteiro: itera todas as etapas e achata, anotando a etapa (nome + id) em cada oportunidade.
   // "Tudo num funil só" — a segmentação por funil pode ser refinada depois filtrando os step-ids.
   async buscarTodasOportunidades(): Promise<(Opportunity & { etapa: string })[]> {
-    const steps = await this.listarPipelineSteps();
+    // pipeline-steps do ChatClean às vezes cai (500 no servidor deles) — cai pro fallback conhecido.
+    let steps: PipelineStep[];
+    try {
+      steps = await this.listarPipelineSteps();
+    } catch (e) {
+      console.warn(
+        "ChatClean pipeline-steps indisponível, usando lista de etapas fallback:",
+        (e as Error).message
+      );
+      steps = FALLBACK_PIPELINE_STEPS;
+    }
     const todas: (Opportunity & { etapa: string })[] = [];
     for (const step of steps) {
       // Resiliência: uma etapa que dá erro (500/404) não pode derrubar o sync inteiro — pula e segue.

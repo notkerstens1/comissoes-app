@@ -109,4 +109,20 @@ describe("ChatCleanClient", () => {
     expect(todas).toHaveLength(2);
     expect(todas.map((o) => o.id).sort()).toEqual([1, 3]);
   });
+
+  it("usa fallback de etapas quando pipeline-steps dá 500 (bug do servidor ChatClean)", async () => {
+    let call = 0;
+    (fetch as any).mockImplementation(async () => {
+      call++;
+      if (call === 1) return { ok: false, status: 500, json: async () => ({}) }; // pipeline-steps quebrado
+      return { ok: true, json: async () => ({ data: [{ id: 1000 + call }] }) }; // opportunities ok
+    });
+
+    const client = new ChatCleanClient(config);
+    const todas = await client.buscarTodasOportunidades();
+
+    // pipeline-steps falhou mas o fallback manteve o sync vivo com oportunidades reais
+    expect(todas.length).toBeGreaterThan(0);
+    expect(todas[0].etapa).toBeTruthy();
+  });
 });
