@@ -532,24 +532,23 @@ model MetaAdsCampaign {
   @@unique([data, campaignId, adsetId])
 }
 
-// Gronner CRM: leads sincronizados com scoring ICP
-model GronnerLead {
-  id               String   @id @default(cuid())
-  gronnerId        String   @unique
-  nome             String
-  telefone         String?
-  origem           String?
-  icpScore         Int      @default(0)
-  icpClasse        String? // "quente_a" | "quente_b" | "morno" | "frio"
-  status           String?
-  etapa            String?
-  preVendedor      String?
-  vendedor         String?
-  valorProposta    Float?
-  gronnerCreatedAt String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  synced_at        DateTime @default(now())
+// ChatClean CRM: oportunidades sincronizadas com scoring ICP baseado no funil
+model ChatCleanLead {
+  id                 String   @id @default(cuid())
+  chatcleanId        String   @unique
+  nome               String
+  telefone           String?
+  origem             String?
+  icpScore           Int      @default(0)
+  icpClasse          String? // "quente_a" | "quente_b" | "morno" | "frio"
+  status             String? // "open" | "won" | "lost"
+  etapa              String?
+  vendedor           String?
+  valorProposta      Float?
+  chatcleanCreatedAt String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  synced_at          DateTime @default(now())
 }
 
 // Nibo: registros financeiros (contas a receber e pagar)

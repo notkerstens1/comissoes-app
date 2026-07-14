@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     commercialRecords,
     vendas,
     campaignRecords,
-    gronnerLeads,
+    chatCleanLeads,
     goals,
   ] = await Promise.all([
     prisma.dailyTraffic.findMany({
@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       where: { data: { gte: startDate, lte: endDate } },
       orderBy: { data: "asc" },
     }),
-    prisma.gronnerLead.findMany({
+    prisma.chatCleanLead.findMany({
       where: { synced_at: { gte: new Date(startDate) } },
     }),
     prisma.campanha.findMany({
@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
   );
 
   // Leads qualificados (score >= 60)
-  const qualifiedLeads = gronnerLeads.filter((l) => l.icpScore >= 60).length;
+  const qualifiedLeads = chatCleanLeads.filter((l) => l.icpScore >= 60).length;
   const cplQualificado = qualifiedLeads > 0 ? investment / qualifiedLeads : null;
 
   // Receita total
