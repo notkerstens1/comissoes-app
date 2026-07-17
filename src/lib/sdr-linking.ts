@@ -20,6 +20,57 @@ import { normalizeClientName, COMISSAO_VENDA_SDR, JANELA_VINCULO_DIAS } from "./
  * - 1 match  → vinculo automatico + comissao R$20
  * - >1 match → cria PendenciaVinculo para supervisor/diretor resolver
  */
+/**
+ * Comissao de venda do SDR conforme a origem do registro.
+ * Auto-prospeccao do vendedor (origemRegistro=VENDEDOR): nao paga comissao SDR,
+ * so fecha a oportunidade. Lead da SDR (SDR): paga comissao de venda.
+ */
+export function comissaoVendaPorOrigem(origemRegistro: string): number {
+  return origemRegistro === "VENDEDOR" ? 0 : COMISSAO_VENDA_SDR;
+}
+
+/**
+ * Vinculo DETERMINISTICO: usado quando a venda foi finalizada a partir de uma
+ * oportunidade especifica (o vendedor clicou no carrinho daquela oportunidade).
+ * Como sabemos exatamente qual registro fechar, nao dependemos do matching fuzzy
+ * (nome/origem/janela/tipoVenda) — que falhava e deixava a oportunidade duplicada
+ * no pipeline + o SDR sem credito.
+ *
+ * Fecha o registro (statusLead=VENDIDO), vincula a venda e aplica a comissao de
+ * venda conforme a origem. Espelha o efeito do match unico de tentarVincularVendaSDR.
+ */
+export async function vincularVendaAoRegistro(
+  vendaId: string,
+  registroId: string
+): Promise<void> {
+  try {
+    const [venda, registro] = await Promise.all([
+      prisma.venda.findUnique({ where: { id: vendaId } }),
+      prisma.registroSDR.findUnique({ where: { id: registroId } }),
+    ]);
+    if (!venda || !registro) return;
+    // Seguranca: o registro tem que ser do mesmo vendedor e ainda nao vinculado.
+    if (registro.vendedoraId !== venda.vendedorId) return;
+    if (registro.vendaVinculadaId) return;
+
+    const dataVinculo = new Date(venda.dataConversao).toISOString().split("T")[0];
+    const comissaoVenda = comissaoVendaPorOrigem(registro.origemRegistro);
+
+    await prisma.registroSDR.update({
+      where: { id: registro.id },
+      data: {
+        vendaVinculadaId: venda.id,
+        dataVendaVinculada: dataVinculo,
+        comissaoVenda,
+        comissaoTotal: registro.comissaoReuniao + comissaoVenda,
+        statusLead: "VENDIDO",
+      },
+    });
+  } catch (error) {
+    console.error("Erro ao vincular venda ao registro (deterministico):", error);
+  }
+}
+
 export async function tentarVincularVendaSDR(vendaId: string): Promise<void> {
   try {
     // 1. Buscar a venda

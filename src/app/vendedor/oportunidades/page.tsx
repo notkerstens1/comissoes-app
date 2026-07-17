@@ -360,6 +360,9 @@ export default function OportunidadesPage() {
     try {
       const payload = {
         cliente: fechandoVenda.nomeCliente,
+        // ID da oportunidade => backend fecha ESTE registro de forma deterministica
+        // (nao depende do matching fuzzy, que deixava a oportunidade duplicada).
+        registroSDRId: fechandoVenda.id,
         valorVenda: parseFloat(vendaForm.valorVenda),
         custoEquipamentos: parseFloat(vendaForm.custoEquipamentos),
         formaPagamento: vendaForm.formaPagamento,

@@ -6,7 +6,7 @@ import { calcularOver, calcularMargem, calcularGeracaoKwh, PERCENTUAL_OVER_EXTER
 import { calcularCustosVenda, ConfiguracaoCustos } from "@/lib/custos";
 import { calcularCustoInstalacaoEstimado, type BitolaCabo } from "@/lib/margem-instalacao";
 import { isSupervisor } from "@/lib/roles";
-import { tentarVincularVendaSDR } from "@/lib/sdr-linking";
+import { tentarVincularVendaSDR, vincularVendaAoRegistro } from "@/lib/sdr-linking";
 import { gerarCodigoLocalizadorUnico } from "@/lib/codigo-localizador";
 
 // GET - Listar vendas do vendedor logado (ou todas se admin/diretor)
@@ -78,6 +78,9 @@ export async function POST(request: NextRequest) {
       bitolaCabo,
       inversorTrifasico,
       cidadeInstalacao,
+      // Oportunidade de origem (quando a venda e finalizada pelo carrinho de uma
+      // oportunidade especifica). Presente => vinculo deterministico.
+      registroSDRId,
     } = body;
 
     // Validacoes
@@ -242,8 +245,15 @@ export async function POST(request: NextRequest) {
     // Recalcular comissoes do mes para o vendedor
     await recalcularComissoesMes(session.user.id, mesReferencia);
 
-    // Tentar vincular automaticamente a um registro SDR
-    await tentarVincularVendaSDR(venda.id);
+    // Vincular a oportunidade de origem:
+    //  - Se veio de uma oportunidade especifica (carrinho) => vinculo deterministico
+    //    (fecha AQUELE registro, sem depender do matching fuzzy que falhava).
+    //  - Senao (ex: /vendas/nova) => matching automatico por nome/origem/janela.
+    if (registroSDRId) {
+      await vincularVendaAoRegistro(venda.id, registroSDRId);
+    } else {
+      await tentarVincularVendaSDR(venda.id);
+    }
 
     // Codigo localizador compartilhado entre os dois cards do mesmo cliente
     let codigoLocalizador: string | null = null;
