@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { KpiCards } from "@/components/dashboard/KpiCards";
 import { MetaProgressoCard } from "@/components/dashboard/MetaProgressoCard";
+import { VendasPorVendedor } from "@/components/dashboard/VendasPorVendedor";
 import { LiveRanking } from "@/components/dashboard/LiveRanking";
 import { CampanhasSection } from "@/components/dashboard/CampanhasSection";
 import { getCurrentWeekRange, getCurrentMonthRange } from "@/lib/dates";
@@ -46,6 +47,12 @@ export default function DashboardPage() {
       </div>
 
       <MetaProgressoCard />
+
+      <VendasPorVendedor
+        inicio={range.start}
+        fim={range.end}
+        periodoLabel={periodo === "semana" ? "Semana" : "Mês"}
+      />
 
       <KpiCards inicio={range.start} fim={range.end} />
 
