@@ -137,7 +137,7 @@ export function MetaProgressoCard() {
             sub={`meta do mês · ${data.vendedoresAtivos} vendedores`}
           />
           <Coluna
-            label="Efetivo · caixa"
+            label="Efetivo"
             valor={<CountUp value={data.efetivo.vendas} durationMs={700} />}
             sub={brl0(data.efetivo.faturamento)}
           />
@@ -250,7 +250,7 @@ export function MetaProgressoCard() {
             style={{ background: C.lime }}
           >
             <span className="text-[12px] font-semibold" style={{ color: "#20220F" }}>
-              Efetivo · caixa
+              Efetivo
             </span>
             <span className="text-sm font-bold tabular-nums" style={{ color: "#20220F" }}>
               {brl0(data.efetivo.faturamento)}
