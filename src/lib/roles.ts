@@ -180,14 +180,6 @@ export function canAccessFinanceiro(role: string | undefined | null): boolean {
 }
 
 /**
- * Verifica se o usuario pode acessar o Dashboard CRO.
- * Visão integrada marketing x vendas. Apenas DIRETOR, SUPERVISOR e ADMIN.
- */
-export function canViewDashboardCRO(role: string | undefined | null): boolean {
-  return role === "DIRETOR" || role === "SUPERVISOR" || role === "ADMIN";
-}
-
-/**
  * Retorna o label legivel do role
  */
 export function getRoleLabel(role: string | undefined | null): string {

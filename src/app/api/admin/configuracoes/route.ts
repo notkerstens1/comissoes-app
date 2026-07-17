@@ -64,6 +64,8 @@ export async function PUT(request: NextRequest) {
     aliquotaImpostoPadrao,
     // Comissao do supervisor
     metaReceitaMensal,
+    // Projecao de receita do placar do dashboard
+    receitaProjetadaMes,
     // Custo fixo mensal (resultado real + ponto de equilibrio na diretoria)
     custoFixoMensal,
     percentualSupervisorAte80,
@@ -99,6 +101,7 @@ export async function PUT(request: NextRequest) {
       ...(custoMaterialCAAcima7kw !== undefined && { custoMaterialCAAcima7kw }),
       ...(aliquotaImpostoPadrao !== undefined && { aliquotaImpostoPadrao }),
       ...(metaReceitaMensal !== undefined && { metaReceitaMensal }),
+      ...(receitaProjetadaMes !== undefined && { receitaProjetadaMes: Math.max(0, receitaProjetadaMes) }),
       ...(custoFixoMensal !== undefined && { custoFixoMensal: Math.max(0, custoFixoMensal) }),
       ...(percentualSupervisorAte80 !== undefined && { percentualSupervisorAte80 }),
       ...(percentualSupervisor80a100 !== undefined && { percentualSupervisor80a100 }),
@@ -122,6 +125,7 @@ export async function PUT(request: NextRequest) {
       custoMaterialCAAcima7kw: custoMaterialCAAcima7kw ?? 700,
       aliquotaImpostoPadrao: aliquotaImpostoPadrao ?? 0.06,
       metaReceitaMensal: metaReceitaMensal ?? 360000,
+      receitaProjetadaMes: receitaProjetadaMes ?? 500000,
       custoFixoMensal: custoFixoMensal ?? 40000,
       percentualSupervisorAte80: percentualSupervisorAte80 ?? 0,
       percentualSupervisor80a100: percentualSupervisor80a100 ?? 0.008,

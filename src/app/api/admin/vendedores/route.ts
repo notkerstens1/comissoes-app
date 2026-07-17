@@ -19,6 +19,7 @@ export async function GET() {
       email: true,
       role: true,
       ativo: true,
+      metaVendasQtdMes: true,
       createdAt: true,
       _count: { select: { vendas: true } },
     },

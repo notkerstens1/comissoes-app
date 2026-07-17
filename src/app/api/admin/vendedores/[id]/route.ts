@@ -16,7 +16,7 @@ export async function PUT(
   }
 
   const body = await request.json();
-  const { nome, email, senha, role, ativo } = body;
+  const { nome, email, senha, role, ativo, metaVendasQtdMes } = body;
 
   // Somente DIRETOR pode alterar role para DIRETOR
   if (role === "DIRETOR" && !isDiretor(session.user.role)) {
@@ -29,6 +29,14 @@ export async function PUT(
   if (role !== undefined) updateData.role = role;
   if (ativo !== undefined) updateData.ativo = ativo;
   if (senha) updateData.senha = await hash(senha, 12);
+  // Meta de contratos do vendedor: null/""/0 volta pro default global; senao inteiro positivo
+  if (metaVendasQtdMes !== undefined) {
+    const n = Number(metaVendasQtdMes);
+    updateData.metaVendasQtdMes =
+      metaVendasQtdMes === null || metaVendasQtdMes === "" || !Number.isFinite(n) || n <= 0
+        ? null
+        : Math.round(n);
+  }
 
   const user = await prisma.user.update({
     where: { id: params.id },
@@ -39,6 +47,7 @@ export async function PUT(
       email: true,
       role: true,
       ativo: true,
+      metaVendasQtdMes: true,
     },
   });
 

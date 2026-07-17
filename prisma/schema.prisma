@@ -14,6 +14,9 @@ model User {
   senha                String
   role                 String              @default("VENDEDOR") // VENDEDOR | VENDEDOR_EXTERNO | VENDEDOR_HIBRIDO | ADMIN | DIRETOR | SUPERVISOR | SDR | POS_VENDA | FINANCEIRO | TECNICO
   ativo                Boolean             @default(true)
+  // Meta mensal de contratos deste vendedor (consolidado 8, novato 6).
+  // null = usa o default global (Configuracao.metaVendasQtdMes).
+  metaVendasQtdMes     Int?
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
   vendas               Venda[]
@@ -170,6 +173,10 @@ model Configuracao {
   // Meta de receita mensal da empresa (soma das metas individuais) — usada
   // como base para calcular comissao do SUPERVISOR
   metaReceitaMensal Float @default(360000) // R$ 360k = 3 vendedores x R$ 120k
+
+  // Projecao de receita do mes exibida no placar do dashboard (referencia, sem
+  // cobranca — a meta real e a QUANTIDADE de contratos, nao a receita).
+  receitaProjetadaMes Float @default(500000)
 
   // Custo fixo mensal da empresa (aluguel, salarios, estrutura) — usado para
   // calcular o RESULTADO REAL e o PONTO DE EQUILIBRIO na visao da diretoria.

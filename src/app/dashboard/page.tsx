@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { KpiCards } from "@/components/dashboard/KpiCards";
+import { MetaProgressoCard } from "@/components/dashboard/MetaProgressoCard";
 import { LiveRanking } from "@/components/dashboard/LiveRanking";
 import { CampanhasSection } from "@/components/dashboard/CampanhasSection";
 import { getCurrentWeekRange, getCurrentMonthRange } from "@/lib/dates";
@@ -43,6 +44,8 @@ export default function DashboardPage() {
           ]}
         />
       </div>
+
+      <MetaProgressoCard />
 
       <KpiCards inicio={range.start} fim={range.end} />
 

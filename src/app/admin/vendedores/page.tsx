@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Plus, UserCheck, UserX, KeyRound, Trash2, X, AlertTriangle, Check } from "lucide-react";
+import { Plus, UserCheck, UserX, KeyRound, Trash2, X, AlertTriangle, Check, Target } from "lucide-react";
 import { PageHeader } from "@/components/ui/page-header";
+import { ROLES_VENDEDOR_TIME } from "@/lib/roles";
+
+const META_PADRAO = 8; // default global (Configuracao.metaVendasQtdMes)
 
 interface Vendedor {
   id: string;
@@ -11,6 +14,7 @@ interface Vendedor {
   email: string;
   role: string;
   ativo: boolean;
+  metaVendasQtdMes: number | null;
   _count: { vendas: number };
 }
 
@@ -31,6 +35,11 @@ export default function VendedoresPage() {
   const [novaSenha, setNovaSenha] = useState("");
   const [senhaErro, setSenhaErro] = useState("");
   const [senhaSalvando, setSenhaSalvando] = useState(false);
+
+  // Editar meta de contratos do vendedor
+  const [metaEditandoId, setMetaEditandoId] = useState<string | null>(null);
+  const [metaValor, setMetaValor] = useState("");
+  const [metaSalvando, setMetaSalvando] = useState(false);
 
   // Excluir com migração
   const [excluindoId, setExcluindoId] = useState<string | null>(null);
@@ -104,6 +113,27 @@ export default function VendedoresPage() {
       setSenhaErro("Erro ao salvar");
     }
     setSenhaSalvando(false);
+  };
+
+  const salvarMeta = async (id: string) => {
+    setMetaSalvando(true);
+    // vazio => volta pro default global (null)
+    const valor = metaValor.trim() === "" ? null : Number(metaValor);
+    try {
+      const res = await fetch(`/api/admin/vendedores/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ metaVendasQtdMes: valor }),
+      });
+      if (res.ok) {
+        setMetaEditandoId(null);
+        setMetaValor("");
+        fetchVendedores();
+      }
+    } catch {
+      // silencioso — mantem o editor aberto
+    }
+    setMetaSalvando(false);
   };
 
   const confirmarExclusao = async () => {
@@ -321,7 +351,18 @@ export default function VendedoresPage() {
                     </span>
                   </div>
                   <p className="text-sm text-liv-muted mt-0.5">{v.email}</p>
-                  <p className="text-xs text-liv-faint mt-0.5 tabular-nums">{v._count?.vendas || 0} vendas</p>
+                  <p className="text-xs text-liv-faint mt-0.5 tabular-nums">
+                    {v._count?.vendas || 0} vendas
+                    {ROLES_VENDEDOR_TIME.includes(v.role as (typeof ROLES_VENDEDOR_TIME)[number]) && (
+                      <span className="ml-2">
+                        · Meta:{" "}
+                        <span className="font-semibold text-liv-muted">
+                          {v.metaVendasQtdMes ?? META_PADRAO} contratos/mês
+                        </span>
+                        {v.metaVendasQtdMes == null && <span className="text-liv-faint"> (padrão)</span>}
+                      </span>
+                    )}
+                  </p>
                 </div>
 
                 <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end">
@@ -333,6 +374,17 @@ export default function VendedoresPage() {
                   >
                     {v.ativo ? <><UserX className="w-3.5 h-3.5" /> Desativar</> : <><UserCheck className="w-3.5 h-3.5" /> Ativar</>}
                   </button>
+                  {ROLES_VENDEDOR_TIME.includes(v.role as (typeof ROLES_VENDEDOR_TIME)[number]) && (
+                    <button
+                      onClick={() => {
+                        setMetaEditandoId(metaEditandoId === v.id ? null : v.id);
+                        setMetaValor(v.metaVendasQtdMes != null ? String(v.metaVendasQtdMes) : "");
+                      }}
+                      className="text-xs font-medium px-2.5 py-1.5 rounded-lg transition flex items-center gap-1 text-liv-sage hover:bg-liv-sage/10"
+                    >
+                      <Target className="w-3.5 h-3.5" /> Meta
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       setSenhaEditandoId(senhaEditandoId === v.id ? null : v.id);
@@ -351,6 +403,39 @@ export default function VendedoresPage() {
                   </button>
                 </div>
               </div>
+
+              {/* Inline: editar meta de contratos */}
+              {metaEditandoId === v.id && (
+                <div className="mt-3 pt-3 border-t border-liv-line">
+                  <p className="text-xs font-semibold text-liv-sage uppercase tracking-wider mb-2">
+                    Meta de contratos / mês
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      min={1}
+                      value={metaValor}
+                      onChange={(e) => setMetaValor(e.target.value)}
+                      placeholder={`Padrão: ${META_PADRAO} (consolidado 8 · novato 6)`}
+                      className="flex-1 px-3 py-2 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink focus:ring-2 focus:ring-liv-sage/30 outline-none text-sm"
+                    />
+                    <button
+                      onClick={() => salvarMeta(v.id)}
+                      disabled={metaSalvando}
+                      className="px-3 py-2 rounded-lg bg-liv-sage text-liv-bg font-medium hover:opacity-90 transition text-sm disabled:opacity-50 flex items-center gap-1"
+                    >
+                      <Check className="w-3.5 h-3.5" /> {metaSalvando ? "..." : "Salvar"}
+                    </button>
+                    <button
+                      onClick={() => { setMetaEditandoId(null); setMetaValor(""); }}
+                      className="px-3 py-2 rounded-lg border border-liv-line text-liv-muted hover:bg-liv-surface-2 transition text-sm"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <p className="text-xs text-liv-faint mt-1">Deixe vazio para usar o padrão global ({META_PADRAO}).</p>
+                </div>
+              )}
 
               {/* Inline: alterar senha */}
               {senhaEditandoId === v.id && (

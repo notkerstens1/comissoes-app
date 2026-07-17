@@ -25,6 +25,7 @@ export default function ConfiguracoesPage() {
     custoMaterialCAAcima7kw: 700,
     aliquotaImpostoPadrao: 0.06,
     metaReceitaMensal: 360000,
+    receitaProjetadaMes: 500000,
     custoFixoMensal: 40000,
     percentualSupervisorAte80: 0,
     percentualSupervisor80a100: 0.008,
@@ -44,6 +45,7 @@ export default function ConfiguracoesPage() {
     custoMaterialCAAte7kw: "",
     custoMaterialCAAcima7kw: "",
     metaReceitaMensal: "",
+    receitaProjetadaMes: "",
     custoFixoMensal: "",
   });
 
@@ -68,6 +70,7 @@ export default function ConfiguracoesPage() {
           custoMaterialCAAte7kw: formatCurrencyInput(data.custoMaterialCAAte7kw || 550),
           custoMaterialCAAcima7kw: formatCurrencyInput(data.custoMaterialCAAcima7kw || 700),
           metaReceitaMensal: formatCurrencyInput(data.metaReceitaMensal || 360000),
+          receitaProjetadaMes: formatCurrencyInput(data.receitaProjetadaMes || 500000),
           custoFixoMensal: formatCurrencyInput(data.custoFixoMensal || 40000),
         });
         setLoading(false);
@@ -139,7 +142,23 @@ export default function ConfiguracoesPage() {
               className="w-full px-4 py-2.5 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink focus:ring-2 focus:ring-liv-sage focus:border-liv-sage outline-none"
             />
             <p className="text-xs text-liv-faint mt-1">
-              Quantas vendas no mês contam como &quot;meta batida&quot; no ranking ao vivo (por vendedor, na visão Mês).
+              Padrão global (consolidado 8 · novato 6). A meta de cada vendedor é editável na tela Time; a meta do mês no placar é a soma das metas individuais.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-liv-muted mb-1">
+              Projeção de receita do mês (R$)
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={displays.receitaProjetadaMes}
+              onChange={(e) => handleCurrencyField("receitaProjetadaMes", e.target.value)}
+              className="w-full px-4 py-2.5 rounded-lg border border-liv-line bg-liv-surface-2 text-liv-ink focus:ring-2 focus:ring-liv-sage focus:border-liv-sage outline-none"
+            />
+            <p className="text-xs text-liv-faint mt-1">
+              Referência de faturamento exibida no placar do dashboard. Não é cobrança — a meta é a quantidade de contratos, não a receita.
             </p>
           </div>
         </div>
