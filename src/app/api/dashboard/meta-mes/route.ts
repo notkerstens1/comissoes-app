@@ -22,7 +22,8 @@ export async function GET() {
     prisma.configuracao.findFirst(),
     prisma.user.findMany({
       where: { role: { in: [...ROLES_VENDEDOR_TIME] }, ativo: true },
-      select: { metaVendasQtdMes: true },
+      select: { nome: true, metaVendasQtdMes: true },
+      orderBy: { nome: "asc" },
     }),
     prisma.venda.findMany({
       where: { mesReferencia: mes },
@@ -42,5 +43,10 @@ export async function GET() {
     vendas.map((v) => ({ valorVenda: v.valorVenda, statusContrato: v.statusContrato })),
   );
 
-  return NextResponse.json({ mes, mesLabel: getNomeMes(mes), ...result });
+  return NextResponse.json({
+    mes,
+    mesLabel: getNomeMes(mes),
+    vendedoresNomes: vendedores.map((v) => v.nome),
+    ...result,
+  });
 }
