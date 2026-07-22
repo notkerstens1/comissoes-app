@@ -191,6 +191,11 @@ export default function SetorTecnicoPage() {
   const [filterEtapa, setFilterEtapa] = useState<string | null>(null);
   const [buscaNome, setBuscaNome] = useState("");
   const [abaAtiva, setAbaAtiva] = useState<AbaAtiva>("PROJETOS");
+  // Filtros exclusivos da aba Concluidos (instalacoes concluidas): por instalador
+  // e por mes da data de instalacao. Zerados ao trocar de aba (ver trocarAba).
+  const [filtroInstalador, setFiltroInstalador] = useState("");
+  const [filtroMesDe, setFiltroMesDe] = useState("");   // "YYYY-MM"
+  const [filtroMesAte, setFiltroMesAte] = useState(""); // "YYYY-MM"
   const [trocandoEtapaId, setTrocandoEtapaId] = useState<string | null>(null);
   const [novaEtapaSel, setNovaEtapaSel] = useState("");
   const [novaEtapaTrilho, setNovaEtapaTrilho] = useState<"PROJETO" | "INSTALACAO">("PROJETO");
@@ -320,6 +325,15 @@ export default function SetorTecnicoPage() {
       body: JSON.stringify({ etapaInstalacao: proxima }),
     });
     await fetchRegistros();
+  }
+
+  // Troca de aba — zera o filtro de etapa e os filtros exclusivos de Concluidos.
+  function trocarAba(aba: AbaAtiva) {
+    setAbaAtiva(aba);
+    setFilterEtapa(null);
+    setFiltroInstalador("");
+    setFiltroMesDe("");
+    setFiltroMesAte("");
   }
 
   // Toggle de etiqueta manual (append/remove server-side via endpoint dedicado)
@@ -609,9 +623,34 @@ export default function SetorTecnicoPage() {
       (r.telefone || "").toLowerCase().includes(buscaNorm),
     );
   }
+  // Filtros exclusivos da aba Concluidos: por instalador e por periodo (mes da
+  // data de instalacao). So aplicam quando a aba Concluidos esta ativa.
+  if (abaAtiva === "CONCLUIDOS") {
+    if (filtroInstalador) {
+      clientesFiltrados = clientesFiltrados.filter((r) => (r.nomeInstalador ?? "").trim() === filtroInstalador);
+    }
+    if (filtroMesDe || filtroMesAte) {
+      clientesFiltrados = clientesFiltrados.filter((r) => {
+        const mes = (r.dataInstalacao ?? "").slice(0, 7); // "YYYY-MM"
+        if (!mes) return false; // sem data de instalacao nao entra num filtro por periodo
+        if (filtroMesDe && mes < filtroMesDe) return false;
+        if (filtroMesAte && mes > filtroMesAte) return false;
+        return true;
+      });
+    }
+  }
   clientesFiltrados = [...clientesFiltrados].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
   );
+
+  // Lista de instaladores distintos entre os cards concluidos (pro dropdown do filtro)
+  const instaladoresConcluidos = Array.from(
+    new Set(
+      filtrarPorAba(registros, "CONCLUIDOS")
+        .map((r) => (r.nomeInstalador ?? "").trim())
+        .filter(Boolean),
+    ),
+  ).sort((a, b) => a.localeCompare(b, "pt-BR"));
 
   // Lista de etapas pra exibir no filtro lateral (depende da aba)
   const etapasDoFiltro =
@@ -743,7 +782,7 @@ export default function SetorTecnicoPage() {
         {/* 4 abas */}
         <div className="mb-4 flex gap-1 bg-liv-surface border border-liv-line rounded-xl p-1 w-fit flex-wrap">
           <button
-            onClick={() => { setAbaAtiva("PROJETOS"); setFilterEtapa(null); }}
+            onClick={() => trocarAba("PROJETOS")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
               abaAtiva === "PROJETOS" ? "bg-liv-sage text-liv-bg" : "text-liv-muted hover:text-liv-ink"
             }`}
@@ -751,7 +790,7 @@ export default function SetorTecnicoPage() {
             Projetos ({countProjetos})
           </button>
           <button
-            onClick={() => { setAbaAtiva("PROJETOS_CONCLUIDOS"); setFilterEtapa(null); }}
+            onClick={() => trocarAba("PROJETOS_CONCLUIDOS")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
               abaAtiva === "PROJETOS_CONCLUIDOS" ? "bg-liv-sage-deep text-liv-ink" : "text-liv-muted hover:text-liv-ink"
             }`}
@@ -759,7 +798,7 @@ export default function SetorTecnicoPage() {
             Projetos Concluidos ({countProjetosConcluidos})
           </button>
           <button
-            onClick={() => { setAbaAtiva("INSTALACOES"); setFilterEtapa(null); }}
+            onClick={() => trocarAba("INSTALACOES")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
               abaAtiva === "INSTALACOES" ? "bg-liv-info text-liv-bg" : "text-liv-muted hover:text-liv-ink"
             }`}
@@ -767,7 +806,7 @@ export default function SetorTecnicoPage() {
             Instalacoes ({countInstalacoes})
           </button>
           <button
-            onClick={() => { setAbaAtiva("CONCLUIDOS"); setFilterEtapa(null); }}
+            onClick={() => trocarAba("CONCLUIDOS")}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
               abaAtiva === "CONCLUIDOS" ? "bg-liv-sage text-liv-bg" : "text-liv-muted hover:text-liv-ink"
             }`}
@@ -830,6 +869,52 @@ export default function SetorTecnicoPage() {
             );
           })}
         </div>
+
+        {/* Filtros exclusivos da aba Concluidos: instalador + periodo (mes da instalacao) */}
+        {abaAtiva === "CONCLUIDOS" && (
+          <div className="mb-6 flex flex-wrap items-end gap-3 bg-liv-surface border border-liv-line rounded-xl p-4">
+            <div>
+              <label className="block text-xs text-liv-faint mb-1">Instalador</label>
+              <select
+                value={filtroInstalador}
+                onChange={(e) => setFiltroInstalador(e.target.value)}
+                className="bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+              >
+                <option value="">Todos os instaladores</option>
+                {instaladoresConcluidos.map((nome) => (
+                  <option key={nome} value={nome}>{nome}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-liv-faint mb-1">Instalado de</label>
+              <input
+                type="month"
+                value={filtroMesDe}
+                onChange={(e) => setFiltroMesDe(e.target.value)}
+                className="bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-liv-faint mb-1">Até</label>
+              <input
+                type="month"
+                value={filtroMesAte}
+                onChange={(e) => setFiltroMesAte(e.target.value)}
+                className="bg-liv-surface-2 border border-liv-line rounded-lg px-3 py-2 text-sm text-liv-ink focus:border-liv-sage outline-none"
+              />
+            </div>
+            {(filtroInstalador || filtroMesDe || filtroMesAte) && (
+              <button
+                onClick={() => { setFiltroInstalador(""); setFiltroMesDe(""); setFiltroMesAte(""); }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold bg-liv-surface-2 text-liv-muted hover:bg-liv-line transition"
+              >
+                <X className="w-3.5 h-3.5" />
+                Limpar filtros
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Lista de cards */}
         {loading ? (

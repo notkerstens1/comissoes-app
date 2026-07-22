@@ -19,7 +19,13 @@ export type CategoriaEtapa = "PROJETO" | "INSTALACAO";
 // TRILHO PROJETO
 // ------------------------------------------------------------
 export const ETAPAS_PROJETO = [
-  { key: "NOVO_PROJETO",     label: "Novo Projeto",       cor: "sky",     ordem: 1 },
+  { key: "NOVO_PROJETO",       label: "Novo Projeto",         cor: "sky",     ordem: 1 },
+  // Cliente aguardando troca de titularidade na concessionaria (Coserne leva
+  // 15-45 dias pra gerar a fatura nova). NAO faz parte do avanco linear — e um
+  // status de "estacionamento" que o time move na mao e acompanha por comentario.
+  // ordem 20 mantem fora do getProximaEtapa (Novo Projeto continua avancando
+  // pra Consultar Carga); a posicao no array e que coloca o chip logo apos Novo Projeto.
+  { key: "CLIENTES_EM_TRAMITE", label: "Clientes em Tramite", cor: "fuchsia", ordem: 20 },
   { key: "CONSULTAR_CARGA",  label: "Consultar Carga",    cor: "amber",   ordem: 2 },
   { key: "AUMENTO_CARGA",    label: "Aumento de Carga",   cor: "orange",  ordem: 3 },
   { key: "EMITIR_TRT",       label: "Emitir TRT",         cor: "violet",  ordem: 4 },
@@ -170,6 +176,7 @@ export function etapaTecnicoParaPosVenda(key: string): string | null {
 export const ETAPA_TECNICO_CORES: Record<string, { bg: string; text: string; border: string }> = {
   // PROJETO
   NOVO_PROJETO:         { bg: "bg-sky-400/10",     text: "text-sky-400",     border: "border-sky-400/30"     },
+  CLIENTES_EM_TRAMITE:  { bg: "bg-fuchsia-400/10", text: "text-fuchsia-400", border: "border-fuchsia-400/30" },
   CONSULTAR_CARGA:      { bg: "bg-amber-400/10",   text: "text-amber-400",   border: "border-amber-400/30"   },
   AUMENTO_CARGA:        { bg: "bg-orange-400/10",  text: "text-orange-400",  border: "border-orange-400/30"  },
   EMITIR_TRT:           { bg: "bg-violet-400/10",  text: "text-violet-400",  border: "border-violet-400/30"  },
