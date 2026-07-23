@@ -4,7 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ROLES_VENDEDOR_TIME } from "@/lib/roles";
 import { getMesAtual, getNomeMes } from "@/lib/dates";
-import { buildMetaMes, somarMetasContratos } from "@/lib/meta-mes";
+import { buildMetaMes, somarMetasContratos, EXCLUSOES_META_MES } from "@/lib/meta-mes";
 
 // GET - Placar de meta do mes corrente (todos os roles autenticados).
 // Meta de contratos = soma das metas individuais dos vendedores ativos.
@@ -17,16 +17,25 @@ export async function GET() {
   }
 
   const mes = getMesAtual();
+  // Vendedores fora da meta so neste mes (ex.: quem entrou na reta final).
+  const excluidos = EXCLUSOES_META_MES[mes] ?? [];
 
   const [config, vendedores, vendas] = await Promise.all([
     prisma.configuracao.findFirst(),
     prisma.user.findMany({
-      where: { role: { in: [...ROLES_VENDEDOR_TIME] }, ativo: true },
+      where: {
+        role: { in: [...ROLES_VENDEDOR_TIME] },
+        ativo: true,
+        ...(excluidos.length ? { id: { notIn: excluidos } } : {}),
+      },
       select: { nome: true, metaVendasQtdMes: true },
       orderBy: { nome: "asc" },
     }),
     prisma.venda.findMany({
-      where: { mesReferencia: mes },
+      where: {
+        mesReferencia: mes,
+        ...(excluidos.length ? { vendedorId: { notIn: excluidos } } : {}),
+      },
       select: { valorVenda: true, statusContrato: true },
     }),
   ]);

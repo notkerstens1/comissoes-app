@@ -12,6 +12,21 @@
 //   A_FINALIZAR = so assinou contrato, falta burocracia      -> "a finalizar"
 // A separacao importa: contrato assinado com pendencia ainda nao e caixa.
 
+// Exclusoes pontuais da meta do mes.
+//
+// Vendedor que entrou na reta final de um mes nao deve ser medido contra a meta
+// cheia — some do alvo e do realizado APENAS naquele mes. Chaveado por
+// mesReferencia ("YYYY-MM"); em qualquer outro mes o vendedor conta normal, sem
+// precisar mexer aqui de novo (ex.: em agosto a regra de julho nao se aplica).
+//
+// O vendedor segue registrando vendas e recebendo comissao normalmente — a
+// exclusao afeta SO o placar da meta do dashboard, nada mais.
+export const EXCLUSOES_META_MES: Record<string, string[]> = {
+  // Joao Pedro entrou 20/jul/2026, a 2 dias do fim do mes. Fora da meta de
+  // julho; entra normal em agosto (primeiro mes cheio).
+  "2026-07": ["cmrt96wf30001ujm2rg9mwb4i"],
+};
+
 export interface VendaMeta {
   valorVenda: number;
   statusContrato: string; // "COMPLETO" | "A_FINALIZAR"
