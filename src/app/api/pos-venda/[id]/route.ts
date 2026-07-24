@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isAdmin, isPosVenda } from "@/lib/roles";
+import { isAdmin, isPosVenda, canAccessOperacao } from "@/lib/roles";
 
 // GET — buscar registro completo (com campos pesados) sob demanda
 export async function GET(
@@ -13,7 +13,9 @@ export async function GET(
   if (!session) return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
 
   const role = session.user.role;
-  if (!isPosVenda(role) && !isAdmin(role)) {
+  // Leitura liberada pra todo o Setor Tecnico (inclui Engenharia/Pedro),
+  // igual ao guard da pagina. Escrita (PUT/DELETE abaixo) segue restrita.
+  if (!canAccessOperacao(role)) {
     return NextResponse.json({ error: "Nao autorizado" }, { status: 403 });
   }
 

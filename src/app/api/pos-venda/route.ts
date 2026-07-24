@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isAdmin, isPosVenda } from "@/lib/roles";
+import { isAdmin, isPosVenda, canAccessOperacao } from "@/lib/roles";
 import { gerarCodigoLocalizadorUnico } from "@/lib/codigo-localizador";
 
 // GET — listar registros de pos venda (payload enxuto: sem campos JSON pesados)
@@ -13,7 +13,10 @@ export async function GET() {
   if (!session) return NextResponse.json({ error: "Nao autorizado" }, { status: 401 });
 
   const role = session.user.role;
-  if (!isPosVenda(role) && !isAdmin(role)) {
+  // Leitura liberada pra todo o Setor Tecnico (Pos-Venda + Engenharia/Pedro +
+  // Financeiro + Admin/Diretor) — mesmo guarda-chuva da pagina /pos-venda.
+  // Escrita (POST abaixo) segue restrita a Pos-Venda/Admin.
+  if (!canAccessOperacao(role)) {
     return NextResponse.json({ error: "Nao autorizado" }, { status: 403 });
   }
 
