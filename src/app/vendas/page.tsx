@@ -686,6 +686,7 @@ export default function VendasPage() {
                       <option value="SOLFACIL">Solfacil</option>
                       <option value="SOL_AGORA">Sol Agora</option>
                       <option value="TVIN">TVIN</option>
+                      <option value="77SOL">77 Sol</option>
                       <option value="A_VISTA">A Vista</option>
                     </select>
                   </div>
@@ -704,6 +705,8 @@ export default function VendasPage() {
                       <option value="BLUESUN">Bluesun</option>
                       <option value="SOL_AGORA">Sol Agora</option>
                       <option value="TVIN">TVIN</option>
+                      <option value="FOTUS">Fotus</option>
+                      <option value="77SOL">77 Sol</option>
                     </select>
                   </div>
                 </div>
@@ -1041,6 +1044,7 @@ export default function VendasPage() {
                 <tr>
                   <th className="text-left px-4 py-3 font-medium">Cliente</th>
                   {admin && <th className="text-left px-4 py-3 font-medium">Vendedor</th>}
+                  <th className="text-left px-4 py-3 font-medium">Financeira</th>
                   <th className="text-left px-4 py-3 font-medium">Distribuidora</th>
                   <th className="text-right px-4 py-3 font-medium">Valor</th>
                   <th className="text-right px-4 py-3 font-medium">Equip.</th>
@@ -1061,6 +1065,7 @@ export default function VendasPage() {
                   <tr key={v.id} className="hover:bg-liv-surface-2">
                     <td className="px-4 py-3 font-medium text-liv-ink">{v.cliente}</td>
                     {admin && <td className="px-4 py-3 text-liv-muted">{v.vendedor?.nome || "-"}</td>}
+                    <td className="px-4 py-3 text-liv-muted">{v.formaPagamento || "-"}</td>
                     <td className="px-4 py-3 text-liv-muted">{v.distribuidora}</td>
                     <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(v.valorVenda)}</td>
                     <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(v.custoEquipamentos)}</td>
@@ -1170,8 +1175,8 @@ export default function VendasPage() {
               </tbody>
               <tfoot className="bg-liv-sage/10 font-semibold text-liv-sage">
                 <tr>
-                  {/* Cliente + Vendedor (admin) + Distribuidora */}
-                  <td className="px-4 py-3" colSpan={admin ? 3 : 2}>TOTAIS</td>
+                  {/* Cliente + Vendedor (admin) + Financeira + Distribuidora */}
+                  <td className="px-4 py-3" colSpan={admin ? 4 : 3}>TOTAIS</td>
                   {/* Valor */}
                   <td className="px-4 py-3 text-right tabular-nums">{formatCurrency(totalVendido)}</td>
                   {/* Equip. */}

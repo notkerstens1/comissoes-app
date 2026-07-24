@@ -670,6 +670,7 @@ export default function OportunidadesPage() {
                         <option value="SOLFACIL">Solfacil</option>
                         <option value="SOL_AGORA">Sol Agora</option>
                         <option value="TVIN">TVIN</option>
+                        <option value="77SOL">77 Sol</option>
                         <option value="A_VISTA">A Vista</option>
                       </select>
                     </div>
@@ -684,6 +685,8 @@ export default function OportunidadesPage() {
                         <option value="BLUESUN">Bluesun</option>
                         <option value="SOL_AGORA">Sol Agora</option>
                         <option value="TVIN">TVIN</option>
+                        <option value="FOTUS">Fotus</option>
+                        <option value="77SOL">77 Sol</option>
                       </select>
                     </div>
                   </div>

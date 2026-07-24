@@ -250,6 +250,7 @@ export default function FinanceiroPage() {
                       <th className="text-left px-4 py-3 font-medium">Vendedor</th>
                       <th className="text-right px-4 py-3 font-medium">Valor Venda</th>
                       <th className="text-right px-4 py-3 font-medium">Equipamentos</th>
+                      <th className="text-left px-4 py-3 font-medium">Financeira</th>
                       <th className="text-left px-4 py-3 font-medium">Distribuidora</th>
                       <th className="text-right px-4 py-3 font-medium">Com. Venda</th>
                       <th className="text-right px-4 py-3 font-medium">Com. Over</th>
@@ -267,6 +268,7 @@ export default function FinanceiroPage() {
                           <td className="px-4 py-3 text-liv-muted">{v.vendedor}</td>
                           <td className="px-4 py-3 text-right tabular-nums text-liv-ink">{formatCurrency(v.valorVenda)}</td>
                           <td className="px-4 py-3 text-right tabular-nums text-liv-muted">{formatCurrency(v.custoEquipamentos)}</td>
+                          <td className="px-4 py-3 text-liv-muted">{v.formaPagamento || "-"}</td>
                           <td className="px-4 py-3 text-liv-muted">{v.distribuidora || "-"}</td>
                           <td className="px-4 py-3 text-right tabular-nums text-liv-faint">
                             {formatCurrency(v.comissaoVenda)}
@@ -390,7 +392,7 @@ export default function FinanceiroPage() {
                         {/* Expanded details row */}
                         {expandedId === v.id && (
                           <tr className="bg-liv-surface-2">
-                            <td colSpan={9} className="px-4 py-4">
+                            <td colSpan={10} className="px-4 py-4">
                               <div className="space-y-4">
                                 {/* Sale details */}
                                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
